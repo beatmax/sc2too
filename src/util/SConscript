@@ -1,0 +1,5 @@
+Import('*')
+
+util = env.Library('util', Glob('*.cpp'))
+
+Return('util')

@@ -1,0 +1,83 @@
+---
+Language: Cpp
+AccessModifierOffset: -2
+BasedOnStyle: Google
+MaxEmptyLinesToKeep: 1
+PointerAlignment: Left
+Standard: Cpp11
+ContinuationIndentWidth: 4
+
+# Always break after an open bracket of a function declaration in case the
+# parameters do not fit on a single line.
+AlignAfterOpenBracket: AlwaysBreak
+
+AlignOperands: false
+
+AlignTrailingComments: true
+
+# The following options allow short statements to be written on a single line,
+# like:
+#
+#   if (b) return;
+#
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+
+AllowShortFunctionsOnASingleLine: InlineOnly
+
+# Always add a newline after a template<typename T> declaration.
+AlwaysBreakTemplateDeclarations: true
+
+# Function declaration parameters will either all be on the same line, or will
+# be on one line each.
+BinPackParameters: false
+
+# Binary operators will be placed before a line break.
+BreakBeforeBinaryOperators: None
+
+# Ternary operators will be placed after a line break.
+BreakBeforeTernaryOperators: true
+
+# Break constructor initializers before the colon:
+#
+#   Constructor
+#     : a_{0},
+#       b_{1},
+#       ...
+#
+BreakConstructorInitializers: BeforeColon
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+#  AfterClass: true
+#  AfterControlStatement: true
+#  AfterEnum: true
+#  AfterFunction: true
+#  AfterNamespace: true
+#  AfterStruct: true
+#  BeforeCatch: true
+  BeforeElse: true
+
+BreakStringLiterals: true
+
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerIndentWidth: 2
+
+ColumnLimit: 100
+
+DerivePointerAlignment: false
+FixNamespaceComments: false
+
+IncludeBlocks: Regroup
+IncludeCategories:
+    - Regex:  '^".*"'
+      Priority: 1
+    - Regex:  '^<(boost).*>'
+      Priority: 2
+    - Regex:  '^<.*'
+      Priority: 3
+
+NamespaceIndentation: All
+
+SpaceAfterTemplateKeyword: false

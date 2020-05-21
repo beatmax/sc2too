@@ -1,0 +1,5 @@
+.sconsign.dblite
+.config.py
+build/
+*.swp
+*.swo

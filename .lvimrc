@@ -1,0 +1,32 @@
+if has('python')
+    command! -nargs=1 Pyf pyf <args>
+elseif has('python3')
+    command! -nargs=1 Pyf py3f <args>
+endif
+
+function! ClangFormat()
+    Pyf /usr/share/clang/clang-format.py
+endfunction
+
+function! ClangFormatFile()
+    let l:lines="all"
+    Pyf /usr/share/clang/clang-format.py
+endfunction
+
+vnoremap <buffer> <leader>cf :call ClangFormat()<cr>
+nnoremap <buffer> <leader>cf :call ClangFormatFile()<cr>
+
+autocmd BufWritePre *.h,*.cpp call ClangFormatFile()
+
+set path+=include
+
+au! BufEnter *.cpp let b:fswitchdst = 'h'
+au! BufEnter *.h let b:fswitchdst = 'cpp'
+
+function! BuildFileCommand()
+    let l:target=expand('%:r:s?^src/?build/?') . '.o'
+    return 'make ' . l:target
+endfunction
+
+nnoremap <Leader>b :wa<CR>:execute BuildFileCommand()<CR>
+nnoremap <Leader>\ :wa<CR>:make unittest<CR>

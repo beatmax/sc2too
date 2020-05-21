@@ -1,0 +1,6 @@
+Import('*')
+
+testenv = env.Clone()
+testenv.Append(CPPPATH = '#/thirdparty/Catch2/single_include')
+
+testenv.Program('tests', Glob('*.cpp'), LIBS=[rts, util])

@@ -1,0 +1,8 @@
+Import('*')
+
+rts = SConscript(['rts/SConscript'], exports='env')
+util = SConscript(['util/SConscript'], exports='env')
+
+SConscript(['test/SConscript'], exports='env rts util')
+
+SConscript(['sc2too/SConscript'], exports='env rts util')
