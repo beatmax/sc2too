@@ -14,25 +14,31 @@ namespace rts {
   class Map {
   public:
     using Free = std::monostate;
-    using Cell = std::variant<Free, Blocker>;
+    using Cell = std::variant<Free, Blocker, EntitySPtr>;
 
-    void load(std::istream& is);
+    explicit Map(const std::string& s);
+    explicit Map(std::istream&& is);
+    explicit Map(const std::vector<std::string>& lines);
 
-    size_t maxX{};
-    size_t maxY{};
+    const size_t maxX;
+    const size_t maxY;
 
+    const Cell& at(Position p) const { return at(p.x, p.y); }
     const Cell& at(size_t x, size_t y) const { return cells_[y * maxX + x]; }
 
-  private:
     template<typename T>
-    void set(Location loc, T&& e) {
-      cells_[loc.y * maxX + loc.x] = std::forward<T>(e);
+    void set(Position p, T&& e) {
+      cells_[p.y * maxX + p.x] = std::forward<T>(e);
     }
 
+  private:
     std::vector<Cell> cells_;
   };
 
   inline bool isFree(const Map::Cell& c) { return c.index() == 0; }
   inline bool hasBlocker(const Map::Cell& c) { return c.index() == 1; }
+  inline bool hasEntity(const Map::Cell& c) { return c.index() == 2; }
+
   inline const Blocker& getBlocker(const Map::Cell& c) { return std::get<Blocker>(c); }
+  inline EntitySCPtr getEntity(const Map::Cell& c) { return std::get<EntitySPtr>(c); }
 }
