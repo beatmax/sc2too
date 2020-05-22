@@ -23,6 +23,8 @@ namespace rts {
     const size_t maxX;
     const size_t maxY;
 
+    Cell& at(Position p) { return at(p.x, p.y); }
+    Cell& at(size_t x, size_t y) { return cells_[y * maxX + x]; }
     const Cell& at(Position p) const { return at(p.x, p.y); }
     const Cell& at(size_t x, size_t y) const { return cells_[y * maxX + x]; }
 
@@ -40,5 +42,6 @@ namespace rts {
   inline bool hasEntity(const Map::Cell& c) { return c.index() == 2; }
 
   inline const Blocker& getBlocker(const Map::Cell& c) { return std::get<Blocker>(c); }
+  inline EntitySPtr getEntity(Map::Cell& c) { return std::get<EntitySPtr>(c); }
   inline EntitySCPtr getEntity(const Map::Cell& c) { return std::get<EntitySPtr>(c); }
 }

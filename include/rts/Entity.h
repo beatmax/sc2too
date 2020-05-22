@@ -1,14 +1,26 @@
 #pragma once
 
+#include "Ability.h"
 #include "types.h"
+
+#include <utility>
 
 namespace rts {
   class Entity {
   public:
-    explicit Entity(Position p) : position{p} {}
     virtual ~Entity() = 0;
 
     Position position;
+    AbilityList abilities;
+
+    static WorldActionList trigger(
+        Ability& a, const World& world, const EntitySPtr& entity, Position target);
+    static WorldActionList step(const World& world, const EntitySPtr& entity);
+    void cancelAll();
+
+  protected:
+    Entity(Position p) : position{p} {}
+    void addAbility(Ability&& a) { abilities.push_back(std::move(a)); }
   };
 
   template<typename Derived>

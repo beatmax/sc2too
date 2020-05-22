@@ -1,5 +1,7 @@
 #include "tests-rts-assets.h"
 
+#include "rts/abilities.h"
+
 //   0.........10........20........30........40
 const std::string test::map{
     "                                        \n"  // 0
@@ -13,3 +15,7 @@ const std::string test::map{
     "                                        \n"  // 8
     "                                        \n"  // 9
 };
+
+test::Simpleton::Simpleton(rts::Position p) : Inherited{p} {
+  addAbility(rts::abilities::move());
+}

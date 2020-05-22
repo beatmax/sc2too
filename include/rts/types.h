@@ -8,17 +8,21 @@
 namespace rts {
 
   class Entity;
+  class World;
 
   using EntitySPtr = std::shared_ptr<Entity>;
   using EntitySCPtr = std::shared_ptr<const Entity>;
   using EntityWPtr = std::weak_ptr<Entity>;
   using EntityWCPtr = std::weak_ptr<const Entity>;
 
+  using GameTime = uint32_t;  // = centiseconds in normal speed (100 Hz)
+
   struct Position {
     size_t x;
     size_t y;
 
     bool operator==(const Position& other) const { return x == other.x && y == other.y; }
+    bool operator!=(const Position& other) const { return !(*this == other); }
   };
 
   struct Vector {
