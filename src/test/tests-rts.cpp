@@ -22,11 +22,17 @@ TEST_CASE("Hello world!", "[rts]") {
     Position pos{20, 5};
     world.add(test::Simpleton::create(pos));
     REQUIRE(hasEntity(cworld.map.at(pos)));
-    EntitySPtr e{getEntity(world.map.at(pos))};
     EntitySCPtr ce{getEntity(cworld.map.at(pos))};
     REQUIRE(ce->position == pos);
 
-    SECTION("The 'move' ability is activated and the entity moves") {
+    SECTION("The entity is destroyed") {
+      world.destroy(ce);
+      REQUIRE(isFree(cworld.map.at(ce->position)));
+      REQUIRE(ce.use_count() == 1);
+    }
+
+    SECTION("The 'move' ability is triggered") {
+      EntitySPtr e{getEntity(world.map.at(pos))};
       REQUIRE(e->abilities.size() > 0);
       Ability& moveAbility = e->abilities.front();
       REQUIRE(moveAbility.name() == "move");
@@ -34,27 +40,40 @@ TEST_CASE("Hello world!", "[rts]") {
       world.time = 1;
       const Position targetPos{20, 3};
       world.update(Entity::trigger(moveAbility, cworld, e, targetPos));
-
       REQUIRE(ce->position == pos);
 
-      while (pos != targetPos) {
+      SECTION("The entity moves") {
+        while (pos != targetPos) {
+          ++world.time;
+          world.update(Entity::step(cworld, e));
+
+          Position prevPos{pos};
+          --pos.y;
+          REQUIRE(ce->position == pos);
+          REQUIRE(isFree(cworld.map.at(prevPos)));
+          REQUIRE(hasEntity(cworld.map.at(pos)));
+          REQUIRE(moveAbility.active());
+        }
+
+        // the next step deactivates the ability
         ++world.time;
         world.update(Entity::step(cworld, e));
-
-        Position prevPos{pos};
-        --pos.y;
-        REQUIRE(ce->position == pos);
-        REQUIRE(isFree(cworld.map.at(prevPos)));
-        REQUIRE(hasEntity(cworld.map.at(pos)));
-        REQUIRE(moveAbility.active());
+        REQUIRE(ce->position == targetPos);
+        REQUIRE(!moveAbility.active());
+        REQUIRE(moveAbility.nextStepTime() == 0);
       }
 
-      // the next step deactivates the ability
-      ++world.time;
-      world.update(Entity::step(cworld, e));
-      REQUIRE(ce->position == targetPos);
-      REQUIRE(!moveAbility.active());
-      REQUIRE(moveAbility.nextStepTime() == 0);
+      SECTION("The entity is destroyed with pending actions on it") {
+        ++world.time;
+        WorldActionList actions{Entity::step(cworld, e)};
+        REQUIRE(!actions.empty());
+        e.reset();
+        REQUIRE(ce.use_count() == 2);
+        world.destroy(ce);
+        REQUIRE(ce.use_count() == 1);
+        ce.reset();
+        world.update(actions);
+      }
     }
   }
 }

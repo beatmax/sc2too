@@ -18,6 +18,7 @@ namespace rts {
     void update(const WorldActionList& actions);
 
     void add(EntitySPtr e);
+    void destroy(EntityWCPtr e);
     void moveTowards(Position p, EntityWPtr e);
   };
 }
