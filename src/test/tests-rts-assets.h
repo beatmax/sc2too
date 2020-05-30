@@ -11,6 +11,6 @@ namespace test {
     using Inherited = rts::EntityTpl<Simpleton>;
 
   public:
-    Simpleton(rts::Position p);
+    explicit Simpleton(rts::Position p);
   };
 }

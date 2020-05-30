@@ -1,0 +1,5 @@
+Import('*')
+
+sc2 = env.Library('sc2', Glob('*.cpp'))
+
+Return('sc2')

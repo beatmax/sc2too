@@ -1,0 +1,5 @@
+Import('*')
+
+ui = env.Library('ui', Glob('*.cpp'))
+
+Return('ui')

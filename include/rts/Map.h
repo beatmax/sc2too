@@ -20,13 +20,13 @@ namespace rts {
     explicit Map(std::istream&& is);
     explicit Map(const std::vector<std::string>& lines);
 
-    const size_t maxX;
-    const size_t maxY;
+    const Coordinate maxX;
+    const Coordinate maxY;
 
     Cell& at(Position p) { return at(p.x, p.y); }
-    Cell& at(size_t x, size_t y) { return cells_[y * maxX + x]; }
+    Cell& at(Coordinate x, Coordinate y) { return cells_[y * maxX + x]; }
     const Cell& at(Position p) const { return at(p.x, p.y); }
-    const Cell& at(size_t x, size_t y) const { return cells_[y * maxX + x]; }
+    const Cell& at(Coordinate x, Coordinate y) const { return cells_[y * maxX + x]; }
 
     template<typename T>
     void set(Position p, T&& e) {

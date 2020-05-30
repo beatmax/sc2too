@@ -1,8 +1,10 @@
 Import('*')
 
 rts = SConscript(['rts/SConscript'], exports='env')
+sc2 = SConscript(['sc2/SConscript'], exports='env')
+ui = SConscript(['ui/SConscript'], exports='env')
 util = SConscript(['util/SConscript'], exports='env')
 
 SConscript(['test/SConscript'], exports='env rts util')
 
-SConscript(['sc2too/SConscript'], exports='env rts util')
+SConscript(['sc2too/SConscript'], exports='env rts sc2 ui util')
