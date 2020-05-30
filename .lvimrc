@@ -16,8 +16,6 @@ endfunction
 vnoremap <buffer> <leader>cf :call ClangFormat()<cr>
 nnoremap <buffer> <leader>cf :call ClangFormatFile()<cr>
 
-autocmd BufWritePre *.h,*.cpp call ClangFormatFile()
-
 set path+=include
 
 au! BufEnter *.cpp let b:fswitchdst = 'h'
