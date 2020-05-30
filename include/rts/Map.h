@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "util/Matrix.h"
 
 #include <iosfwd>
 #include <utility>
@@ -8,8 +9,6 @@
 #include <vector>
 
 namespace rts {
-
-  enum class Blocker { Rock };
 
   class Map {
   public:
@@ -24,17 +23,17 @@ namespace rts {
     const Coordinate maxY;
 
     Cell& at(Position p) { return at(p.x, p.y); }
-    Cell& at(Coordinate x, Coordinate y) { return cells_[y * maxX + x]; }
+    Cell& at(Coordinate x, Coordinate y) { return cells_(y, x); }
     const Cell& at(Position p) const { return at(p.x, p.y); }
-    const Cell& at(Coordinate x, Coordinate y) const { return cells_[y * maxX + x]; }
+    const Cell& at(Coordinate x, Coordinate y) const { return cells_(y, x); }
 
     template<typename T>
     void set(Position p, T&& e) {
-      cells_[p.y * maxX + p.x] = std::forward<T>(e);
+      cells_(p.y, p.x) = std::forward<T>(e);
     }
 
   private:
-    std::vector<Cell> cells_;
+    util::Matrix<Cell, Coordinate> cells_;
   };
 
   inline bool isFree(const Map::Cell& c) { return c.index() == 0; }

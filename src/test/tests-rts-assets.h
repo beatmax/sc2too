@@ -7,8 +7,8 @@
 namespace test {
   extern const std::string map;
 
-  class Simpleton : public rts::EntityTpl<Simpleton> {
-    using Inherited = rts::EntityTpl<Simpleton>;
+  class Simpleton : public rts::EntityTpl<Simpleton, rts::Ui> {
+    using Inherited = rts::EntityTpl<Simpleton, rts::Ui>;
 
   public:
     explicit Simpleton(rts::Position p);

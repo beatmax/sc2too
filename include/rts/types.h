@@ -36,4 +36,11 @@ namespace rts {
   inline Vector operator-(const Position& a, const Position& b) { return {a.x - b.x, a.y - b.y}; }
 
   std::ostream& operator<<(std::ostream& os, const Position& p);
+
+  enum class Blocker { Rock };
+
+  class Ui {
+  public:
+    virtual ~Ui() = default;
+  };
 }

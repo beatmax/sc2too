@@ -3,6 +3,7 @@
 #include "dim.h"
 #include "graph.h"
 #include "render.h"
+#include "ui/Sprite.h"
 
 #include <ncurses.h>
 #include <signal.h>
@@ -31,6 +32,8 @@ ui::Output::Output() {
         << 'x' << dim::totalHeight;
     throw std::runtime_error{oss.str()};
   }
+
+  loadSprites();  // requires having ncurses initialized
 
   headerWin =
       newwin(dim::headerWinHeight, dim::defaultWinWidth, dim::headerWinTop, dim::defaultWinLeft);

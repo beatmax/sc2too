@@ -14,7 +14,7 @@ rts::Map::Map(std::istream&& is) : Map{util::fs::readLines(is)} {
 rts::Map::Map(const std::vector<std::string>& lines)
   : maxX{lines.empty() ? 0 : Coordinate(lines.front().size())},
     maxY{Coordinate(lines.size())},
-    cells_(maxX * maxY) {
+    cells_(maxY, maxX) {
   for (Coordinate y = 0; y < maxY; ++y) {
     const auto& line = lines[y];
     assert(Coordinate(line.size()) == maxX);

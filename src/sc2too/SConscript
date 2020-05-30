@@ -1,3 +1,3 @@
 Import('*')
 
-env.Program('sc2too.cpp', LIBS=[ui, sc2, rts, util, 'ncurses'])
+env.Program('sc2too.cpp', LIBS=[sc2, ui, rts, util, 'ncurses'])

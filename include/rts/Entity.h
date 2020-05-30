@@ -18,12 +18,14 @@ namespace rts {
     static WorldActionList step(const World& world, const EntitySPtr& entity);
     void cancelAll();
 
+    virtual const Ui& ui() const = 0;
+
   protected:
     Entity(Position p) : position{p} {}
     void addAbility(Ability&& a) { abilities.push_back(std::move(a)); }
   };
 
-  template<typename Derived>
+  template<typename Derived, typename DerivedUi>
   class EntityTpl : public Entity {
   public:
     using Entity::Entity;
@@ -32,5 +34,10 @@ namespace rts {
     static EntitySPtr create(Args&&... args) {
       return EntitySPtr{new Derived{std::forward<Args>(args)...}};
     }
+
+    const DerivedUi& ui() const final { return ui_; }
+
+  private:
+    DerivedUi ui_;
   };
 }

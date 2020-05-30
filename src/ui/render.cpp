@@ -2,6 +2,18 @@
 
 #include "dim.h"
 #include "graph.h"
+#include "rts/Entity.h"
+#include "ui/Sprite.h"
+
+namespace ui {
+  namespace {
+    void draw(WINDOW* win, int y, int x, const Sprite& sprite) {
+      mvwaddch(win, y, x, sprite.matrix(0, 0));
+      for (size_t j = 1; j < 3; ++j)
+        waddch(win, sprite.matrix(0, j));
+    }
+  }
+}
 
 void ui::grid(WINDOW* win) {
   wattrset(win, graph::darkGrey());
@@ -31,24 +43,19 @@ void ui::render(WINDOW* win, const rts::World& world, const Camera& camera) {
   for (rts::Coordinate cellY = topLeft.y; cellY < bottomRight.y; ++cellY) {
     int x = 0;
     for (rts::Coordinate cellX = topLeft.x; cellX < bottomRight.x; ++cellX) {
-      chtype s[3]{' ', ' ', ' '};
-      int attr;
       const auto& cell{map.at(cellX, cellY)};
       if (hasBlocker(cell)) {
-        attr = graph::red();
-        s[0] = s[1] = s[2] = ACS_CKBOARD;
+        wattrset(win, graph::red());
+        draw(win, y, x, getSprite(getBlocker(cell)));
       }
       else if (hasEntity(cell)) {
-        attr = graph::green();
-        s[1] = 'o';
+        wattrset(win, graph::green());
+        draw(win, y, x, getSprite(*getEntity(cell)));
       }
       else {
-        attr = graph::white();
+        wattrset(win, graph::white());
+        mvwaddstr(win, y, x, "   ");
       }
-      wattrset(win, attr);
-      mvwaddch(win, y, x, s[0]);
-      waddch(win, s[1]);
-      waddch(win, s[2]);
       x += dim::cellWidth + 1;
     }
     y += 2;
