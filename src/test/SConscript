@@ -3,4 +3,12 @@ Import('*')
 testenv = env.Clone()
 testenv.Append(CPPPATH = '#/thirdparty/Catch2/single_include')
 
+conf = Configure(testenv)
+if not conf.CheckCXXHeader('catch2/catch.hpp'):
+    print('Catch test framework not found! Get it with:\n\n'
+          '  git submodule init\n'
+          '  git submodule update\n')
+    Exit(1)
+testenv = conf.Finish()
+
 testenv.Program('tests', Glob('*.cpp'), LIBS=[rts, util])

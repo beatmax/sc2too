@@ -7,4 +7,5 @@ util = SConscript(['util/SConscript'], exports='env')
 
 SConscript(['test/SConscript'], exports='env rts util')
 
-SConscript(['sc2too/SConscript'], exports='env rts sc2 ui util')
+sc2too = SConscript(['sc2too/SConscript'], exports='env rts sc2 ui util')
+env.Install('..', sc2too);

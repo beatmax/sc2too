@@ -1,5 +1,8 @@
-.sconsign.dblite
 .config.py
+.sconsign.dblite
+.sconf_temp
+config.log
+sc2too
 build/
 *.swp
 *.swo

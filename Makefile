@@ -6,6 +6,7 @@ all:
 clean:
 	@scons -Qc
 	@rm -rf build
+	@rm -rf .sconf_temp
 	@rm -f .sconsign.dblite
 
 unittest: all
