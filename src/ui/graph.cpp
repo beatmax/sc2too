@@ -37,14 +37,15 @@ void ui::graph::init() {
 
   if (has_colors()) {
     start_color();
-    init_pair(int(ColorPair::Red), COLOR_RED, COLOR_BLACK);
-    init_pair(int(ColorPair::Green), COLOR_GREEN, COLOR_BLACK);
-    init_pair(int(ColorPair::Yellow), COLOR_YELLOW, COLOR_BLACK);
-    init_pair(int(ColorPair::Blue), COLOR_BLUE, COLOR_BLACK);
-    init_pair(int(ColorPair::Magenta), COLOR_MAGENTA, COLOR_BLACK);
-    init_pair(int(ColorPair::Cyan), COLOR_CYAN, COLOR_BLACK);
-    init_pair(int(ColorPair::White), COLOR_WHITE, COLOR_BLACK);
-    init_pair(int(ColorPair::DarkGrey), 237, COLOR_BLACK);
+    use_default_colors();
+    init_pair(int(ColorPair::Red), COLOR_RED, -1);
+    init_pair(int(ColorPair::Green), COLOR_GREEN, -1);
+    init_pair(int(ColorPair::Yellow), COLOR_YELLOW, -1);
+    init_pair(int(ColorPair::Blue), COLOR_BLUE, -1);
+    init_pair(int(ColorPair::Magenta), COLOR_MAGENTA, -1);
+    init_pair(int(ColorPair::Cyan), COLOR_CYAN, -1);
+    init_pair(int(ColorPair::White), COLOR_WHITE, -1);
+    init_pair(int(ColorPair::DarkGrey), 237, -1);
   }
 }
 
