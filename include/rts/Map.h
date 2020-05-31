@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Blocker.h"
 #include "types.h"
 #include "util/Matrix.h"
 
@@ -10,14 +11,16 @@
 
 namespace rts {
 
+  class CellCreator;
+
   class Map {
   public:
     using Free = std::monostate;
     using Cell = std::variant<Free, Blocker, EntitySPtr>;
 
-    explicit Map(const std::string& s);
-    explicit Map(std::istream&& is);
-    explicit Map(const std::vector<std::string>& lines);
+    explicit Map(const CellCreator& creator, const std::string& s);
+    explicit Map(const CellCreator& creator, std::istream&& is);
+    explicit Map(const CellCreator& creator, const std::vector<std::string>& lines);
 
     const Coordinate maxX;
     const Coordinate maxY;
@@ -43,4 +46,10 @@ namespace rts {
   inline const Blocker& getBlocker(const Map::Cell& c) { return std::get<Blocker>(c); }
   inline EntitySPtr getEntity(Map::Cell& c) { return std::get<EntitySPtr>(c); }
   inline EntitySCPtr getEntity(const Map::Cell& c) { return std::get<EntitySPtr>(c); }
+
+  class CellCreator {
+  public:
+    virtual ~CellCreator() = default;
+    virtual Map::Cell operator()(char c) const = 0;
+  };
 }

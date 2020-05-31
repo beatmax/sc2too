@@ -1,4 +1,5 @@
 #include "rts/World.h"
+#include "sc2/Assets.h"
 #include "sc2/Probe.h"
 #include "ui/Input.h"
 #include "ui/Output.h"
@@ -8,11 +9,15 @@
 #include <iostream>
 
 int main() try {
-  rts::World world{rts::Map{std::ifstream{"data/maps/ascii_jungle.txt"}}};
+  ui::Output output;
+
+  sc2::Assets::init();
+  rts::World world{
+      rts::Map{sc2::Assets::cellCreator(), std::ifstream{"data/maps/ascii_jungle.txt"}}};
+
   world.add(sc2::Probe::create(rts::Position{20, 10}));
 
   ui::Player player{ui::Camera{{0, 0}, {world.map.maxX, world.map.maxY}}};
-  ui::Output output;
   ui::Input input{player};
 
   do {

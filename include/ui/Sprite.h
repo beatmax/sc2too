@@ -19,8 +19,6 @@ namespace ui {
     explicit Sprite(const std::vector<std::string>& lines);
   };
 
-  void loadSprites();
-
   template<typename T>
   class SpriteUi : public rts::Ui {
   public:
@@ -31,6 +29,4 @@ namespace ui {
   inline const Sprite& getSprite(const T& object) {
     return static_cast<const SpriteUi<T>&>(object.ui()).sprite(object);
   }
-
-  const Sprite& getSprite(rts::Blocker blocker);
 }

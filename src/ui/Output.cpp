@@ -81,7 +81,6 @@ namespace ui {
 ui::Output::Output() {
   initWinch();
   graph::init();
-  loadSprites();  // requires having ncurses initialized
   initWins();
 }
 

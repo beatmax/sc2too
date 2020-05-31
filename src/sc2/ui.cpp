@@ -1,10 +1,13 @@
 #include "sc2/ui.h"
 
-namespace sc2::ui::sprite {
-  // TODO can't use ncurses graph chars here (ncurses not yet initialized)
-  ::ui::Sprite probe{"-o-\n"};
-}
+#include "sc2/Assets.h"
 
 const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::Entity&) const {
-  return sprite::probe;
+  static const auto& sprite{Assets::getSprite("probe")};
+  return sprite;
+}
+
+const ::ui::Sprite& sc2::ui::Rock::sprite(const rts::Blocker&) const {
+  static const auto& sprite{Assets::getSprite("rock")};
+  return sprite;
 }

@@ -37,10 +37,10 @@ namespace rts {
 
   std::ostream& operator<<(std::ostream& os, const Position& p);
 
-  enum class Blocker { Rock };
-
   class Ui {
   public:
     virtual ~Ui() = default;
   };
+
+  using UiUPtr = std::unique_ptr<Ui>;
 }
