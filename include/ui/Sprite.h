@@ -16,6 +16,8 @@ namespace ui {
     explicit Sprite(const std::wstring& s);
     explicit Sprite(std::wistream&& is);
     explicit Sprite(const std::vector<std::wstring>& lines);
+
+    rts::Rectangle area(rts::Point topLeft) const;
   };
 
   template<typename T>

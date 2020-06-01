@@ -14,7 +14,7 @@ int main() try {
   rts::World world{
       rts::Map{sc2::Assets::cellCreator(), std::ifstream{"data/maps/ascii_jungle.txt"}}};
 
-  world.add(sc2::Probe::create(rts::Position{20, 10}));
+  world.add(sc2::Probe::create(rts::Point{20, 10}));
 
   ui::Player player{ui::Camera{{0, 0}, {world.map.maxX, world.map.maxY}}};
 

@@ -9,9 +9,9 @@ namespace rts::abilities::state {
 
   class Move : public AbilityStateTpl<Move> {
   public:
-    explicit Move(Position target) : target_{target} {}
+    explicit Move(Point target) : target_{target} {}
     GameTime step(const World& world, const EntitySPtr& entity, WorldActionList& actions) override {
-      if (entity->position == target_)
+      if (entity->area.contains(target_))
         return 0;
       else if (init_)
         addAction(actions, &World::moveTowards, target_, entity);
@@ -21,7 +21,7 @@ namespace rts::abilities::state {
     }
 
   private:
-    Position target_;
+    Point target_;
     bool init_{false};
   };
 }

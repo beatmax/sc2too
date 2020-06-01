@@ -1,6 +1,6 @@
 #include "ui/Sprite.h"
-#include "dim.h"
 
+#include "dim.h"
 #include "util/fs.h"
 
 #include <cassert>
@@ -21,4 +21,8 @@ ui::Sprite::Sprite(const std::vector<std::wstring>& lines)
     for (size_t x = 0; x < matrix.cols(); ++x)
       matrix(y, x) = line.substr(x * dim::cellWidth, dim::cellWidth);
   }
+}
+
+rts::Rectangle ui::Sprite::area(rts::Point topLeft) const {
+  return {topLeft, {rts::Coordinate(matrix.cols()), rts::Coordinate(matrix.rows())}};
 }

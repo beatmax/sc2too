@@ -18,16 +18,24 @@ TEST_CASE("Hello world!", "[rts]") {
   REQUIRE(test::repr(getBlocker(cworld.map.at(12, 1)).ui()) == 'r');
   REQUIRE(isFree(cworld.map.at(13, 1)));
 
+  const Rectangle buildingArea{Point{37, 6}, rts::Vector{2, 3}};
+  EntitySCPtr building{getEntity(cworld.map.at(buildingArea.topLeft))};
+  REQUIRE(building->area == buildingArea);
+  forEachPoint(buildingArea, [&](Point p) {
+    REQUIRE(hasEntity(cworld.map.at(p)));
+    REQUIRE(getEntity(cworld.map.at(p)) == building);
+  });
+
   SECTION("An entity is added to the world") {
-    Position pos{20, 5};
+    Point pos{20, 5};
     world.add(test::Simpleton::create(pos));
     REQUIRE(hasEntity(cworld.map.at(pos)));
     EntitySCPtr ce{getEntity(cworld.map.at(pos))};
-    REQUIRE(ce->position == pos);
+    REQUIRE(ce->area.topLeft == pos);
 
     SECTION("The entity is destroyed") {
       world.destroy(ce);
-      REQUIRE(isFree(cworld.map.at(ce->position)));
+      REQUIRE(isFree(cworld.map.at(ce->area.topLeft)));
       REQUIRE(ce.use_count() == 1);
     }
 
@@ -38,18 +46,18 @@ TEST_CASE("Hello world!", "[rts]") {
       REQUIRE(moveAbility.name() == "move");
 
       world.time = 1;
-      const Position targetPos{20, 3};
+      const Point targetPos{20, 3};
       world.update(Entity::trigger(moveAbility, cworld, e, targetPos));
-      REQUIRE(ce->position == pos);
+      REQUIRE(ce->area.topLeft == pos);
 
       SECTION("The entity moves") {
         while (pos != targetPos) {
           ++world.time;
           world.update(Entity::step(cworld, e));
 
-          Position prevPos{pos};
+          Point prevPos{pos};
           --pos.y;
-          REQUIRE(ce->position == pos);
+          REQUIRE(ce->area.topLeft == pos);
           REQUIRE(isFree(cworld.map.at(prevPos)));
           REQUIRE(hasEntity(cworld.map.at(pos)));
           REQUIRE(moveAbility.active());
@@ -58,7 +66,7 @@ TEST_CASE("Hello world!", "[rts]") {
         // the next step deactivates the ability
         ++world.time;
         world.update(Entity::step(cworld, e));
-        REQUIRE(ce->position == targetPos);
+        REQUIRE(ce->area.topLeft == targetPos);
         REQUIRE(!moveAbility.active());
         REQUIRE(moveAbility.nextStepTime() == 0);
       }
@@ -74,6 +82,32 @@ TEST_CASE("Hello world!", "[rts]") {
         ce.reset();
         world.update(actions);
       }
+    }
+  }
+
+  SECTION("A multi-cell entity is added to the world") {
+    const Rectangle area{Point{1, 1}, rts::Vector{2, 3}};
+
+    world.add(test::Building::create(area.topLeft));
+    EntitySCPtr ce{getEntity(cworld.map.at(area.topLeft))};
+    REQUIRE(ce->area == area);
+
+    const Rectangle outRect{area.topLeft - rts::Vector{1, 1}, area.size + rts::Vector{2, 2}};
+    forEachPoint(outRect, [&](Point p) {
+      if (area.contains(p)) {
+        REQUIRE(hasEntity(cworld.map.at(p)));
+        REQUIRE(getEntity(cworld.map.at(p)) == ce);
+      }
+      else {
+        REQUIRE(isFree(cworld.map.at(p)));
+      }
+    });
+
+    SECTION("The multi-cell entity is destroyed") {
+      world.destroy(ce);
+      forEachPoint(area, [&](Point p) { REQUIRE(isFree(cworld.map.at(p))); });
+      REQUIRE(ce.use_count() == 1);
+      ce.reset();
     }
   }
 }

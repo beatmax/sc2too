@@ -5,10 +5,22 @@
 #include "rts/Entity.h"
 #include "ui/Sprite.h"
 
+#include <cassert>
+
 namespace ui {
   namespace {
-    void draw(WINDOW* win, int y, int x, const Sprite& sprite) {
-      mvwaddwstr(win, y, x, sprite.matrix(0, 0).c_str());
+    void draw(
+        WINDOW* win, int y, int x, const Sprite& sprite, size_t spriteY = 0, size_t spriteX = 0) {
+      mvwaddwstr(win, y, x, sprite.matrix(spriteY, spriteX).c_str());
+    }
+
+    void draw(WINDOW* win, int y, int x, const rts::Entity& entity, rts::Point p) {
+      const Sprite& sprite{getSprite(entity)};
+      assert(sprite.area(entity.area.topLeft) == entity.area);
+      assert(sprite.area(entity.area.topLeft).contains(p));
+
+      auto sp{p - entity.area.topLeft};
+      draw(win, y, x, sprite, sp.y, sp.x);
     }
   }
 }
@@ -41,14 +53,15 @@ void ui::render(WINDOW* win, const rts::World& world, const Camera& camera) {
   for (rts::Coordinate cellY = topLeft.y; cellY < bottomRight.y; ++cellY) {
     int x = 0;
     for (rts::Coordinate cellX = topLeft.x; cellX < bottomRight.x; ++cellX) {
-      const auto& cell{map.at(cellX, cellY)};
+      rts::Point cellPos{cellX, cellY};
+      const auto& cell{map.at(cellPos)};
       if (hasBlocker(cell)) {
         wattrset(win, graph::red());
         draw(win, y, x, getSprite(getBlocker(cell)));
       }
       else if (hasEntity(cell)) {
         wattrset(win, graph::green());
-        draw(win, y, x, getSprite(*getEntity(cell)));
+        draw(win, y, x, *getEntity(cell), cellPos);
       }
       else {
         wattrset(win, graph::white());

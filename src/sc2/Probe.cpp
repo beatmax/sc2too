@@ -2,6 +2,6 @@
 
 #include "rts/abilities.h"
 
-sc2::Probe::Probe(rts::Position p) : Inherited{p} {
+sc2::Probe::Probe(rts::Point p) : Inherited{p, rts::Vector{1, 1}} {
   addAbility(rts::abilities::move());
 }

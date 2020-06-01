@@ -22,7 +22,7 @@ namespace rts {
     using AbilityState::AbilityState;
 
     struct Create {
-      AbilityStateUPtr operator()(Position target) const {
+      AbilityStateUPtr operator()(Point target) const {
         return std::make_unique<Derived>(target);
       }
     };

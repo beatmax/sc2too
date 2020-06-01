@@ -2,6 +2,11 @@
 
 #include "sc2/Assets.h"
 
+const ::ui::Sprite& sc2::ui::Nexus::sprite(const rts::Entity&) const {
+  static const auto& sprite{Assets::getSprite("nexus")};
+  return sprite;
+}
+
 const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::Entity&) const {
   static const auto& sprite{Assets::getSprite("probe")};
   return sprite;

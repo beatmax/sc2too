@@ -1,5 +1,6 @@
 #include "rts/Map.h"
 
+#include "rts/Entity.h"
 #include "util/fs.h"
 
 #include <cassert>
@@ -20,7 +21,18 @@ rts::Map::Map(const CellCreator& creator, const std::vector<std::string>& lines)
   for (Coordinate y = 0; y < maxY; ++y) {
     const auto& line = lines[y];
     assert(Coordinate(line.size()) == maxX);
-    for (Coordinate x = 0; x < maxX; ++x)
-      cells_(y, x) = creator(line[x]);
+    for (Coordinate x = 0; x < maxX; ++x) {
+      Point p{x, y};
+      if (isFree(at(p))) {
+        Cell cell{creator(line[x], p)};
+        if (hasEntity(cell)) {
+          EntitySPtr entity{getEntity(cell)};
+          set(entity->area, entity);
+        }
+        else {
+          set(Point{p}, std::move(cell));
+        }
+      }
+    }
   }
 }

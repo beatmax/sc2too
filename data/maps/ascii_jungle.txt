@@ -1,9 +1,9 @@
              rr                         
-            rrr                         
-           rrr                          
-          rrrr                          
-        rrrr                            
-      rrrr                              
+ nnnnn      rrr                         
+ nnnnn     rrr                          
+ nnnnn    rrrr                          
+ nnnnn   rrr                            
+ nnnnn   rr                             
                                         
                                         
                  r   rr                 
@@ -12,9 +12,9 @@
                  rr   r                 
                                         
                                         
-                              rrrr      
-                            rrrr        
-                          rrrr          
-                          rrr           
-                         rrr            
+                             rr   nnnnn 
+                            rrr   nnnnn 
+                          rrrr    nnnnn 
+                          rrr     nnnnn 
+                         rrr      nnnnn 
                          rr             

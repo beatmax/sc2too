@@ -25,14 +25,19 @@ namespace rts {
     const Coordinate maxX;
     const Coordinate maxY;
 
-    Cell& at(Position p) { return at(p.x, p.y); }
+    Cell& at(Point p) { return at(p.x, p.y); }
     Cell& at(Coordinate x, Coordinate y) { return cells_(y, x); }
-    const Cell& at(Position p) const { return at(p.x, p.y); }
+    const Cell& at(Point p) const { return at(p.x, p.y); }
     const Cell& at(Coordinate x, Coordinate y) const { return cells_(y, x); }
 
     template<typename T>
-    void set(Position p, T&& e) {
-      cells_(p.y, p.x) = std::forward<T>(e);
+    void set(Point p, T&& o) {
+      cells_(p.y, p.x) = std::forward<T>(o);
+    }
+
+    template<typename T>
+    void set(const Rectangle& area, const T& o) {
+      forEachPoint(area, [this, &o](Point p) { cells_(p.y, p.x) = o; });
     }
 
   private:
@@ -50,6 +55,6 @@ namespace rts {
   class CellCreator {
   public:
     virtual ~CellCreator() = default;
-    virtual Map::Cell operator()(char c) const = 0;
+    virtual Map::Cell operator()(char c, Point p) const = 0;
   };
 }

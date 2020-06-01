@@ -19,6 +19,6 @@ namespace rts {
 
     void add(EntitySPtr e);
     void destroy(EntityWCPtr e);
-    void moveTowards(Position p, EntityWPtr e);
+    void moveTowards(Point p, EntityWPtr e);
   };
 }

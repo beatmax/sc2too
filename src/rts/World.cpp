@@ -12,19 +12,20 @@ void rts::World::update(const WorldActionList& actions) {
 }
 
 void rts::World::add(EntitySPtr e) {
-  map.set(e->position, std::move(e));
+  map.set(e->area, e);
 }
 
 void rts::World::destroy(EntityWCPtr e) {
   if (auto entity = e.lock()) {
-    assert(hasEntity(map.at(entity->position)));
-    map.set(entity->position, Map::Free{});
+    assert(hasEntity(map.at(entity->area.topLeft)));
+    map.set(entity->area, Map::Free{});
   }
 }
 
-void rts::World::moveTowards(Position p, EntityWPtr e) {
+void rts::World::moveTowards(Point p, EntityWPtr e) {
   if (auto entity = e.lock()) {
-    Position& epos = entity->position;
+    assert(entity->area.size == Vector({1, 1}));  // no need to move big entities so far
+    Point& epos = entity->area.topLeft;
     assert(hasEntity(map.at(epos)));
     map.set(epos, Map::Free{});
     Vector v{p - epos};

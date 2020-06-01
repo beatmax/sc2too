@@ -10,18 +10,18 @@ namespace rts {
   public:
     virtual ~Entity() = 0;
 
-    Position position;
+    Rectangle area;
     AbilityList abilities;
 
     static WorldActionList trigger(
-        Ability& a, const World& world, const EntitySPtr& entity, Position target);
+        Ability& a, const World& world, const EntitySPtr& entity, Point target);
     static WorldActionList step(const World& world, const EntitySPtr& entity);
     void cancelAll();
 
     virtual const Ui& ui() const = 0;
 
   protected:
-    Entity(Position p) : position{p} {}
+    Entity(Point p, Vector s) : area{p, s} {}
     void addAbility(Ability&& a) { abilities.push_back(std::move(a)); }
   };
 

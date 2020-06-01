@@ -10,7 +10,7 @@
 namespace rts {
   class Ability {
   public:
-    using CreateState = std::function<AbilityStateUPtr(Position)>;
+    using CreateState = std::function<AbilityStateUPtr(Point)>;
 
     Ability(std::string name, CreateState cs)
       : name_{std::move(name)}, createState_{std::move(cs)} {}
@@ -19,7 +19,7 @@ namespace rts {
     bool active() const { return bool(state_); }
     GameTime nextStepTime() const { return nextStepTime_; }
 
-    void trigger(Position target) { state_ = createState_(target); }
+    void trigger(Point target) { state_ = createState_(target); }
     void step(const World& world, const EntitySPtr& entity, WorldActionList& actions);
     void cancel() {
       state_.reset();

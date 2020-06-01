@@ -20,18 +20,23 @@ const std::string test::map{
     "                                        \n"  // 3
     "                                        \n"  // 4
     "                                        \n"  // 5
-    "                                        \n"  // 6
-    "                                        \n"  // 7
-    "                                        \n"  // 8
+    "                                     bb \n"  // 6
+    "                                     bb \n"  // 7
+    "                                     bb \n"  // 8
     "                                        \n"  // 9
 };
 
-test::Simpleton::Simpleton(rts::Position p) : Inherited{p} {
+test::Simpleton::Simpleton(rts::Point p) : Inherited{p, rts::Vector{1, 1}} {
   addAbility(rts::abilities::move());
 }
 
-rts::Map::Cell test::CellCreator::operator()(char c) const {
+test::Building::Building(rts::Point p) : Inherited{p, rts::Vector{2, 3}} {
+}
+
+rts::Map::Cell test::CellCreator::operator()(char c, rts::Point p) const {
   switch (c) {
+    case 'b':
+      return Building::create(p);
     case 'r':
       return rts::Blocker{std::make_unique<TestUi>('r')};
     default:

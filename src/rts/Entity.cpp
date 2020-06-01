@@ -6,7 +6,7 @@
 rts::Entity::~Entity() = default;
 
 rts::WorldActionList rts::Entity::trigger(
-    Ability& a, const World& world, const EntitySPtr& entity, Position target) {
+    Ability& a, const World& world, const EntitySPtr& entity, Point target) {
   entity->cancelAll();
   a.trigger(target);
 
