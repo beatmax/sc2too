@@ -3,7 +3,7 @@
 #include "rts/World.h"
 #include "ui/Camera.h"
 
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 
 namespace ui {
   void grid(WINDOW* win);

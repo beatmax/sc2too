@@ -4,19 +4,18 @@
 #include "util/Matrix.h"
 
 #include <iosfwd>
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <string>
 #include <vector>
 
 namespace ui {
   struct Sprite {
-    util::Matrix<chtype> matrix;
+    util::Matrix<std::wstring> matrix;
 
     Sprite() = default;
-    explicit Sprite(std::initializer_list<chtype> list) : matrix(list) {}
-    explicit Sprite(const std::string& s);
-    explicit Sprite(std::istream&& is);
-    explicit Sprite(const std::vector<std::string>& lines);
+    explicit Sprite(const std::wstring& s);
+    explicit Sprite(std::wistream&& is);
+    explicit Sprite(const std::vector<std::wstring>& lines);
   };
 
   template<typename T>

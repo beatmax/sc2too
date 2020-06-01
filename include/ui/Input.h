@@ -6,10 +6,6 @@ namespace ui {
 
   class Input {
   public:
-    explicit Input(Player& p) : player_{p} {}
-    bool process();
-
-  private:
-    Player& player_;
+    bool process(Player& player);
   };
 }

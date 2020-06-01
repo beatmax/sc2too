@@ -7,9 +7,9 @@ namespace ui {
 
   class Output {
   public:
-    Output();
     ~Output();
 
+    void init();
     void update(const rts::World& world, const Player& player);
   };
 }

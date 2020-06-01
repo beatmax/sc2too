@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <vector>
 
 namespace ui::graph {

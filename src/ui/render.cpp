@@ -8,9 +8,7 @@
 namespace ui {
   namespace {
     void draw(WINDOW* win, int y, int x, const Sprite& sprite) {
-      mvwaddch(win, y, x, sprite.matrix(0, 0));
-      for (size_t j = 1; j < 3; ++j)
-        waddch(win, sprite.matrix(0, j));
+      mvwaddwstr(win, y, x, sprite.matrix(0, 0).c_str());
     }
   }
 }

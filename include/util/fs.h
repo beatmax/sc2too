@@ -5,5 +5,6 @@
 #include <vector>
 
 namespace util::fs {
-  std::vector<std::string> readLines(std::istream& is);
+  template<typename CharT>
+  std::vector<std::basic_string<CharT>> readLines(std::basic_istream<CharT>& is);
 }

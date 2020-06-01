@@ -5,7 +5,7 @@
 #include "render.h"
 #include "ui/Sprite.h"
 
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <signal.h>
 #include <sstream>
 #include <stdexcept>
@@ -78,14 +78,14 @@ namespace ui {
   }
 }
 
-ui::Output::Output() {
+ui::Output::~Output() {
+  endwin();
+}
+
+void ui::Output::init() {
   initWinch();
   graph::init();
   initWins();
-}
-
-ui::Output::~Output() {
-  endwin();
 }
 
 void ui::Output::update(const rts::World& world, const Player& player) {
