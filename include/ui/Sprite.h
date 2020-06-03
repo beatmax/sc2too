@@ -4,7 +4,7 @@
 #include "util/Matrix.h"
 
 #include <iosfwd>
-#include <ncursesw/ncurses.h>
+#include <ncurses.h>
 #include <string>
 #include <vector>
 

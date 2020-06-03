@@ -1,6 +1,6 @@
 #include "ui/Input.h"
 
-#include <ncursesw/ncurses.h>
+#include <ncurses.h>
 
 bool ui::Input::process(Player& player) {
   switch (getch()) {

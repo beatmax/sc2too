@@ -5,7 +5,7 @@
 #include "render.h"
 #include "ui/Sprite.h"
 
-#include <ncursesw/ncurses.h>
+#include <ncurses.h>
 #include <signal.h>
 #include <sstream>
 #include <stdexcept>
