@@ -1,10 +1,10 @@
 #include "ui/Output.h"
 
-#include "dim.h"
 #include "graph.h"
 #include "render.h"
 #include "ui/ResourceUi.h"
 #include "ui/Sprite.h"
+#include "ui/dim.h"
 
 #include <signal.h>
 #include <sstream>
@@ -64,8 +64,6 @@ namespace ui {
 
       graph::drawBorders({headerWin, renderWin, controlWin});
       refresh();
-
-      grid(renderWin);
     }
 
     void onTermResized() {
@@ -103,6 +101,7 @@ void ui::Output::update(const rts::World& world, const Player& player) {
     onTermResized();
   }
 
+  grid(renderWin);
   render(renderWin, world, player.camera);
 
   const auto& c{player.camera};

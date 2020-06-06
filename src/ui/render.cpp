@@ -1,15 +1,24 @@
 #include "render.h"
 
-#include "dim.h"
 #include "rts/Entity.h"
 #include "ui/Sprite.h"
+#include "ui/dim.h"
 
+#include <algorithm>
 #include <cassert>
 
 namespace ui {
   namespace {
     void draw(WINDOW* win, int y, int x, const Sprite& sprite, size_t spriteY, size_t spriteX) {
-      mvwaddwstr(win, y, x, sprite.matrix(spriteY, spriteX).c_str());
+      int maxY, maxX;
+      getmaxyx(win, maxY, maxX);
+
+      for (const std::wstring& cellLine : sprite.matrix(spriteY, spriteX)) {
+        if (y < maxY && !cellLine.empty()) {
+          const int n = std::min(maxX - x, int(cellLine.size()));
+          mvwaddnwstr(win, y++, x, cellLine.c_str(), n);
+        }
+      }
     }
 
     void draw(WINDOW* win, int y, int x, const rts::WorldObject& object, rts::Point p) {

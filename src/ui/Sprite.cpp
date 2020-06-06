@@ -1,6 +1,5 @@
 #include "ui/Sprite.h"
 
-#include "dim.h"
 #include "util/fs.h"
 
 #include <cassert>
@@ -14,12 +13,17 @@ ui::Sprite::Sprite(std::wistream&& is) : Sprite{util::fs::readLines(is)} {
 }
 
 ui::Sprite::Sprite(const std::vector<std::wstring>& lines)
-  : matrix(lines.size(), lines.empty() ? 0 : lines.front().size() / dim::cellWidth) {
+  : matrix(
+        (lines.size() + 1) / 2,
+        lines.empty() ? 0 : (lines.front().size() + 1) / (dim::cellWidth + 1)) {
   for (size_t y = 0; y < matrix.rows(); ++y) {
-    const auto& line = lines[y];
-    assert(line.size() == matrix.cols() * dim::cellWidth);
-    for (size_t x = 0; x < matrix.cols(); ++x)
-      matrix(y, x) = line.substr(x * dim::cellWidth, dim::cellWidth);
+    const size_t cellHeight = dim::cellHeight + ((y < matrix.rows() - 1) ? 1 : 0);
+    for (size_t cellY = 0; cellY < cellHeight; ++cellY) {
+      const auto& line = lines[y * (dim::cellHeight + 1) + cellY];
+      assert(line.size() == matrix.cols() * (dim::cellWidth + 1) - 1);
+      for (size_t x = 0; x < matrix.cols(); ++x)
+        matrix(y, x)[cellY] = line.substr(x * (dim::cellWidth + 1), dim::cellWidth + 1);
+    }
   }
 }
 

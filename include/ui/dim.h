@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ui/Camera.h"
+#include "Camera.h"
 
 #include <sys/types.h>
 

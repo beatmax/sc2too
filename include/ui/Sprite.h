@@ -1,15 +1,17 @@
 #pragma once
 
+#include "dim.h"
 #include "rts/types.h"
 #include "util/Matrix.h"
 
+#include <array>
 #include <iosfwd>
 #include <string>
 #include <vector>
 
 namespace ui {
   struct Sprite {
-    util::Matrix<std::wstring> matrix;
+    util::Matrix<std::array<std::wstring, dim::cellWidth + 1>> matrix;
 
     Sprite() = default;
     explicit Sprite(const std::wstring& s);
