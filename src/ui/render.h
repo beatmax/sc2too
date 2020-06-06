@@ -1,9 +1,8 @@
 #pragma once
 
+#include "graph.h"
 #include "rts/World.h"
 #include "ui/Camera.h"
-
-#include <ncurses.h>
 
 namespace ui {
   void grid(WINDOW* win);

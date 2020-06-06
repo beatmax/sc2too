@@ -1,6 +1,10 @@
 #include "ui/Input.h"
 
+#ifdef HAS_NCURSESW_NCURSES_H
+#include <ncursesw/ncurses.h>
+#else
 #include <ncurses.h>
+#endif
 
 bool ui::Input::process(Player& player) {
   switch (getch()) {

@@ -1,6 +1,11 @@
 #pragma once
 
+#ifdef HAS_NCURSESW_NCURSES_H
+#include <ncursesw/ncurses.h>
+#else
 #include <ncurses.h>
+#endif
+
 #include <vector>
 
 namespace ui::graph {

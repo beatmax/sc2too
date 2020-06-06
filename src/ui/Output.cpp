@@ -6,7 +6,6 @@
 #include "ui/ResourceUi.h"
 #include "ui/Sprite.h"
 
-#include <ncurses.h>
 #include <signal.h>
 #include <sstream>
 #include <stdexcept>

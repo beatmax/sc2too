@@ -1,5 +1,12 @@
 Import('*')
 
-ui = env.Library('ui', Glob('*.cpp'))
+ui_env = env.Clone()
+
+conf = Configure(ui_env)
+if conf.CheckCHeader('ncursesw/ncurses.h'):
+    conf.env.Append(CCFLAGS='-DHAS_NCURSESW_NCURSES_H')
+ui_env = conf.Finish()
+
+ui = ui_env.Library('ui', Glob('*.cpp'))
 
 Return('ui')
