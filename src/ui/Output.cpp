@@ -3,6 +3,7 @@
 #include "dim.h"
 #include "graph.h"
 #include "render.h"
+#include "ui/ResourceUi.h"
 #include "ui/Sprite.h"
 
 #include <ncurses.h>
@@ -75,6 +76,15 @@ namespace ui {
       delAllWins();
       initWins();
     }
+
+    void drawResourceQuantities(const Player& player) {
+      int x = dim::defaultWinWidth;
+      const rts::ResourceMap& resources{player.side.resources()};
+      for (auto it = resources.rbegin(); it != resources.rend(); ++it) {
+        x -= 10;
+        mvwprintw(headerWin, 0, x, "%c: %u", repr(*it->first), it->second);
+      }
+    }
   }
 }
 
@@ -98,6 +108,8 @@ void ui::Output::update(const rts::World& world, const Player& player) {
 
   const auto& c{player.camera};
   werase(headerWin);
+  drawResourceQuantities(player);
+
   mvwprintw(
       headerWin, 0, 0, "(%d, %d) - (%d, %d)", c.topLeft().x, c.topLeft().y, c.bottomRight().x,
       c.bottomRight().y);

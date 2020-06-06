@@ -1,17 +1,33 @@
 #pragma once
 
-#include "types.h"
+#include "WorldObject.h"
 
-#include <memory>
 #include <utility>
 
 namespace rts {
-  class Blocker {
+  class Blocker : public WorldObject {
   public:
-    explicit Blocker(UiUPtr ui) : ui_{std::move(ui)} {}
-    const Ui& ui() const { return *ui_; }
+    static constexpr Type worldObjectType = Type::Blocker;
+
+  protected:
+    Blocker(Point p, Vector s) : WorldObject{worldObjectType, p, s} {}
+  };
+
+  template<typename Derived, typename DerivedUi>
+  class BlockerTpl : public Blocker {
+  public:
+    template<typename... UiArgs>
+    BlockerTpl(Point p, Vector s, UiArgs&&... uiArgs)
+      : Blocker{p, s}, ui_{std::forward<UiArgs>(uiArgs)...} {}
+
+    template<typename... Args>
+    static BlockerSPtr create(Args&&... args) {
+      return BlockerSPtr{new Derived{std::forward<Args>(args)...}};
+    }
+
+    const DerivedUi& ui() const final { return ui_; }
 
   private:
-    UiUPtr ui_;
+    DerivedUi ui_;
   };
 }

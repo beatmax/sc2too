@@ -1,20 +1,20 @@
-             rr                         
- nnnnn      rrr                         
+        mmm  rr                         
+ nnnnn  mm  rrr                         
  nnnnn     rrr                          
  nnnnn    rrrr                          
  nnnnn   rrr                            
  nnnnn   rr                             
                                         
-                                        
-                 r   rr                 
-                 r    r                 
-                 r    r                 
-                 rr   r                 
-                                        
+ ggg                                    
+ ggg             r   rr                 
+ ggg             r    r                 
+                 r    r             ggg 
+                 rr   r             ggg 
+                                    ggg 
                                         
                              rr   nnnnn 
                             rrr   nnnnn 
                           rrrr    nnnnn 
                           rrr     nnnnn 
-                         rrr      nnnnn 
-                         rr             
+                         rrr  mm  nnnnn 
+                         rr  mmm        

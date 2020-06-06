@@ -5,6 +5,13 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <utility>
+
+rts::World::World(Map m, size_t numSides, ResourceMap resources) : map{std::move(m)} {
+  sides.reserve(numSides);
+  for (size_t i = 0; i < numSides; ++i)
+    sides.emplace_back(resources);
+}
 
 void rts::World::update(const WorldActionList& actions) {
   for (auto& action : actions)

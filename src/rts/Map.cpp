@@ -25,13 +25,8 @@ rts::Map::Map(const CellCreator& creator, const std::vector<std::string>& lines)
       Point p{x, y};
       if (isFree(at(p))) {
         Cell cell{creator(line[x], p)};
-        if (hasEntity(cell)) {
-          EntitySPtr entity{getEntity(cell)};
-          set(entity->area, entity);
-        }
-        else {
-          set(Point{p}, std::move(cell));
-        }
+        if (hasWorldObject(cell))
+          set(getWorldObject(cell).area, cell);
       }
     }
   }

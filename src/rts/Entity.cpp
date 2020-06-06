@@ -3,8 +3,6 @@
 #include "rts/World.h"
 #include "rts/WorldAction.h"
 
-rts::Entity::~Entity() = default;
-
 rts::WorldActionList rts::Entity::trigger(
     Ability& a, const World& world, const EntitySPtr& entity, Point target) {
   entity->cancelAll();

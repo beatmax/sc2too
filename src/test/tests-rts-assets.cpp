@@ -4,18 +4,10 @@
 
 #include <utility>
 
-namespace {
-  struct TestUi : rts::Ui {
-    char repr;
-
-    explicit TestUi(char r) : repr{r} {}
-  };
-}
-
 //   0.........10........20........30........40
 const std::string test::map{
-    "                                        \n"  // 0
-    "          rrr                           \n"  // 1
+    "                              gg        \n"  // 0
+    "          rrr                 gg        \n"  // 1
     "                                        \n"  // 2
     "                                        \n"  // 3
     "                                        \n"  // 4
@@ -26,24 +18,32 @@ const std::string test::map{
     "                                        \n"  // 9
 };
 
-test::Simpleton::Simpleton(rts::Point p) : Inherited{p, rts::Vector{1, 1}} {
+const rts::Resource test::gas{std::make_unique<Ui>('g')};
+
+const rts::ResourceMap test::resources{{&gas, 0}};
+
+test::Simpleton::Simpleton(rts::Point p) : Inherited{p, rts::Vector{1, 1}, 's'} {
   addAbility(rts::abilities::move());
 }
 
-test::Building::Building(rts::Point p) : Inherited{p, rts::Vector{2, 3}} {
+test::Building::Building(rts::Point p) : Inherited{p, rts::Vector{2, 3}, 'b'} {
+}
+
+test::Geyser::Geyser(rts::Point p) : Inherited{p, rts::Vector{2, 2}, &gas, 100, 'g'} {
+}
+
+test::Rock::Rock(rts::Point p) : Inherited{p, rts::Vector{1, 1}, 'r'} {
 }
 
 rts::Map::Cell test::CellCreator::operator()(char c, rts::Point p) const {
   switch (c) {
     case 'b':
       return Building::create(p);
+    case 'g':
+      return Geyser::create(p);
     case 'r':
-      return rts::Blocker{std::make_unique<TestUi>('r')};
+      return Rock::create(p);
     default:
       return rts::Map::Free{};
   }
-}
-
-char test::repr(const rts::Ui& ui) {
-  return static_cast<const TestUi&>(ui).repr;
 }

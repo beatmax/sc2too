@@ -1,19 +1,21 @@
 #pragma once
 
 #include "Map.h"
+#include "Side.h"
 #include "WorldAction.h"
 #include "types.h"
 
-#include <utility>
+#include <vector>
 
 namespace rts {
 
   class World {
   public:
-    explicit World(Map m) : map{std::move(m)} {}
+    World(Map m, size_t numSides, ResourceMap resources);
 
     Map map;
     GameTime time{};
+    std::vector<Side> sides;
 
     void update(const WorldActionList& actions);
 

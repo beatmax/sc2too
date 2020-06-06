@@ -6,7 +6,7 @@ using namespace Catch::Matchers;
 using namespace rts;
 
 TEST_CASE("Hello world!", "[rts]") {
-  World world{Map{test::CellCreator{}, test::map}};
+  World world{Map{test::CellCreator{}, test::map}, 1, test::resources};
   const World& cworld{world};
 
   REQUIRE(cworld.map.maxX == 40);
@@ -19,12 +19,27 @@ TEST_CASE("Hello world!", "[rts]") {
   REQUIRE(isFree(cworld.map.at(13, 1)));
 
   const Rectangle buildingArea{Point{37, 6}, rts::Vector{2, 3}};
+  REQUIRE(hasEntity(cworld.map.at(buildingArea.topLeft)));
   EntitySCPtr building{getEntity(cworld.map.at(buildingArea.topLeft))};
   REQUIRE(building->area == buildingArea);
+  REQUIRE(test::repr(building->ui()) == 'b');
   forEachPoint(buildingArea, [&](Point p) {
     REQUIRE(hasEntity(cworld.map.at(p)));
     REQUIRE(getEntity(cworld.map.at(p)) == building);
   });
+
+  const Rectangle geyserArea{Point{30, 0}, rts::Vector{2, 2}};
+  REQUIRE(hasResourceField(cworld.map.at(geyserArea.topLeft)));
+  ResourceFieldSCPtr geyser{getResourceField(cworld.map.at(geyserArea.topLeft))};
+  REQUIRE(geyser->area == geyserArea);
+  REQUIRE(test::repr(geyser->ui()) == 'g');
+  forEachPoint(geyserArea, [&](Point p) {
+    REQUIRE(hasResourceField(cworld.map.at(p)));
+    REQUIRE(getResourceField(cworld.map.at(p)) == geyser);
+  });
+
+  REQUIRE(cworld.sides.size() == 1);
+  REQUIRE(cworld.sides[0].quantity(&test::gas) == 0);
 
   SECTION("An entity is added to the world") {
     Point pos{20, 5};
@@ -32,6 +47,7 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(hasEntity(cworld.map.at(pos)));
     EntitySCPtr ce{getEntity(cworld.map.at(pos))};
     REQUIRE(ce->area.topLeft == pos);
+    REQUIRE(test::repr(ce->ui()) == 's');
 
     SECTION("The entity is destroyed") {
       world.destroy(ce);
