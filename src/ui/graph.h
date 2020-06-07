@@ -9,7 +9,7 @@
 #include <vector>
 
 namespace ui::graph {
-  enum class ColorPair : int { Red = 1, Green, Yellow, Blue, Magenta, Cyan, White, DarkGrey };
+  enum class ColorPair : int { Red = 1, Green, Yellow, Blue, Magenta, Cyan, White, DarkGrey = 237 };
 
   inline int red() { return COLOR_PAIR(ColorPair::Red); }
   inline int green() { return COLOR_PAIR(ColorPair::Green); }

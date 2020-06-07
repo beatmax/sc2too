@@ -1,5 +1,7 @@
 #include "graph.h"
 
+#include <cassert>
+
 namespace ui::graph {
   namespace {
     void drawBordersNoBottom(WINDOW* win, int ulChar, int urChar) {
@@ -38,14 +40,11 @@ void ui::graph::init() {
   if (has_colors()) {
     start_color();
     use_default_colors();
-    init_pair(int(ColorPair::Red), COLOR_RED, -1);
-    init_pair(int(ColorPair::Green), COLOR_GREEN, -1);
-    init_pair(int(ColorPair::Yellow), COLOR_YELLOW, -1);
-    init_pair(int(ColorPair::Blue), COLOR_BLUE, -1);
-    init_pair(int(ColorPair::Magenta), COLOR_MAGENTA, -1);
-    init_pair(int(ColorPair::Cyan), COLOR_CYAN, -1);
-    init_pair(int(ColorPair::White), COLOR_WHITE, -1);
-    init_pair(int(ColorPair::DarkGrey), 237, -1);
+
+    for (int i = 1; i < COLORS; ++i) {
+      assert(i < COLOR_PAIRS);
+      init_pair(i, i, -1);
+    }
   }
 }
 

@@ -15,7 +15,7 @@ namespace ui {
     Sprite();
     explicit Sprite(const std::wstring& s);
     explicit Sprite(std::wistream&& is);
-    explicit Sprite(const std::vector<std::wstring>& lines);
+    explicit Sprite(std::vector<std::wstring>&& lines);
     ~Sprite();
 
     const SpriteMatrix& matrix() const { return *matrix_; }
