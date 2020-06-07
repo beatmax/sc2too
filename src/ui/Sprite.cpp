@@ -1,10 +1,14 @@
 #include "ui/Sprite.h"
 
+#include "SpriteMatrix.h"
+#include "dim.h"
 #include "util/fs.h"
 
 #include <cassert>
 #include <sstream>
 #include <utility>
+
+ui::Sprite::Sprite() = default;
 
 ui::Sprite::Sprite(const std::wstring& s) : Sprite{std::wistringstream{s}} {
 }
@@ -13,20 +17,22 @@ ui::Sprite::Sprite(std::wistream&& is) : Sprite{util::fs::readLines(is)} {
 }
 
 ui::Sprite::Sprite(const std::vector<std::wstring>& lines)
-  : matrix(
-        (lines.size() + 1) / 2,
-        lines.empty() ? 0 : (lines.front().size() + 1) / (dim::cellWidth + 1)) {
-  for (size_t y = 0; y < matrix.rows(); ++y) {
-    const size_t cellHeight = dim::cellHeight + ((y < matrix.rows() - 1) ? 1 : 0);
-    for (size_t cellY = 0; cellY < cellHeight; ++cellY) {
-      const auto& line = lines[y * (dim::cellHeight + 1) + cellY];
-      assert(line.size() == matrix.cols() * (dim::cellWidth + 1) - 1);
-      for (size_t x = 0; x < matrix.cols(); ++x)
-        matrix(y, x)[cellY] = line.substr(x * (dim::cellWidth + 1), dim::cellWidth + 1);
+  : matrix_{
+        std::make_unique<SpriteMatrix>(lines.size(), lines.empty() ? 0 : lines.front().size())} {
+  for (int y = 0; y < matrix_->rows(); ++y) {
+    const auto& line = lines[y];
+    assert(line.size() == size_t(matrix_->cols()));
+    for (int x = 0; x < matrix_->cols(); ++x) {
+      wchar_t wch[]{line[x], L'\0'};
+      setcchar(&(*matrix_)(y, x), wch, 0, 2, nullptr);
     }
   }
 }
 
+ui::Sprite::~Sprite() = default;
+
 rts::Rectangle ui::Sprite::area(rts::Point topLeft) const {
-  return {topLeft, {rts::Coordinate(matrix.cols()), rts::Coordinate(matrix.rows())}};
+  return {topLeft,
+          {rts::Coordinate((matrix_->cols() + 1) / (dim::cellWidth + 1)),
+           rts::Coordinate((matrix_->rows() + 1) / (dim::cellHeight + 1))}};
 }

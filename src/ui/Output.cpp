@@ -1,10 +1,9 @@
 #include "ui/Output.h"
 
+#include "dim.h"
 #include "graph.h"
 #include "render.h"
 #include "ui/ResourceUi.h"
-#include "ui/Sprite.h"
-#include "ui/dim.h"
 
 #include <signal.h>
 #include <sstream>
@@ -101,6 +100,7 @@ void ui::Output::update(const rts::World& world, const Player& player) {
     onTermResized();
   }
 
+  werase(renderWin);
   grid(renderWin);
   render(renderWin, world, player.camera);
 

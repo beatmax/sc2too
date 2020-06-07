@@ -1,6 +1,19 @@
 #include "util/geo.h"
 
+#include <algorithm>
+#include <cassert>
 #include <ostream>
+
+auto util::geo::intersection(const Rectangle& r1, const Rectangle& r2) -> Rectangle {
+  const auto& br1{r1.topLeft + r1.size};
+  const auto& br2{r2.topLeft + r2.size};
+  Point topLeft{std::max(r1.topLeft.x, r2.topLeft.x), std::max(r1.topLeft.y, r2.topLeft.y)};
+  Point bottomRight{std::min(br1.x, br2.x), std::min(br1.y, br2.y)};
+  const auto size = bottomRight - topLeft;
+  assert(size.x >= 0);
+  assert(size.y >= 0);
+  return {topLeft, size};
+}
 
 std::ostream& util::geo::operator<<(std::ostream& os, const Point& p) {
   return os << '(' << p.x << ", " << p.y << ')';

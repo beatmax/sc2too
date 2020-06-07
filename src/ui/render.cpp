@@ -1,33 +1,47 @@
 #include "render.h"
 
+#include "SpriteMatrix.h"
+#include "dim.h"
 #include "rts/Entity.h"
 #include "ui/Sprite.h"
-#include "ui/dim.h"
+#include "util/geo.h"
 
 #include <algorithm>
 #include <cassert>
+#include <set>
 
 namespace ui {
   namespace {
-    void draw(WINDOW* win, int y, int x, const Sprite& sprite, size_t spriteY, size_t spriteX) {
-      int maxY, maxX;
-      getmaxyx(win, maxY, maxX);
+    using ScreenPoint = util::geo::Point;
+    using ScreenVector = util::geo::Vector;
+    using ScreenRect = util::geo::Rectangle;
 
-      for (const std::wstring& cellLine : sprite.matrix(spriteY, spriteX)) {
-        if (y < maxY && !cellLine.empty()) {
-          const int n = std::min(maxX - x, int(cellLine.size()));
-          mvwaddnwstr(win, y++, x, cellLine.c_str(), n);
-        }
-      }
+    ScreenVector toScreenVector(rts::Vector v) {
+      return {v.x * (dim::cellWidth + 1), v.y * (dim::cellHeight + 1)};
+    };
+
+    ScreenRect toScreenRect(const Camera& camera, const rts::Rectangle& area) {
+      const rts::Vector relativeTopLeft{area.topLeft - camera.topLeft()};
+      return {ScreenPoint{0, 0} + toScreenVector(relativeTopLeft),
+              toScreenVector(area.size) - ScreenVector{1, 1}};
     }
 
-    void draw(WINDOW* win, int y, int x, const rts::WorldObject& object, rts::Point p) {
+    void draw(WINDOW* win, const Camera& camera, const rts::WorldObject& object) {
       const Sprite& sprite{getSprite(object)};
       assert(sprite.area(object.area.topLeft) == object.area);
-      assert(sprite.area(object.area.topLeft).contains(p));
 
-      auto sp{p - object.area.topLeft};
-      draw(win, y, x, sprite, sp.y, sp.x);
+      const rts::Rectangle visibleArea{intersection(object.area, camera.area())};
+      const ScreenRect drawRect{toScreenRect(camera, visibleArea)};
+      const ScreenVector topLeftInSprite{toScreenVector(visibleArea.topLeft - object.area.topLeft)};
+
+      const SpriteMatrix& matrix{sprite.matrix()};
+      ScreenVector v{0, 0};
+      for (; v.y < drawRect.size.y; ++v.y) {
+        const auto sp{topLeftInSprite + v};
+        mvwadd_wchnstr(
+            win, drawRect.topLeft.y + v.y, drawRect.topLeft.x, &matrix(sp.y, sp.x),
+            drawRect.size.x);
+      }
     }
   }
 }
@@ -56,25 +70,15 @@ void ui::render(WINDOW* win, const rts::World& world, const Camera& camera) {
   const auto& topLeft = camera.topLeft();
   const auto& bottomRight = camera.bottomRight();
 
-  int y = 0;
+  std::set<rts::WorldObjectCPtr> visibleObjects;
   for (rts::Coordinate cellY = topLeft.y; cellY < bottomRight.y; ++cellY) {
-    int x = 0;
     for (rts::Coordinate cellX = topLeft.x; cellX < bottomRight.x; ++cellX) {
-      rts::Point cellPos{cellX, cellY};
-      const auto& cell{map.at(cellPos)};
-      if (hasWorldObject(cell)) {
-        wattrset(
-            win,
-            hasBlocker(cell) ? graph::red()
-                             : hasResourceField(cell) ? graph::cyan() : graph::green());
-        draw(win, y, x, getWorldObject(cell), cellPos);
-      }
-      else {
-        wattrset(win, graph::white());
-        mvwaddstr(win, y, x, "   ");
-      }
-      x += dim::cellWidth + 1;
+      const auto& cell{map.at(cellX, cellY)};
+      if (hasWorldObject(cell))
+        visibleObjects.insert(&getWorldObject(cell));
     }
-    y += 2;
   }
+
+  for (rts::WorldObjectCPtr obj : visibleObjects)
+    draw(win, camera, *obj);
 }

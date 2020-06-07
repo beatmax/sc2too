@@ -1,24 +1,28 @@
 #pragma once
 
-#include "dim.h"
 #include "rts/types.h"
-#include "util/Matrix.h"
 
 #include <array>
 #include <iosfwd>
-#include <string>
+#include <memory>
 #include <vector>
 
 namespace ui {
-  struct Sprite {
-    util::Matrix<std::array<std::wstring, dim::cellWidth + 1>> matrix;
+  class SpriteMatrix;
 
-    Sprite() = default;
+  class Sprite {
+  public:
+    Sprite();
     explicit Sprite(const std::wstring& s);
     explicit Sprite(std::wistream&& is);
     explicit Sprite(const std::vector<std::wstring>& lines);
+    ~Sprite();
 
+    const SpriteMatrix& matrix() const { return *matrix_; }
     rts::Rectangle area(rts::Point topLeft) const;
+
+  private:
+    std::unique_ptr<SpriteMatrix> matrix_;
   };
 
   template<typename T>

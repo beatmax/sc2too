@@ -23,6 +23,7 @@ namespace rts {
   using ResourceCPtr = const Resource*;
   using ResourceFieldSPtr = std::shared_ptr<ResourceField>;
   using ResourceFieldSCPtr = std::shared_ptr<const ResourceField>;
+  using WorldObjectCPtr = const WorldObject*;
   using WorldObjectSPtr = std::shared_ptr<WorldObject>;
   using WorldObjectSCPtr = std::shared_ptr<const WorldObject>;
 
