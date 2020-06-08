@@ -3,6 +3,7 @@
 #include "SpriteMatrix.h"
 #include "dim.h"
 #include "rts/Entity.h"
+#include "ui/SideUi.h"
 #include "ui/Sprite.h"
 #include "util/geo.h"
 
@@ -22,11 +23,20 @@ namespace ui {
 
     ScreenRect toScreenRect(const Camera& camera, const rts::Rectangle& area) {
       const rts::Vector relativeTopLeft{area.topLeft - camera.topLeft()};
-      return {ScreenPoint{0, 0} + toScreenVector(relativeTopLeft),
-              toScreenVector(area.size) - ScreenVector{1, 1}};
+      return {
+          ScreenPoint{0, 0} + toScreenVector(relativeTopLeft),
+          toScreenVector(area.size) - ScreenVector{1, 1}};
     }
 
     void draw(WINDOW* win, const Camera& camera, const rts::WorldObject& object) {
+      {
+        // take side's color for color pair 0
+        const int sideColor = (object.type == rts::WorldObject::Type::Entity)
+            ? getColor(static_cast<const rts::Entity&>(object).side)
+            : graph::white();
+        wattrset(win, sideColor);
+      }
+
       const Sprite& sprite{getSprite(object)};
       assert(sprite.area(object.area.topLeft) == object.area);
 

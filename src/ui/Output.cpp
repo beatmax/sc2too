@@ -75,7 +75,7 @@ namespace ui {
 
     void drawResourceQuantities(const Player& player) {
       int x = dim::defaultWinWidth;
-      const rts::ResourceMap& resources{player.side.resources()};
+      const rts::ResourceMap& resources{player.side->resources()};
       for (auto it = resources.rbegin(); it != resources.rend(); ++it) {
         x -= 10;
         mvwprintw(headerWin, 0, x, "%c: %u", repr(*it->first), it->second);

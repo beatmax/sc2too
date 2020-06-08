@@ -6,7 +6,7 @@
 
 namespace ui {
   struct Player {
-    const rts::Side& side;
+    rts::SideCPtr side;
     Camera camera;
   };
 }

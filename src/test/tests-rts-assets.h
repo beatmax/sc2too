@@ -4,14 +4,17 @@
 #include "rts/Map.h"
 #include "rts/Resource.h"
 #include "rts/ResourceField.h"
+#include "rts/Side.h"
 #include "rts/types.h"
 
 #include <string>
+#include <vector>
 
 namespace test {
   extern const std::string map;
   extern const rts::Resource gas;
-  extern const rts::ResourceMap resources;
+
+  std::vector<rts::Side> makeSides();
 
   struct Ui : rts::Ui {
     char repr;
@@ -25,14 +28,14 @@ namespace test {
     using Inherited = rts::EntityTpl<Simpleton, Ui>;
 
   public:
-    explicit Simpleton(rts::Point p);
+    Simpleton(rts::Point p, rts::SideCPtr sd);
   };
 
   class Building : public rts::EntityTpl<Building, Ui> {
     using Inherited = rts::EntityTpl<Building, Ui>;
 
   public:
-    explicit Building(rts::Point p);
+    Building(rts::Point p, rts::SideCPtr sd);
   };
 
   class Geyser : public rts::ResourceFieldTpl<Geyser, Ui> {
@@ -51,6 +54,6 @@ namespace test {
 
   class CellCreator : public rts::CellCreator {
   public:
-    rts::Map::Cell operator()(char c, rts::Point p) const final;
+    rts::Map::Cell operator()(const rts::World& world, rts::Point p, char c) const final;
   };
 }

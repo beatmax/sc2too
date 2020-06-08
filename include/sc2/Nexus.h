@@ -8,6 +8,6 @@ namespace sc2 {
     using Inherited = rts::EntityTpl<Nexus, ui::Nexus>;
 
   public:
-    explicit Nexus(rts::Point p);
+    Nexus(rts::Point p, rts::SideCPtr sd);
   };
 }

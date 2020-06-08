@@ -11,11 +11,11 @@ namespace rts {
 
   class World {
   public:
-    World(Map m, size_t numSides, ResourceMap resources);
+    World(std::vector<Side> s, const CellCreator& creator, std::istream&& is);
 
-    Map map;
     GameTime time{};
     std::vector<Side> sides;
+    Map map;
 
     void update(const WorldActionList& actions);
 

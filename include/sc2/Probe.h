@@ -8,6 +8,6 @@ namespace sc2 {
     using Inherited = rts::EntityTpl<Probe, ui::Probe>;
 
   public:
-    explicit Probe(rts::Point p);
+    Probe(rts::Point p, rts::SideCPtr sd);
   };
 }

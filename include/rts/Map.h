@@ -3,6 +3,7 @@
 #include "Blocker.h"
 #include "Entity.h"
 #include "ResourceField.h"
+#include "Side.h"
 #include "WorldObject.h"
 #include "util/Matrix.h"
 
@@ -15,15 +16,16 @@
 namespace rts {
 
   class CellCreator;
+  class World;
 
   class Map {
   public:
     using Free = std::monostate;
     using Cell = std::variant<Free, WorldObjectSPtr>;
 
-    explicit Map(const CellCreator& creator, const std::string& s);
-    explicit Map(const CellCreator& creator, std::istream&& is);
-    explicit Map(const CellCreator& creator, const std::vector<std::string>& lines);
+    explicit Map(const World& world, const CellCreator& creator, std::istream&& is);
+    explicit Map(
+        const World& world, const CellCreator& creator, const std::vector<std::string>& lines);
 
     const Coordinate maxX;
     const Coordinate maxY;
@@ -95,6 +97,6 @@ namespace rts {
   class CellCreator {
   public:
     virtual ~CellCreator() = default;
-    virtual Map::Cell operator()(char c, Point p) const = 0;
+    virtual Map::Cell operator()(const World& world, Point p, char c) const = 0;
   };
 }

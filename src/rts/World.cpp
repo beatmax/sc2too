@@ -7,10 +7,8 @@
 #include <cstdlib>
 #include <utility>
 
-rts::World::World(Map m, size_t numSides, ResourceMap resources) : map{std::move(m)} {
-  sides.reserve(numSides);
-  for (size_t i = 0; i < numSides; ++i)
-    sides.emplace_back(resources);
+rts::World::World(std::vector<Side> s, const CellCreator& creator, std::istream&& is)
+  : sides{std::move(s)}, map{*this, creator, std::move(is)} {
 }
 
 void rts::World::update(const WorldActionList& actions) {

@@ -2,5 +2,5 @@
 
 #include "rts/abilities.h"
 
-sc2::Nexus::Nexus(rts::Point p) : Inherited{p, rts::Vector{5, 5}} {
+sc2::Nexus::Nexus(rts::Point p, rts::SideCPtr sd) : Inherited{p, rts::Vector{5, 5}, sd} {
 }

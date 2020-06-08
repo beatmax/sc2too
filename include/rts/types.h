@@ -11,6 +11,7 @@ namespace rts {
   class Entity;
   class Resource;
   class ResourceField;
+  class Side;
   class World;
   class WorldObject;
 
@@ -23,6 +24,7 @@ namespace rts {
   using ResourceCPtr = const Resource*;
   using ResourceFieldSPtr = std::shared_ptr<ResourceField>;
   using ResourceFieldSCPtr = std::shared_ptr<const ResourceField>;
+  using SideCPtr = const Side*;
   using WorldObjectCPtr = const WorldObject*;
   using WorldObjectSPtr = std::shared_ptr<WorldObject>;
   using WorldObjectSCPtr = std::shared_ptr<const WorldObject>;

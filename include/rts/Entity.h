@@ -10,6 +10,7 @@ namespace rts {
   public:
     static constexpr Type worldObjectType = Type::Entity;
 
+    SideCPtr side;
     AbilityList abilities;
 
     static WorldActionList trigger(
@@ -18,7 +19,7 @@ namespace rts {
     void cancelAll();
 
   protected:
-    Entity(Point p, Vector s) : WorldObject{worldObjectType, p, s} {}
+    Entity(Point p, Vector s, SideCPtr sd) : WorldObject{worldObjectType, p, s}, side{sd} {}
     void addAbility(Ability&& a) { abilities.push_back(std::move(a)); }
   };
 
@@ -26,8 +27,8 @@ namespace rts {
   class EntityTpl : public Entity {
   public:
     template<typename... UiArgs>
-    EntityTpl(Point p, Vector s, UiArgs&&... uiArgs)
-      : Entity{p, s}, ui_{std::forward<UiArgs>(uiArgs)...} {}
+    EntityTpl(Point p, Vector s, SideCPtr sd, UiArgs&&... uiArgs)
+      : Entity{p, s, sd}, ui_{std::forward<UiArgs>(uiArgs)...} {}
 
     template<typename... Args>
     static EntitySPtr create(Args&&... args) {

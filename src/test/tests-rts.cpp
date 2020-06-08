@@ -2,11 +2,13 @@
 #include "rts/World.h"
 #include "tests-rts-assets.h"
 
+#include <sstream>
+
 using namespace Catch::Matchers;
 using namespace rts;
 
 TEST_CASE("Hello world!", "[rts]") {
-  World world{Map{test::CellCreator{}, test::map}, 1, test::resources};
+  World world{test::makeSides(), test::CellCreator{}, std::istringstream{test::map}};
   const World& cworld{world};
 
   REQUIRE(cworld.map.maxX == 40);
@@ -38,12 +40,17 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(getResourceField(cworld.map.at(p)) == geyser);
   });
 
-  REQUIRE(cworld.sides.size() == 1);
+  REQUIRE(cworld.sides.size() == 2);
   REQUIRE(cworld.sides[0].quantity(&test::gas) == 0);
+  REQUIRE(test::repr(cworld.sides[0].ui()) == '0');
+  REQUIRE(cworld.sides[1].quantity(&test::gas) == 0);
+  REQUIRE(test::repr(cworld.sides[1].ui()) == '1');
+
+  const SideCPtr side0{&cworld.sides[0]};
 
   SECTION("An entity is added to the world") {
     Point pos{20, 5};
-    world.add(test::Simpleton::create(pos));
+    world.add(test::Simpleton::create(pos, side0));
     REQUIRE(hasEntity(cworld.map.at(pos)));
     EntitySCPtr ce{getEntity(cworld.map.at(pos))};
     REQUIRE(ce->area.topLeft == pos);
@@ -104,7 +111,7 @@ TEST_CASE("Hello world!", "[rts]") {
   SECTION("A multi-cell entity is added to the world") {
     const Rectangle area{Point{1, 1}, rts::Vector{2, 3}};
 
-    world.add(test::Building::create(area.topLeft));
+    world.add(test::Building::create(area.topLeft, side0));
     EntitySCPtr ce{getEntity(cworld.map.at(area.topLeft))};
     REQUIRE(ce->area == area);
 
