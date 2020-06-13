@@ -1,11 +1,21 @@
-        mmm  rr                         
- nnnnn  mm  rrr                         
- nnnnn     rrr                          
- nnnnn    rrrr                          
- nnnnn   rrr                            
- nnnnn   rr                             
-                                        
- ggg                                    
- ggg             r   rr                 
- ggg             r    r                 
+        mmm  rr                                         
+ nnnnn  mm  rrr                                         
+ nnnnn     rrr                                          
+ nnnnn    rrrr                                          
+ nnnnn   rrr                                            
+ nnnnn   rr                                             
+                                                        
+ ggg                                                    
+ ggg             r                   rr                 
+ ggg             r                    r                 
+                 r                    r                 
+                 r                    r                 
+                 r                    r                 
+                 r                    r                 
+                 r                    r                 
+                 r                    r                 
+                 r                    r                 
+                 r                    r                 
+                 r                    r                 
+                 r                    r                 
 @MIRROR-VH

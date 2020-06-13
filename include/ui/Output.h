@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Menu.h"
 #include "Player.h"
 #include "rts/World.h"
 
@@ -9,7 +10,10 @@ namespace ui {
   public:
     ~Output();
 
-    void init();
+    void init(Menu& menu);
     void update(const rts::World& world, const Player& player);
+
+  private:
+    Menu* menu_;
   };
 }

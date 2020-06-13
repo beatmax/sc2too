@@ -1,7 +1,12 @@
 #include "ui/Camera.h"
 
-void ui::Camera::move(const rts::Vector& v) {
-  area_.topLeft += v;
+void ui::Camera::update() {
+  if (--moveCnt_ > 0) {
+    return;
+  }
+  moveCnt_ = movePerid_;
+
+  area_.topLeft += moveDirection_;
   if (area_.topLeft.x < 0)
     area_.topLeft.x = 0;
   if (area_.topLeft.y < 0)

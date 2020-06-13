@@ -15,11 +15,17 @@ namespace ui {
     const rts::Point topLeft() const { return area_.topLeft; }
     const rts::Point bottomRight() const { return area_.topLeft + area_.size; }
 
-    void move(const rts::Vector& v);
+    const rts::Vector& moveDirection() const { return moveDirection_; }
+    void setMoveDirection(const rts::Vector& v) { moveDirection_ = v; }
+    void update();
 
   private:
     rts::Rectangle area_;
     rts::Point topLeft_{0, 0};
     const rts::Point maxBottomRight_{0, 0};
+
+    rts::Vector moveDirection_{0, 0};
+    constexpr static int movePerid_{2};
+    int moveCnt_{movePerid_};
   };
 }

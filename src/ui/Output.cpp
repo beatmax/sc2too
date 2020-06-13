@@ -1,5 +1,7 @@
 #include "ui/Output.h"
 
+#include "MenuImpl.h"
+#include "X.h"
 #include "dim.h"
 #include "graph.h"
 #include "render.h"
@@ -88,7 +90,8 @@ ui::Output::~Output() {
   endwin();
 }
 
-void ui::Output::init() {
+void ui::Output::init(Menu& menu) {
+  menu_ = &menu;
   initWinch();
   graph::init();
   initWins();
@@ -104,19 +107,30 @@ void ui::Output::update(const rts::World& world, const Player& player) {
   grid(renderWin);
   render(renderWin, world, player.camera);
 
-  const auto& c{player.camera};
   werase(headerWin);
   drawResourceQuantities(player);
-
-  mvwprintw(
-      headerWin, 0, 0, "(%d, %d) - (%d, %d)", c.topLeft().x, c.topLeft().y, c.bottomRight().x,
-      c.bottomRight().y);
 
   if (termTooSmall) {
     werase(headerWin);
     mvwprintw(
-        headerWin, 0, 0, "PLEASE RESIZE TERMINAL TO AT LEAST %d LINES AND %d COLUMNS",
+        headerWin, 0, 0,
+        "=== PLEASE RESIZE TERMINAL TO AT LEAST %d LINES AND %d COLUMNS (press Q to quit) ===",
         dim::totalHeight, dim::totalWidth);
+    if (!menu_->active()) {
+      menu_->show();
+      X::finish();
+    }
+  }
+  else if (menu_->active()) {
+    MenuImpl::print(*menu_, headerWin);
+    mvwprintw(headerWin, 0, 40, "=== GAME PAUSED ===");
+  }
+  else {
+    const auto& c{player.camera};
+    mvwprintw(headerWin, 0, 0, "F10:menu");
+    mvwprintw(
+        headerWin, 0, 40, "(%d, %d) - (%d, %d)", c.topLeft().x, c.topLeft().y, c.bottomRight().x,
+        c.bottomRight().y);
   }
 
   wrefresh(headerWin);
