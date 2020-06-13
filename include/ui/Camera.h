@@ -21,7 +21,6 @@ namespace ui {
 
   private:
     rts::Rectangle area_;
-    rts::Point topLeft_{0, 0};
     const rts::Point maxBottomRight_{0, 0};
 
     rts::Vector moveDirection_{0, 0};
