@@ -54,6 +54,19 @@ namespace util::geo {
 
   Rectangle intersection(const Rectangle& r1, const Rectangle& r2);
 
+  struct AtBorder {
+    AtBorder(const Rectangle& r, const Point& p)
+      : top{p.y == r.topLeft.y},
+        bottom{p.y == r.topLeft.y + r.size.y - 1},
+        left{p.x == r.topLeft.x},
+        right{p.x == r.topLeft.x + r.size.x - 1} {}
+
+    bool top;
+    bool bottom;
+    bool left;
+    bool right;
+  };
+
   std::ostream& operator<<(std::ostream& os, const Point& p);
   std::ostream& operator<<(std::ostream& os, const Vector& v);
   std::ostream& operator<<(std::ostream& os, const Rectangle& r);

@@ -1,7 +1,9 @@
 #pragma once
 
+#include "rts/types.h"
+
 namespace ui {
-  enum class InputType { Unknown, KeyPress, KeyRelease };
+  enum class InputType { Unknown, KeyPress, KeyRelease, MousePress, MouseRelease };
   enum class InputKeySym {
     Unknown,
     Escape,
@@ -24,11 +26,14 @@ namespace ui {
   };
   using InputState = unsigned int;
   using InputKeyCode = unsigned int;
+  enum class InputButton { Unknown, Button1, Button2, Button3 };
 
   struct InputEvent {
     InputType type;
     InputState state;
     InputKeyCode keycode;
     InputKeySym symbol;
+    InputButton mouseButton;
+    rts::Point mouseCell;
   };
 }

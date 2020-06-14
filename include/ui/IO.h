@@ -3,14 +3,23 @@
 #include "Input.h"
 #include "Output.h"
 
-namespace ui {
-  struct IO {
-    Input input;
-    Output output;
-    Menu menu;
+#include <memory>
 
+namespace ui {
+  struct IOState;
+
+  class IO {
+  private:
+    std::unique_ptr<IOState> state_;
+
+  public:
     IO();
     ~IO();
-    bool paused() const { return menu.active(); }
+
+    Input input;
+    Output output;
+
+    bool paused() const;
+    bool quit() const;
   };
 }

@@ -1,19 +1,20 @@
 #pragma once
 
-#include "Menu.h"
 #include "Player.h"
 #include "rts/World.h"
 
 namespace ui {
+  struct IOState;
 
   class Output {
   public:
+    explicit Output(IOState& ioState);
     ~Output();
 
-    void init(Menu& menu);
+    void init();
     void update(const rts::World& world, const Player& player);
 
   private:
-    Menu* menu_;
+    IOState& ios_;
   };
 }

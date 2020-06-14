@@ -23,9 +23,8 @@ namespace ui {
 
     ScreenRect toScreenRect(const Camera& camera, const rts::Rectangle& area) {
       const rts::Vector relativeTopLeft{area.topLeft - camera.topLeft()};
-      return {
-          ScreenPoint{0, 0} + toScreenVector(relativeTopLeft),
-          toScreenVector(area.size) - ScreenVector{1, 1}};
+      return {ScreenPoint{0, 0} + toScreenVector(relativeTopLeft),
+              toScreenVector(area.size) - ScreenVector{1, 1}};
     }
 
     void draw(WINDOW* win, const Camera& camera, const rts::WorldObject& object) {
@@ -62,17 +61,35 @@ void ui::grid(WINDOW* win) {
   int y = 0;
   for (rts::Coordinate cellY = 0;;) {
     for (rts::Coordinate cellX = 1; cellX < Camera::width; ++cellX)
-      mvwvline(win, y, 4 * cellX - 1, 0, dim::cellHeight);
+      mvwvline(win, y, cellX * (dim::cellWidth + 1) - 1, 0, dim::cellHeight);
     if (++cellY == Camera::height)
       break;
-    ++y;
+    y += dim::cellHeight;
     mvwhline(win, y, 0, 0, dim::cellWidth);
-    for (rts::Coordinate cellX = 0; cellX < Camera::width; ++cellX) {
-      mvwaddch(win, y, 4 * cellX - 1, ACS_PLUS);
+    for (rts::Coordinate cellX = 1; cellX < Camera::width; ++cellX) {
+      mvwaddch(win, y, cellX * (dim::cellWidth + 1) - 1, ACS_PLUS);
       whline(win, 0, dim::cellWidth);
     }
     ++y;
   }
+}
+
+void ui::highlight(WINDOW* win, const Camera& camera, rts::Point cell, int color) {
+  if (!camera.area().contains(cell))
+    return;
+
+  const rts::Vector cellInCamera{cell - camera.topLeft()};
+  const ScreenVector topLeft{toScreenVector(cellInCamera)};
+  util::geo::AtBorder atBorder{camera.area(), cell};
+  wattrset(win, color);
+  if (!atBorder.top)
+    mvwhline(win, topLeft.y - 1, topLeft.x, 0, dim::cellWidth);
+  if (!atBorder.bottom)
+    mvwhline(win, topLeft.y + dim::cellHeight, topLeft.x, 0, dim::cellWidth);
+  if (!atBorder.left)
+    mvwvline(win, topLeft.y, topLeft.x - 1, 0, dim::cellHeight);
+  if (!atBorder.right)
+    mvwvline(win, topLeft.y, topLeft.x + dim::cellWidth, 0, dim::cellHeight);
 }
 
 void ui::render(WINDOW* win, const rts::World& world, const Camera& camera) {

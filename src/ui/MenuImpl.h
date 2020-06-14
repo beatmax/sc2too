@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Menu.h"
 #include "graph.h"
-#include "ui/Menu.h"
 
 namespace ui {
   struct MenuImpl {

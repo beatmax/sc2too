@@ -1,5 +1,6 @@
 #include "ui/Output.h"
 
+#include "IOState.h"
 #include "MenuImpl.h"
 #include "X.h"
 #include "dim.h"
@@ -16,9 +17,6 @@
 
 namespace ui {
   namespace {
-    WINDOW* headerWin{nullptr};
-    WINDOW* renderWin{nullptr};
-    WINDOW* controlWin{nullptr};
     std::vector<WINDOW*> allWins;
     bool termResized{false};
     bool termTooSmall{false};
@@ -45,7 +43,7 @@ namespace ui {
       allWins.clear();
     }
 
-    void initWins() {
+    void initWins(IOState& ios) {
       int maxY, maxX;
       getmaxyx(stdscr, maxY, maxX);
       termTooSmall = maxY < dim::totalHeight || maxX < dim::totalWidth;
@@ -53,87 +51,92 @@ namespace ui {
       const int top{maxY < dim::totalHeight ? 0 : (maxY - dim::totalHeight) / 2};
       const int left{maxX < dim::totalWidth ? 0 : (maxX - dim::totalWidth) / 2};
 
-      headerWin = addWin(
+      ios.headerWin = addWin(
           dim::headerWinHeight, dim::defaultWinWidth, top + dim::headerWinTop,
           left + dim::defaultWinLeft);
-      renderWin = addWin(
+      ios.renderWin = addWin(
           dim::renderWinHeight, dim::defaultWinWidth, top + dim::renderWinTop,
           left + dim::defaultWinLeft);
-      controlWin = addWin(
+      ios.controlWin = addWin(
           dim::controlWinHeight, dim::defaultWinWidth, top + dim::controlWinTop,
           left + dim::defaultWinLeft);
 
-      graph::drawBorders({headerWin, renderWin, controlWin});
+      graph::drawBorders(allWins);
       refresh();
     }
 
-    void onTermResized() {
+    void onTermResized(IOState& ios) {
       endwin();
       refresh();
       clear();
       delAllWins();
-      initWins();
+      initWins(ios);
     }
 
-    void drawResourceQuantities(const Player& player) {
+    void drawResourceQuantities(IOState& ios, const Player& player) {
       int x = dim::defaultWinWidth;
       const rts::ResourceMap& resources{player.side->resources()};
       for (auto it = resources.rbegin(); it != resources.rend(); ++it) {
         x -= 10;
-        mvwprintw(headerWin, 0, x, "%c: %u", repr(*it->first), it->second);
+        mvwprintw(ios.headerWin, 0, x, "%c: %u", repr(*it->first), it->second);
       }
     }
   }
+}
+
+ui::Output::Output(IOState& ios) : ios_{ios} {
 }
 
 ui::Output::~Output() {
   endwin();
 }
 
-void ui::Output::init(Menu& menu) {
-  menu_ = &menu;
+void ui::Output::init() {
   initWinch();
   graph::init();
-  initWins();
+  initWins(ios_);
 }
 
 void ui::Output::update(const rts::World& world, const Player& player) {
   if (termResized) {
     termResized = false;
-    onTermResized();
+    onTermResized(ios_);
   }
 
-  werase(renderWin);
-  grid(renderWin);
-  render(renderWin, world, player.camera);
+  werase(ios_.renderWin);
+  grid(ios_.renderWin);
+  highlight(
+      ios_.renderWin, player.camera, ios_.clickedCell,
+      ios_.clickedButton ? graph::red() : graph::green());
+  render(ios_.renderWin, world, player.camera);
 
-  werase(headerWin);
-  drawResourceQuantities(player);
+  werase(ios_.headerWin);
+  drawResourceQuantities(ios_, player);
 
   if (termTooSmall) {
-    werase(headerWin);
+    werase(ios_.headerWin);
     mvwprintw(
-        headerWin, 0, 0,
+        ios_.headerWin, 0, 0,
         "=== PLEASE RESIZE TERMINAL TO AT LEAST %d LINES AND %d COLUMNS (press Q to quit) ===",
         dim::totalHeight, dim::totalWidth);
-    if (!menu_->active()) {
-      menu_->show();
+    if (!ios_.menu.active()) {
+      ios_.menu.show();
       X::finish();
     }
   }
-  else if (menu_->active()) {
-    MenuImpl::print(*menu_, headerWin);
-    mvwprintw(headerWin, 0, 40, "=== GAME PAUSED ===");
+  else if (ios_.menu.active()) {
+    MenuImpl::print(ios_.menu, ios_.headerWin);
+    mvwprintw(ios_.headerWin, 0, 40, "=== GAME PAUSED ===");
   }
   else {
     const auto& c{player.camera};
-    mvwprintw(headerWin, 0, 0, "F10:menu");
+    mvwprintw(ios_.headerWin, 0, 0, "F10:menu");
     mvwprintw(
-        headerWin, 0, 40, "(%d, %d) - (%d, %d)", c.topLeft().x, c.topLeft().y, c.bottomRight().x,
-        c.bottomRight().y);
+        ios_.headerWin, 0, 32, "(%d, %d) - (%d, %d) : (%d, %d) : %d", c.topLeft().x, c.topLeft().y,
+        c.bottomRight().x, c.bottomRight().y, ios_.clickedCell.x, ios_.clickedCell.y,
+        ios_.clickedButton);
   }
 
-  wrefresh(headerWin);
-  wrefresh(renderWin);
-  wrefresh(controlWin);
+  for (auto* win : allWins)
+    wrefresh(win);
 }

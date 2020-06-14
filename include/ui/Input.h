@@ -1,20 +1,23 @@
 #pragma once
 
 #include "InputEvent.h"
-#include "Menu.h"
 #include "Player.h"
 
 namespace ui {
+  struct IOState;
 
   class Input {
   public:
-    void init(Menu& menu);
-    bool process(Player& player);
+    explicit Input(IOState& ioState);
+
+    void init();
+    void process(Player& player);
 
   private:
-    bool processInput(const InputEvent& event);
-    void processMenu(bool& quit);
+    bool processKbInput(const InputEvent& event);
+    bool processMouseInput(const InputEvent& event);
+    InputEvent nextMouseEvent(const Camera& camera);
 
-    Menu* menu_;
+    IOState& ios_;
   };
 }

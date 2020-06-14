@@ -32,11 +32,12 @@ int main() try {
   ui::Player player{&world.sides[0], ui::Camera{{0, 0}, {world.map.maxX, world.map.maxY}}};
 
   rts::Engine engine{100};
-  do {
+  while (!io.quit()) {
     if (!io.paused())
       engine.advanceFrame();
+    io.input.process(player);
     io.output.update(world, player);
-  } while (io.input.process(player));
+  };
 
 } catch (const std::exception& e) {
   std::cerr << "ERROR: " << e.what() << std::endl;

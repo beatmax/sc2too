@@ -34,7 +34,6 @@ void ui::graph::init() {
 
   raw();
   noecho();
-  keypad(stdscr, true);
   curs_set(0);
 
   if (has_colors()) {
