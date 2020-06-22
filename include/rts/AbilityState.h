@@ -21,10 +21,9 @@ namespace rts {
   public:
     using AbilityState::AbilityState;
 
-    struct Create {
-      AbilityStateUPtr operator()(Point target) const {
-        return std::make_unique<Derived>(target);
-      }
-    };
+    template<typename... Args>
+    static auto creator(Args... args) {
+      return [=](Point target) { return std::make_unique<Derived>(target, args...); };
+    }
   };
 }

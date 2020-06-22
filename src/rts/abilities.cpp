@@ -9,7 +9,7 @@ namespace rts::abilities::state {
 
   class Move : public AbilityStateTpl<Move> {
   public:
-    explicit Move(Point target) : target_{target} {}
+    explicit Move(Point target, Speed speed) : target_{target}, speed_{speed} {}
     GameTime step(const World& world, const EntitySPtr& entity, WorldActionList& actions) override {
       if (entity->area.contains(target_))
         return 0;
@@ -17,17 +17,18 @@ namespace rts::abilities::state {
         addAction(actions, &World::moveTowards, target_, entity);
       else
         init_ = true;
-      return 1;
+      return CellDistance / speed_;
     }
 
   private:
     Point target_;
+    Speed speed_;
     bool init_{false};
   };
 }
 
 namespace ns = rts::abilities;
 
-rts::Ability ns::move() {
-  return Ability{"move", state::Move::Create{}};
+rts::Ability ns::move(Speed speed) {
+  return Ability{"move", state::Move::creator(speed)};
 }

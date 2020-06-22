@@ -6,6 +6,8 @@
 #include "dim.h"
 #include "graph.h"
 #include "render.h"
+#include "rts/Engine.h"
+#include "rts/World.h"
 #include "ui/ResourceUi.h"
 
 #include <signal.h>
@@ -73,13 +75,26 @@ namespace ui {
       initWins(ios);
     }
 
-    void drawResourceQuantities(IOState& ios, const Player& player) {
+    void drawResourceQuantities(const IOState& ios, const Player& player) {
       int x = dim::defaultWinWidth;
       const rts::ResourceMap& resources{player.side->resources()};
       for (auto it = resources.rbegin(); it != resources.rend(); ++it) {
         x -= 10;
         mvwprintw(ios.headerWin, 0, x, "%c: %u", repr(*it->first), it->second);
       }
+    }
+
+    void drawGameTime(const IOState& ios, const rts::Engine& engine, const rts::World& world) {
+      auto tsec = world.time / engine.initialGameSpeed();
+      mvwprintw(ios.controlWin, 0, 0, "%02d:%02d:%02d", tsec / 3600, (tsec / 60) % 60, tsec % 60);
+    }
+
+    void drawGameSpeed(const IOState& ios, const rts::Engine& engine) {
+      mvwprintw(ios.controlWin, 1, 0, "Speed: %d (F11/F12)", engine.gameSpeed());
+    }
+
+    void drawFps(const IOState& ios, const rts::Engine& engine) {
+      mvwprintw(ios.controlWin, 8, 0, "%u FPS", engine.fps());
     }
   }
 }
@@ -97,21 +112,26 @@ void ui::Output::init() {
   initWins(ios_);
 }
 
-void ui::Output::update(const rts::World& world, const Player& player) {
+void ui::Output::update(const rts::Engine& engine, const rts::World& world, const Player& player) {
   if (termResized) {
     termResized = false;
     onTermResized(ios_);
   }
 
   werase(ios_.renderWin);
+  werase(ios_.headerWin);
+  werase(ios_.controlWin);
+
   grid(ios_.renderWin);
   highlight(
       ios_.renderWin, player.camera, ios_.clickedCell,
       ios_.clickedButton ? graph::red() : graph::green());
   render(ios_.renderWin, world, player.camera);
 
-  werase(ios_.headerWin);
   drawResourceQuantities(ios_, player);
+  drawGameTime(ios_, engine, world);
+  drawGameSpeed(ios_, engine);
+  drawFps(ios_, engine);
 
   if (termTooSmall) {
     werase(ios_.headerWin);

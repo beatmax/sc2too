@@ -24,20 +24,23 @@ int main() try {
   ui::IO io;
 
   sc2::Assets::init();
-  rts::World world{makeSides(), sc2::Assets::cellCreator(),
-                   std::ifstream{"data/maps/ascii_jungle.txt"}};
+  rts::World world{
+      makeSides(), sc2::Assets::cellCreator(), std::ifstream{"data/maps/ascii_jungle.txt"}};
 
-  world.add(sc2::Probe::create(rts::Point{20, 10}, &world.sides[0]));
+  auto probe = sc2::Probe::create(rts::Point{20, 10}, &world.sides[0]);
+  world.add(probe);
 
   ui::Player player{&world.sides[0], ui::Camera{{0, 0}, {world.map.maxX, world.map.maxY}}};
+  player.selection = probe;
 
-  rts::Engine engine{100};
-  while (!io.quit()) {
-    if (!io.paused())
-      engine.advanceFrame();
-    io.input.process(player);
-    io.output.update(world, player);
-  };
+  rts::Engine engine{world};
+  engine.gameSpeed(rts::GameSpeedNormal);
+  engine.targetFps(100);
+
+  auto processInput = [&](const rts::World& w) { return io.input.process(engine, w, player); };
+  auto updateOutput = [&](const rts::World& w) { io.output.update(engine, w, player); };
+
+  engine.run(io, processInput, updateOutput);
 
 } catch (const std::exception& e) {
   std::cerr << "ERROR: " << e.what() << std::endl;

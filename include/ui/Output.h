@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Player.h"
-#include "rts/World.h"
+#include "rts/types.h"
 
 namespace ui {
   struct IOState;
@@ -12,7 +12,7 @@ namespace ui {
     ~Output();
 
     void init();
-    void update(const rts::World& world, const Player& player);
+    void update(const rts::Engine& engine, const rts::World& world, const Player& player);
 
   private:
     IOState& ios_;

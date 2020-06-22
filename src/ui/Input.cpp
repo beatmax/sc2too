@@ -4,6 +4,7 @@
 #include "MenuImpl.h"
 #include "X.h"
 #include "dim.h"
+#include "rts/Engine.h"
 
 #ifdef HAS_NCURSESW_NCURSES_H
 #include <ncursesw/ncurses.h>
@@ -32,7 +33,10 @@ void ui::Input::init() {
   initMouse();
 }
 
-void ui::Input::process(Player& player) {
+rts::WorldActionList ui::Input::process(
+    rts::Engine& engine, const rts::World& world, Player& player) {
+  rts::WorldActionList actions;
+
   if (ios_.menu.active()) {
     nodelay(stdscr, false);
     MenuImpl::processInput(ios_.menu, ios_.quit);
@@ -41,19 +45,19 @@ void ui::Input::process(Player& player) {
       X::captureInput();
       nodelay(stdscr, true);
     }
-    return;
+    return actions;
   }
 
   while (X::pendingEvent()) {
     InputEvent event{X::nextEvent()};
-    if (processKbInput(event)) {
+    if (processKbInput(engine, event)) {
       if (ios_.menu.active()) {
         X::finish();
-        return;
+        return actions;
       }
     }
     else {
-      player.processInput(event);
+      addActions(actions, player.processInput(world, event));
     }
   }
 
@@ -63,19 +67,27 @@ void ui::Input::process(Player& player) {
       InputEvent event{nextMouseEvent(player.camera)};
       if (event.type != InputType::Unknown) {
         if (!processMouseInput(event))
-          player.processInput(event);
+          addActions(actions, player.processInput(world, event));
       }
     }
   }
 
   player.camera.update();
+  return actions;
 }
 
-bool ui::Input::processKbInput(const InputEvent& event) {
+bool ui::Input::processKbInput(rts::Engine& engine, const InputEvent& event) {
   if (event.type == InputType::KeyPress) {
     switch (event.symbol) {
       case InputKeySym::F10:
         ios_.menu.show();
+        return true;
+      case InputKeySym::F11:
+        if (engine.gameSpeed() > 200)
+          engine.gameSpeed(engine.gameSpeed() - 200);
+        return true;
+      case InputKeySym::F12:
+        engine.gameSpeed(engine.gameSpeed() + 200);
         return true;
       default:
         break;
@@ -88,7 +100,7 @@ bool ui::Input::processMouseInput(const InputEvent& event) {
   if (event.type == InputType::MousePress) {
     ios_.clickedCell = event.mouseCell;
     ios_.clickedButton = int(event.mouseButton);
-    return true;
+    return false;
   }
   else if (event.type == InputType::MouseRelease) {
     ios_.clickedButton = 0;

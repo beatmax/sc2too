@@ -1,17 +1,21 @@
 #include "ui/Player.h"
 
+#include "rts/Entity.h"
+#include "rts/World.h"
+
 #include <map>
 
 namespace ui {
   namespace {
-    const std::map<InputKeySym, rts::Vector> cameraMoveMap{{InputKeySym::Right, rts::Vector{1, 0}},
-                                                           {InputKeySym::Left, rts::Vector{-1, 0}},
-                                                           {InputKeySym::Up, rts::Vector{0, -1}},
-                                                           {InputKeySym::Down, rts::Vector{0, 1}}};
+    const std::map<InputKeySym, rts::Vector> cameraMoveMap{
+        {InputKeySym::Right, rts::Vector{1, 0}},
+        {InputKeySym::Left, rts::Vector{-1, 0}},
+        {InputKeySym::Up, rts::Vector{0, -1}},
+        {InputKeySym::Down, rts::Vector{0, 1}}};
   }
 }
 
-void ui::Player::processInput(const InputEvent& event) {
+rts::WorldActionList ui::Player::processInput(const rts::World& world, const InputEvent& event) {
   if (event.type == InputType::KeyPress || event.type == InputType::KeyRelease) {
     if (auto it = cameraMoveMap.find(event.symbol); it != cameraMoveMap.end()) {
       if (event.type == InputType::KeyPress)
@@ -20,4 +24,12 @@ void ui::Player::processInput(const InputEvent& event) {
         camera.setMoveDirection(camera.moveDirection() - it->second);
     }
   }
+  else if (event.type == InputType::MousePress && event.mouseButton == InputButton::Button3) {
+    if (auto entity = selection.lock()) {
+      if (!entity->abilities.empty())
+        return rts::Entity::trigger(entity->abilities.front(), world, entity, event.mouseCell);
+    }
+  }
+
+  return {};
 }

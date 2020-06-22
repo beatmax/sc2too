@@ -2,6 +2,8 @@
 
 #include "InputEvent.h"
 #include "Player.h"
+#include "rts/WorldAction.h"
+#include "rts/types.h"
 
 namespace ui {
   struct IOState;
@@ -11,10 +13,10 @@ namespace ui {
     explicit Input(IOState& ioState);
 
     void init();
-    void process(Player& player);
+    rts::WorldActionList process(rts::Engine& engine, const rts::World& world, Player& player);
 
   private:
-    bool processKbInput(const InputEvent& event);
+    bool processKbInput(rts::Engine& engine, const InputEvent& event);
     bool processMouseInput(const InputEvent& event);
     InputEvent nextMouseEvent(const Camera& camera);
 

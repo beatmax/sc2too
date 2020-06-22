@@ -31,7 +31,7 @@ std::vector<rts::Side> test::makeSides() {
 
 test::Simpleton::Simpleton(rts::Point p, rts::SideCPtr sd)
   : Inherited{p, rts::Vector{1, 1}, sd, 's'} {
-  addAbility(rts::abilities::move());
+  addAbility(rts::abilities::move(rts::CellDistance / rts::GameTimeSecond));
 }
 
 test::Building::Building(rts::Point p, rts::SideCPtr sd)

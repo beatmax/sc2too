@@ -1,6 +1,7 @@
 #include "rts/Map.h"
 
 #include "rts/Entity.h"
+#include "rts/World.h"
 #include "util/fs.h"
 
 #include <algorithm>
@@ -20,11 +21,11 @@ namespace {
   }
 }
 
-rts::Map::Map(const World& world, const CellCreator& creator, std::istream&& is)
+rts::Map::Map(World& world, const CellCreator& creator, std::istream&& is)
   : Map{world, creator, expand(util::fs::readLines(is))} {
 }
 
-rts::Map::Map(const World& world, const CellCreator& creator, const std::vector<std::string>& lines)
+rts::Map::Map(World& world, const CellCreator& creator, const std::vector<std::string>& lines)
   : maxX{lines.empty() ? 0 : Coordinate(lines.front().size())},
     maxY{Coordinate(lines.size())},
     cells_(maxY, maxX) {
@@ -35,7 +36,9 @@ rts::Map::Map(const World& world, const CellCreator& creator, const std::vector<
       Point p{x, y};
       if (isFree(at(p))) {
         Cell cell{creator(world, p, line[x])};
-        if (hasWorldObject(cell))
+        if (hasEntity(cell))
+          world.add(getEntity(cell));
+        else if (hasWorldObject(cell))
           set(getWorldObject(cell).area, cell);
       }
     }

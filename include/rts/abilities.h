@@ -4,6 +4,6 @@
 
 namespace rts::abilities {
 
-  Ability move();
+  Ability move(Speed speed);
 
 }

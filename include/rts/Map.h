@@ -23,9 +23,8 @@ namespace rts {
     using Free = std::monostate;
     using Cell = std::variant<Free, WorldObjectSPtr>;
 
-    explicit Map(const World& world, const CellCreator& creator, std::istream&& is);
-    explicit Map(
-        const World& world, const CellCreator& creator, const std::vector<std::string>& lines);
+    explicit Map(World& world, const CellCreator& creator, std::istream&& is);
+    explicit Map(World& world, const CellCreator& creator, const std::vector<std::string>& lines);
 
     const Coordinate maxX;
     const Coordinate maxY;
