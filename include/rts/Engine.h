@@ -14,7 +14,7 @@ namespace rts {
     constexpr static GameSpeed DefaultGameSpeed{GameSpeedNormal};
     constexpr static Fps DefaultTargetFps{100};
 
-    explicit EngineBase(World& world);
+    explicit EngineBase(World& world, GameSpeed speed = DefaultGameSpeed);
 
     template<typename C, typename FI, typename FO>
     void run(const C& controller, FI processInput, FO updateOutput);

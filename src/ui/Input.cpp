@@ -83,11 +83,11 @@ bool ui::Input::processKbInput(rts::Engine& engine, const InputEvent& event) {
         ios_.menu.show();
         return true;
       case InputKeySym::F11:
-        if (engine.gameSpeed() > 200)
-          engine.gameSpeed(engine.gameSpeed() - 200);
+        if (engine.gameSpeed() > 20)
+          engine.gameSpeed(engine.gameSpeed() - 20);
         return true;
       case InputKeySym::F12:
-        engine.gameSpeed(engine.gameSpeed() + 200);
+        engine.gameSpeed(engine.gameSpeed() + 20);
         return true;
       default:
         break;

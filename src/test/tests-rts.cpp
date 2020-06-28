@@ -158,78 +158,98 @@ TEST_CASE("Hello world!", "[rts]") {
     auto elapsed = [startTime]() { return FakeClock::time - startTime; };
 
     FakeClock::step = 0s;
-    EngineBase<FakeClock> engine{world};
+    EngineBase<FakeClock> engine{world, GameSpeedNormal};
 
-    REQUIRE(engine.gameSpeed() == 1000);
-    REQUIRE(engine.initialGameSpeed() == 1000);
+    REQUIRE(engine.gameSpeed() == 100);
+    REQUIRE(engine.initialGameSpeed() == 100);
     REQUIRE(cworld.time == 0);
 
     SECTION("The engine generates 100 FPS while timely updating the world") {
       // 100 FPS = one frame every 10 milliseconds
-      // at normal speed -> 10 game time units per frame
+      // at normal speed -> 1 game time unit per frame
       REQUIRE(engine.targetFps() == 100);
       REQUIRE(engine.fps() == 100);
 
       FakeClock::step = 100us;
 
       engine.advanceFrame();
-      REQUIRE(cworld.time == 10);
+      REQUIRE(cworld.time == 1);
       REQUIRE(elapsed() == 10ms);
       REQUIRE(engine.fps() == 100);
 
       engine.advanceFrame();
-      REQUIRE(cworld.time == 20);
+      REQUIRE(cworld.time == 2);
       REQUIRE(elapsed() == 20ms);
       REQUIRE(engine.fps() == 100);
 
+      SECTION("Target FPS decreased to 20") {
+        // 20 FPS = one frame every 50 milliseconds
+        // at normal speed -> 5 game time units per frame
+        engine.targetFps(20);
+        REQUIRE(engine.targetFps() == 20);
+
+        engine.advanceFrame();
+        REQUIRE(cworld.time == 7);
+        REQUIRE(elapsed() == 70ms);
+        REQUIRE(engine.fps() == 20);
+
+        engine.advanceFrame();
+        REQUIRE(cworld.time == 12);
+        REQUIRE(elapsed() == 120ms);
+        REQUIRE(engine.fps() == 20);
+      }
+
       SECTION("With increased game speed") {
+        REQUIRE(cworld.time == 2);
+        REQUIRE(engine.targetFps() == 100);
+
         FakeClock::step = 0s;
-        engine.gameSpeed(1200);  // 20% faster
-        REQUIRE(engine.gameSpeed() == 1200);
-        REQUIRE(engine.initialGameSpeed() == 1000);
+        engine.gameSpeed(1000);  // x10
+        REQUIRE(engine.gameSpeed() == 1000);
+        REQUIRE(engine.initialGameSpeed() == 100);
         FakeClock::step = 100us;
 
         engine.advanceFrame();
-        REQUIRE(cworld.time == 32);
+        REQUIRE(cworld.time == 12);
         REQUIRE(elapsed() == 30ms);
         REQUIRE(engine.fps() == 100);
 
         engine.advanceFrame();
-        REQUIRE(cworld.time == 44);
+        REQUIRE(cworld.time == 22);
         REQUIRE(elapsed() == 40ms);
         REQUIRE(engine.fps() == 100);
-      }
 
-      SECTION("Target FPS increased to 200") {
-        REQUIRE(cworld.time == 20);
+        SECTION("Target FPS increased to 200") {
+          REQUIRE(cworld.time == 22);
 
-        // 200 FPS = one frame every 5 milliseconds
-        // at normal speed -> 5 game time units per frame
-        engine.targetFps(200);
-        REQUIRE(engine.targetFps() == 200);
-
-        engine.advanceFrame();
-        REQUIRE(cworld.time == 25);
-        REQUIRE(elapsed() == 25ms);
-        REQUIRE(engine.fps() == 200);
-
-        engine.advanceFrame();
-        REQUIRE(cworld.time == 30);
-        REQUIRE(elapsed() == 30ms);
-        REQUIRE(engine.fps() == 200);
-
-        SECTION("The engine saturates and FPS decrease") {
-          FakeClock::step = 8ms;
+          // 200 FPS = one frame every 5 milliseconds
+          // at x10 speed -> 5 game time units per frame
+          engine.targetFps(200);
+          REQUIRE(engine.targetFps() == 200);
 
           engine.advanceFrame();
-          REQUIRE(cworld.time == 38);
-          REQUIRE(elapsed() == 38ms);
-          REQUIRE(engine.fps() == 125);
+          REQUIRE(cworld.time == 27);
+          REQUIRE(elapsed() == 45ms);
+          REQUIRE(engine.fps() == 200);
 
           engine.advanceFrame();
-          REQUIRE(cworld.time == 46);
-          REQUIRE(elapsed() == 46ms);
-          REQUIRE(engine.fps() == 125);
+          REQUIRE(cworld.time == 32);
+          REQUIRE(elapsed() == 50ms);
+          REQUIRE(engine.fps() == 200);
+
+          SECTION("The engine saturates and FPS decrease") {
+            FakeClock::step = 8ms;
+
+            engine.advanceFrame();
+            REQUIRE(cworld.time == 40);
+            REQUIRE(elapsed() == 58ms);
+            REQUIRE(engine.fps() == 125);
+
+            engine.advanceFrame();
+            REQUIRE(cworld.time == 48);
+            REQUIRE(elapsed() == 66ms);
+            REQUIRE(engine.fps() == 125);
+          }
         }
       }
     }
@@ -256,9 +276,9 @@ TEST_CASE("Hello world!", "[rts]") {
 
       const GameTime frameTime{10};
       const GameTime finalGameTime{frameTime + 2 * GameTimeSecond};
-      const auto finalElapsed{10ms + 2s};
+      const auto finalElapsed{10 * 10ms + 2s};
       const auto pausedFrames{3};
-      const auto totalFrames{201 + pausedFrames};
+      const auto totalFrames{210 + pausedFrames};
 
       Ability& moveAbility = entity.abilities.front();
       REQUIRE(moveAbility.name() == "move");
