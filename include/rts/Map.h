@@ -15,16 +15,16 @@
 
 namespace rts {
 
-  class CellCreator;
+  class MapInitializer;
   class World;
 
   class Map {
   public:
     using Free = std::monostate;
-    using Cell = std::variant<Free, WorldObjectSPtr>;
+    using Cell = std::variant<Free, BlockerId, EntityId, ResourceFieldId>;
 
-    explicit Map(World& world, const CellCreator& creator, std::istream&& is);
-    explicit Map(World& world, const CellCreator& creator, const std::vector<std::string>& lines);
+    explicit Map(World& world, const MapInitializer& init, std::istream&& is);
+    explicit Map(World& world, const MapInitializer& init, const std::vector<std::string>& lines);
 
     const Coordinate maxX;
     const Coordinate maxY;
@@ -48,54 +48,33 @@ namespace rts {
     util::Matrix<Cell, Coordinate> cells_;
   };
 
-  inline bool isFree(const Map::Cell& c) { return c.index() == 0; }
-  inline bool hasWorldObject(const Map::Cell& c) { return c.index() == 1; }
-  inline bool has(const Map::Cell& c, WorldObject::Type objectType) {
-    return hasWorldObject(c) && std::get<WorldObjectSPtr>(c)->type == objectType;
-  }
-  inline bool hasBlocker(const Map::Cell& c) { return has(c, WorldObject::Type::Blocker); }
-  inline bool hasEntity(const Map::Cell& c) { return has(c, WorldObject::Type::Entity); }
+  inline bool isFree(const Map::Cell& c) { return std::holds_alternative<Map::Free>(c); }
+  inline bool hasObject(const Map::Cell& c) { return !isFree(c); }
+
+  WorldObject& getObject(World& world, Map::Cell& c);
+  const WorldObject& getObject(const World& world, const Map::Cell& c);
+
+  WorldObject* getObjectPtr(World& world, Map::Cell& c);
+  const WorldObject* getObjectPtr(const World& world, const Map::Cell& c);
+
+  inline bool hasBlocker(const Map::Cell& c) { return std::holds_alternative<BlockerId>(c); }
+  inline bool hasEntity(const Map::Cell& c) { return std::holds_alternative<EntityId>(c); }
   inline bool hasResourceField(const Map::Cell& c) {
-    return has(c, WorldObject::Type::ResourceField);
+    return std::holds_alternative<ResourceFieldId>(c);
   }
 
-  namespace detail {
-    inline WorldObjectSPtr getWorldObject(Map::Cell& c) {
-      assert(hasWorldObject(c));
-      return std::get<WorldObjectSPtr>(c);
-    }
-    inline WorldObjectSCPtr getWorldObject(const Map::Cell& c) {
-      assert(hasWorldObject(c));
-      return std::get<WorldObjectSPtr>(c);
-    }
+  inline BlockerId getBlockerId(Map::Cell& c) { return std::get<BlockerId>(c); }
+  inline BlockerId getBlockerId(const Map::Cell& c) { return std::get<BlockerId>(c); }
+  inline EntityId getEntityId(Map::Cell& c) { return std::get<EntityId>(c); }
+  inline EntityId getEntityId(const Map::Cell& c) { return std::get<EntityId>(c); }
+  inline ResourceFieldId getResourceFieldId(Map::Cell& c) { return std::get<ResourceFieldId>(c); }
+  inline ResourceFieldId getResourceFieldId(const Map::Cell& c) {
+    return std::get<ResourceFieldId>(c);
   }
 
-  inline const WorldObject& getWorldObject(const Map::Cell& c) {
-    return *detail::getWorldObject(c);
-  }
-
-  template<typename T>
-  inline std::shared_ptr<T> get(Map::Cell& c) {
-    assert(has(c, T::worldObjectType));
-    return std::static_pointer_cast<T>(detail::getWorldObject(c));
-  }
-  template<typename T>
-  inline std::shared_ptr<const T> get(const Map::Cell& c) {
-    assert(has(c, T::worldObjectType));
-    return std::static_pointer_cast<const T>(detail::getWorldObject(c));
-  }
-
-  inline const Blocker& getBlocker(const Map::Cell& c) { return *get<Blocker>(c); }
-
-  inline ResourceFieldSPtr getResourceField(Map::Cell& c) { return get<ResourceField>(c); }
-  inline ResourceFieldSCPtr getResourceField(const Map::Cell& c) { return get<ResourceField>(c); }
-
-  inline EntitySPtr getEntity(Map::Cell& c) { return get<Entity>(c); }
-  inline EntitySCPtr getEntity(const Map::Cell& c) { return get<Entity>(c); }
-
-  class CellCreator {
+  class MapInitializer {
   public:
-    virtual ~CellCreator() = default;
-    virtual Map::Cell operator()(const World& world, Point p, char c) const = 0;
+    virtual ~MapInitializer() = default;
+    virtual void operator()(World& world, Point p, char c) const = 0;
   };
 }

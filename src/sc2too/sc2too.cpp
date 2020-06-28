@@ -1,7 +1,7 @@
 #include "rts/Engine.h"
 #include "rts/World.h"
 #include "sc2/Assets.h"
-#include "sc2/Probe.h"
+#include "sc2/Factory.h"
 #include "sc2/Resources.h"
 #include "ui/IO.h"
 #include "ui/SideUi.h"
@@ -24,14 +24,14 @@ int main() try {
   ui::IO io;
 
   sc2::Assets::init();
-  rts::World world{
-      makeSides(), sc2::Assets::cellCreator(), std::ifstream{"data/maps/ascii_jungle.txt"}};
-
-  auto probe = sc2::Probe::create(rts::Point{20, 10}, &world.sides[0]);
-  world.add(probe);
+  auto worldPtr{rts::World::create(
+      makeSides(), sc2::Assets::mapInitializer(), std::ifstream{"data/maps/ascii_jungle.txt"})};
+  rts::World& world{*worldPtr};
 
   ui::Player player{&world.sides[0], ui::Camera{{0, 0}, {world.map.maxX, world.map.maxY}}};
-  player.selection = probe;
+
+  auto probe{world.add(sc2::Factory::probe(rts::Point{20, 10}, &world.sides[0]))};
+  player.selection = rts::EntityWId{world.entities, probe};
 
   rts::Engine engine{world};
   engine.gameSpeed(rts::GameSpeedNormal);

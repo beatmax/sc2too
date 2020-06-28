@@ -10,11 +10,12 @@ namespace rts::abilities::state {
   class Move : public AbilityStateTpl<Move> {
   public:
     explicit Move(Point target, Speed speed) : target_{target}, speed_{speed} {}
-    GameTime step(const World& world, const EntitySPtr& entity, WorldActionList& actions) override {
-      if (entity->area.contains(target_))
+
+    GameTime step(const World& world, const Entity& entity, WorldActionList& actions) override {
+      if (entity.area.contains(target_))
         return 0;
       else if (init_)
-        addAction(actions, &World::moveTowards, target_, entity);
+        addAction(actions, &World::moveTowards, target_, world.entities.weakId(entity));
       else
         init_ = true;
       return CellDistance / speed_;

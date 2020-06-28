@@ -21,15 +21,15 @@ namespace rts {
     GameTime nextStepTime() const { return nextStepTime_; }
 
     void trigger(Point target) { state_ = createState_(target); }
-    void step(const World& world, const EntitySPtr& entity, WorldActionList& actions);
+    void step(const World& world, const Entity& entity, WorldActionList& actions);
     void cancel() {
       state_.reset();
-      nextStepTime_ = 0;
+      nextStepTime_ = GameTimeInf;
     }
 
   private:
     const std::string name_;
-    GameTime nextStepTime_{};
+    GameTime nextStepTime_{GameTimeInf};
     const CreateState createState_;
     AbilityStateUPtr state_;
   };

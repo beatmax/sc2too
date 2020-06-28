@@ -6,6 +6,10 @@
 #include "ui/Sprite.h"
 
 namespace sc2::ui {
+  struct Entity : ::ui::SpriteUi<rts::Entity> {
+    int defaultColor(const rts::Entity&) const final;
+  };
+
   struct Geyser : ::ui::SpriteUi<rts::ResourceField> {
     const ::ui::Sprite& sprite(const rts::ResourceField&) const final;
   };
@@ -14,11 +18,11 @@ namespace sc2::ui {
     const ::ui::Sprite& sprite(const rts::ResourceField&) const final;
   };
 
-  struct Nexus : ::ui::SpriteUi<rts::Entity> {
+  struct Nexus : Entity {
     const ::ui::Sprite& sprite(const rts::Entity&) const final;
   };
 
-  struct Probe : ::ui::SpriteUi<rts::Entity> {
+  struct Probe : Entity {
     const ::ui::Sprite& sprite(const rts::Entity&) const final;
   };
 

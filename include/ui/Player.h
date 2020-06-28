@@ -11,7 +11,7 @@ namespace ui {
   struct Player {
     rts::SideCPtr side;
     Camera camera;
-    rts::EntityWPtr selection;
+    rts::EntityWId selection;
 
     rts::WorldActionList processInput(const rts::World& world, const InputEvent& event);
   };

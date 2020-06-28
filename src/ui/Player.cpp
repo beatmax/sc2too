@@ -25,9 +25,9 @@ rts::WorldActionList ui::Player::processInput(const rts::World& world, const Inp
     }
   }
   else if (event.type == InputType::MousePress && event.mouseButton == InputButton::Button3) {
-    if (auto entity = selection.lock()) {
+    if (auto entity = world.entities[selection]) {
       if (!entity->abilities.empty())
-        return rts::Entity::trigger(entity->abilities.front(), world, entity, event.mouseCell);
+        return entity->trigger(entity->abilities.front(), world, event.mouseCell);
     }
   }
 

@@ -25,4 +25,4 @@ const ui::Sprite& sc2::Assets::getSprite(const std::string& name) {
     return spriteError;
 }
 
-sc2::CellCreator sc2::Assets::cellCreator_;
+sc2::MapInitializer sc2::Assets::mapInitializer_;

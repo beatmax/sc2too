@@ -3,7 +3,6 @@
 #include "SpriteMatrix.h"
 #include "dim.h"
 #include "rts/Entity.h"
-#include "ui/SideUi.h"
 #include "ui/Sprite.h"
 #include "util/geo.h"
 
@@ -28,13 +27,8 @@ namespace ui {
     }
 
     void draw(WINDOW* win, const Camera& camera, const rts::WorldObject& object) {
-      {
-        // take side's color for color pair 0
-        const int sideColor = (object.type == rts::WorldObject::Type::Entity)
-            ? getColor(static_cast<const rts::Entity&>(object).side)
-            : graph::white();
-        wattrset(win, sideColor);
-      }
+      // default for color pair 0 (e.g. entity's side color)
+      wattrset(win, getDefaultColor(object));
 
       const Sprite& sprite{getSprite(object)};
       assert(sprite.area(object.area.topLeft) == object.area);
@@ -93,16 +87,14 @@ void ui::highlight(WINDOW* win, const Camera& camera, rts::Point cell, int color
 }
 
 void ui::render(WINDOW* win, const rts::World& world, const Camera& camera) {
-  const auto& map = world.map;
   const auto& topLeft = camera.topLeft();
   const auto& bottomRight = camera.bottomRight();
 
   std::set<rts::WorldObjectCPtr> visibleObjects;
   for (rts::Coordinate cellY = topLeft.y; cellY < bottomRight.y; ++cellY) {
     for (rts::Coordinate cellX = topLeft.x; cellX < bottomRight.x; ++cellX) {
-      const auto& cell{map.at(cellX, cellY)};
-      if (hasWorldObject(cell))
-        visibleObjects.insert(&getWorldObject(cell));
+      if (auto obj = world.objectPtrAt({cellX, cellY}))
+        visibleObjects.insert(obj);
     }
   }
 

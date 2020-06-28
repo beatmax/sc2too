@@ -1,8 +1,10 @@
 #pragma once
 
+#include "util/Pool.h"
 #include "util/geo.h"
 
 #include <cstdint>
+#include <limits>
 #include <memory>
 
 namespace rts {
@@ -16,19 +18,15 @@ namespace rts {
   class World;
   class WorldObject;
 
-  using BlockerSPtr = std::shared_ptr<Blocker>;
-  using BlockerSCPtr = std::shared_ptr<const Blocker>;
-  using EntitySPtr = std::shared_ptr<Entity>;
-  using EntitySCPtr = std::shared_ptr<const Entity>;
-  using EntityWPtr = std::weak_ptr<Entity>;
-  using EntityWCPtr = std::weak_ptr<const Entity>;
+  using BlockerId = util::PoolObjectId<Blocker>;
+  using BlockerWId = util::PoolObjectWeakId<Blocker>;
+  using EntityId = util::PoolObjectId<Entity>;
+  using EntityWId = util::PoolObjectWeakId<Entity>;
   using ResourceCPtr = const Resource*;
-  using ResourceFieldSPtr = std::shared_ptr<ResourceField>;
-  using ResourceFieldSCPtr = std::shared_ptr<const ResourceField>;
+  using ResourceFieldId = util::PoolObjectId<ResourceField>;
+  using ResourceFieldWId = util::PoolObjectWeakId<ResourceField>;
   using SideCPtr = const Side*;
   using WorldObjectCPtr = const WorldObject*;
-  using WorldObjectSPtr = std::shared_ptr<WorldObject>;
-  using WorldObjectSCPtr = std::shared_ptr<const WorldObject>;
 
   using Distance = uint32_t;   // = 1/1000 cell width/height
   using GameTime = uint32_t;   // = milliseconds at normal speed (1000 Hz)
@@ -39,6 +37,7 @@ namespace rts {
 
   constexpr Distance CellDistance{1000};
   constexpr GameTime GameTimeSecond{1000};
+  constexpr GameTime GameTimeInf{std::numeric_limits<GameTime>::max()};
   constexpr GameSpeed GameSpeedNormal{1000};
 
   using util::geo::Coordinate;

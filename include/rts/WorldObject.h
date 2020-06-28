@@ -2,16 +2,17 @@
 
 #include "types.h"
 
+#include <utility>
+
 namespace rts {
   struct WorldObject {
-    enum class Type { Blocker, Entity, ResourceField };
-
-    WorldObject(Type t, Point p, Vector s) : type{t}, area{p, s} {}
-    virtual ~WorldObject() = 0;
-
-    const Type type;
     Rectangle area;
+    UiUPtr ui;
 
-    virtual const Ui& ui() const = 0;
+  protected:
+    WorldObject(Point p, Vector s, UiUPtr ui) : area{p, s}, ui{std::move(ui)} {}
+    WorldObject(WorldObject&&) = default;
+
+    ~WorldObject() = default;
   };
 }

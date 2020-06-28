@@ -2,6 +2,7 @@
 
 #include "SpriteMatrix.h"
 #include "dim.h"
+#include "graph.h"
 #include "util/fs.h"
 
 #include <cassert>
@@ -64,6 +65,10 @@ namespace {
 
     return result;
   }
+}
+
+int ui::detail::defaultDefaultColor() {
+  return graph::white();
 }
 
 ui::Sprite::Sprite() = default;

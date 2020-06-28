@@ -7,6 +7,10 @@
 #include <memory>
 #include <vector>
 
+namespace ui::detail {
+  int defaultDefaultColor();
+}
+
 namespace ui {
   class SpriteMatrix;
 
@@ -29,10 +33,16 @@ namespace ui {
   class SpriteUi : public rts::Ui {
   public:
     virtual const Sprite& sprite(const T&) const = 0;
+    virtual int defaultColor(const T&) const { return detail::defaultDefaultColor(); }
   };
 
   template<typename T>
   inline const Sprite& getSprite(const T& object) {
-    return static_cast<const SpriteUi<T>&>(object.ui()).sprite(object);
+    return static_cast<const SpriteUi<T>&>(*object.ui).sprite(object);
+  }
+
+  template<typename T>
+  inline int getDefaultColor(const T& object) {
+    return static_cast<const SpriteUi<T>&>(*object.ui).defaultColor(object);
   }
 }

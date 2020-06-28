@@ -12,8 +12,7 @@ namespace rts {
   class AbilityState {
   public:
     virtual ~AbilityState() = 0;
-    virtual GameTime step(
-        const World& world, const EntitySPtr& entity, WorldActionList& actions) = 0;
+    virtual GameTime step(const World& world, const Entity& entity, WorldActionList& actions) = 0;
   };
 
   template<typename Derived>

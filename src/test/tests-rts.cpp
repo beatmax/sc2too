@@ -11,7 +11,9 @@ using namespace Catch::Matchers;
 using namespace rts;
 
 TEST_CASE("Hello world!", "[rts]") {
-  World world{test::makeSides(), test::CellCreator{}, std::istringstream{test::map}};
+  auto worldPtr{
+      World::create(test::makeSides(), test::MapInitializer{}, std::istringstream{test::map})};
+  World& world{*worldPtr};
   const World& cworld{world};
 
   REQUIRE(cworld.map.maxX == 40);
@@ -20,27 +22,27 @@ TEST_CASE("Hello world!", "[rts]") {
   REQUIRE(hasBlocker(cworld.map.at(10, 1)));
   REQUIRE(hasBlocker(cworld.map.at(11, 1)));
   REQUIRE(hasBlocker(cworld.map.at(12, 1)));
-  REQUIRE(test::repr(getBlocker(cworld.map.at(12, 1)).ui()) == 'r');
+  REQUIRE(test::repr(cworld.blockerAt({12, 1}).ui) == 'r');
   REQUIRE(isFree(cworld.map.at(13, 1)));
 
   const Rectangle buildingArea{Point{37, 6}, rts::Vector{2, 3}};
   REQUIRE(hasEntity(cworld.map.at(buildingArea.topLeft)));
-  EntitySCPtr building{getEntity(cworld.map.at(buildingArea.topLeft))};
-  REQUIRE(building->area == buildingArea);
-  REQUIRE(test::repr(building->ui()) == 'b');
+  Entity& building{world.entityAt(buildingArea.topLeft)};
+  REQUIRE(building.area == buildingArea);
+  REQUIRE(test::repr(building.ui) == 'b');
   forEachPoint(buildingArea, [&](Point p) {
     REQUIRE(hasEntity(cworld.map.at(p)));
-    REQUIRE(getEntity(cworld.map.at(p)) == building);
+    REQUIRE(&world.entityAt(p) == &building);
   });
 
   const Rectangle geyserArea{Point{30, 0}, rts::Vector{2, 2}};
   REQUIRE(hasResourceField(cworld.map.at(geyserArea.topLeft)));
-  ResourceFieldSCPtr geyser{getResourceField(cworld.map.at(geyserArea.topLeft))};
-  REQUIRE(geyser->area == geyserArea);
-  REQUIRE(test::repr(geyser->ui()) == 'g');
+  const ResourceField& geyser{cworld.resourceFieldAt(geyserArea.topLeft)};
+  REQUIRE(geyser.area == geyserArea);
+  REQUIRE(test::repr(geyser.ui) == 'g');
   forEachPoint(geyserArea, [&](Point p) {
     REQUIRE(hasResourceField(cworld.map.at(p)));
-    REQUIRE(getResourceField(cworld.map.at(p)) == geyser);
+    REQUIRE(&cworld.resourceFieldAt(p) == &geyser);
   });
 
   REQUIRE(cworld.sides.size() == 2);
@@ -53,59 +55,66 @@ TEST_CASE("Hello world!", "[rts]") {
 
   SECTION("An entity is added to the world") {
     Point pos{20, 5};
-    world.add(test::Simpleton::create(pos, side0));
+    EntityId eid{world.add(test::Factory::simpleton(pos, side0))};
+    EntityWId ewid{cworld.entities, eid};
     REQUIRE(hasEntity(cworld.map.at(pos)));
-    EntitySCPtr ce{getEntity(cworld.map.at(pos))};
-    REQUIRE(ce->area.topLeft == pos);
-    REQUIRE(test::repr(ce->ui()) == 's');
+    Entity& e{world.entityAt(pos)};
+    const Entity& ce{cworld.entityAt(pos)};
+    REQUIRE(ce.area.topLeft == pos);
+    REQUIRE(test::repr(ce.ui) == 's');
+    REQUIRE(test::Ui::count['s'] == 1);
 
     SECTION("The entity is destroyed") {
-      world.destroy(ce);
-      REQUIRE(isFree(cworld.map.at(ce->area.topLeft)));
-      REQUIRE(ce.use_count() == 1);
+      pos = ce.area.topLeft;
+      world.destroy(ewid);
+      REQUIRE(isFree(cworld.map.at(pos)));
+      REQUIRE(test::Ui::count['s'] == 0);
     }
 
     SECTION("The 'move' ability is triggered") {
-      EntitySPtr e{getEntity(world.map.at(pos))};
-      REQUIRE(e->abilities.size() > 0);
-      Ability& moveAbility = e->abilities.front();
+      REQUIRE(e.abilities.size() > 0);
+      Ability& moveAbility = e.abilities.front();
       REQUIRE(moveAbility.name() == "move");
 
-      world.time = 1;
       const Point targetPos{20, 3};
-      world.update(Entity::trigger(moveAbility, cworld, e, targetPos));
-      REQUIRE(ce->area.topLeft == pos);
+      world.update(ce.trigger(moveAbility, cworld, targetPos));
+      REQUIRE(ce.area.topLeft == pos);
+      REQUIRE(ce.nextStepTime == GameTimeSecond);
 
       SECTION("The entity moves") {
         while (pos != targetPos) {
           world.time += GameTimeSecond;
-          world.update(Entity::step(cworld, e));
+          world.update(ce.step(cworld));
 
           Point prevPos{pos};
           --pos.y;
-          REQUIRE(ce->area.topLeft == pos);
+          REQUIRE(ce.area.topLeft == pos);
           REQUIRE(isFree(cworld.map.at(prevPos)));
           REQUIRE(hasEntity(cworld.map.at(pos)));
           REQUIRE(moveAbility.active());
+          REQUIRE(moveAbility.nextStepTime() == world.time + GameTimeSecond);
+          REQUIRE(ce.nextStepTime == moveAbility.nextStepTime());
         }
 
         // the next step deactivates the ability
         world.time += GameTimeSecond;
-        world.update(Entity::step(cworld, e));
-        REQUIRE(ce->area.topLeft == targetPos);
+        world.update(ce.step(cworld));
+        REQUIRE(ce.area.topLeft == targetPos);
         REQUIRE(!moveAbility.active());
-        REQUIRE(moveAbility.nextStepTime() == 0);
+        REQUIRE(moveAbility.nextStepTime() == rts::GameTimeInf);
+        REQUIRE(ce.nextStepTime == rts::GameTimeInf);
       }
 
       SECTION("The entity is destroyed with pending actions on it") {
         world.time += GameTimeSecond;
-        WorldActionList actions{Entity::step(cworld, e)};
+        WorldActionList actions{ce.step(cworld)};
         REQUIRE(!actions.empty());
-        e.reset();
-        REQUIRE(ce.use_count() == 3);
-        world.destroy(ce);
-        REQUIRE(ce.use_count() == 1);
-        ce.reset();
+
+        pos = ce.area.topLeft;
+        world.destroy(ewid);
+        REQUIRE(isFree(cworld.map.at(pos)));
+        REQUIRE(test::Ui::count['s'] == 0);
+
         world.update(actions);
       }
     }
@@ -114,15 +123,20 @@ TEST_CASE("Hello world!", "[rts]") {
   SECTION("A multi-cell entity is added to the world") {
     const Rectangle area{Point{1, 1}, rts::Vector{2, 3}};
 
-    world.add(test::Building::create(area.topLeft, side0));
-    EntitySCPtr ce{getEntity(cworld.map.at(area.topLeft))};
-    REQUIRE(ce->area == area);
+    REQUIRE(test::Ui::count['b'] == 1);
+
+    EntityId eid{world.add(test::Factory::building(area.topLeft, side0))};
+    EntityWId ewid{cworld.entities, eid};
+    const Entity& ce{cworld.entityAt(area.topLeft)};
+    REQUIRE(ce.area == area);
+    REQUIRE(test::repr(ce.ui) == 'b');
+    REQUIRE(test::Ui::count['b'] == 2);
 
     const Rectangle outRect{area.topLeft - rts::Vector{1, 1}, area.size + rts::Vector{2, 2}};
     forEachPoint(outRect, [&](Point p) {
       if (area.contains(p)) {
         REQUIRE(hasEntity(cworld.map.at(p)));
-        REQUIRE(getEntity(cworld.map.at(p)) == ce);
+        REQUIRE(&cworld.entityAt(p) == &ce);
       }
       else {
         REQUIRE(isFree(cworld.map.at(p)));
@@ -130,10 +144,9 @@ TEST_CASE("Hello world!", "[rts]") {
     });
 
     SECTION("The multi-cell entity is destroyed") {
-      world.destroy(ce);
+      world.destroy(ewid);
+      REQUIRE(test::Ui::count['b'] == 1);
       forEachPoint(area, [&](Point p) { REQUIRE(isFree(cworld.map.at(p))); });
-      REQUIRE(ce.use_count() == 1);
-      ce.reset();
     }
   }
 
@@ -238,8 +251,8 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("The engine runs and updates the world") {
-      auto entity{test::Simpleton::create(Point{20, 5}, side0)};
-      world.add(entity);
+      auto eid{world.add(test::Factory::simpleton(Point{20, 5}, side0))};
+      auto& entity{world.entities[eid]};
 
       const GameTime frameTime{10};
       const GameTime finalGameTime{frameTime + 2 * GameTimeSecond};
@@ -247,7 +260,7 @@ TEST_CASE("Hello world!", "[rts]") {
       const auto pausedFrames{3};
       const auto totalFrames{201 + pausedFrames};
 
-      Ability& moveAbility = entity->abilities.front();
+      Ability& moveAbility = entity.abilities.front();
       REQUIRE(moveAbility.name() == "move");
       const Point targetPos{20, 3};
 
@@ -257,7 +270,7 @@ TEST_CASE("Hello world!", "[rts]") {
       auto processInput = [&](const rts::World& w) -> WorldActionList {
         ++inputCalls;
         if (inputCalls == 1)
-          return Entity::trigger(moveAbility, w, entity, targetPos);
+          return entity.trigger(moveAbility, w, targetPos);
         else if (inputCalls == 100)
           controller.paused_ = true;
         else if (inputCalls == 100 + pausedFrames)
@@ -271,7 +284,7 @@ TEST_CASE("Hello world!", "[rts]") {
 
       engine.run(controller, processInput, updateOutput);
 
-      REQUIRE(entity->area.topLeft == targetPos);
+      REQUIRE(entity.area.topLeft == targetPos);
       REQUIRE(cworld.time == finalGameTime);
       REQUIRE(elapsed() == finalElapsed);
       REQUIRE(inputCalls == totalFrames);

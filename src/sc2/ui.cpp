@@ -1,6 +1,11 @@
 #include "sc2/ui.h"
 
 #include "sc2/Assets.h"
+#include "ui/SideUi.h"
+
+int sc2::ui::Entity::defaultColor(const rts::Entity& e) const {
+  return ::ui::getColor(e.side);
+}
 
 const ::ui::Sprite& sc2::ui::Geyser::sprite(const rts::ResourceField&) const {
   static const auto& sprite{Assets::getSprite("geyser")};

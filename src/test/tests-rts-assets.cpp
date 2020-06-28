@@ -19,8 +19,6 @@ const std::string test::map{
     "                                        \n"  // 9
 };
 
-const rts::Resource test::gas{std::make_unique<Ui>('g')};
-
 std::vector<rts::Side> test::makeSides() {
   std::vector<rts::Side> sides;
   const rts::ResourceMap resources{{&gas, 0}};
@@ -29,30 +27,38 @@ std::vector<rts::Side> test::makeSides() {
   return sides;
 }
 
-test::Simpleton::Simpleton(rts::Point p, rts::SideCPtr sd)
-  : Inherited{p, rts::Vector{1, 1}, sd, 's'} {
-  addAbility(rts::abilities::move(rts::CellDistance / rts::GameTimeSecond));
+std::map<char, int> test::Ui::count;
+
+const rts::Resource test::gas{std::make_unique<Ui>('g')};
+
+rts::Entity test::Factory::simpleton(rts::Point p, rts::SideCPtr sd) {
+  rts::Entity e{p, rts::Vector{1, 1}, sd, std::make_unique<Ui>('s')};
+  e.addAbility(rts::abilities::move(rts::CellDistance / rts::GameTimeSecond));
+  return e;
 }
 
-test::Building::Building(rts::Point p, rts::SideCPtr sd)
-  : Inherited{p, rts::Vector{2, 3}, sd, 'b'} {
+rts::Entity test::Factory::building(rts::Point p, rts::SideCPtr sd) {
+  return rts::Entity{p, rts::Vector{2, 3}, sd, std::make_unique<Ui>('b')};
 }
 
-test::Geyser::Geyser(rts::Point p) : Inherited{p, rts::Vector{2, 2}, &gas, 100, 'g'} {
+rts::ResourceField test::Factory::geyser(rts::Point p) {
+  return rts::ResourceField{p, rts::Vector{2, 2}, &gas, 100, std::make_unique<Ui>('g')};
 }
 
-test::Rock::Rock(rts::Point p) : Inherited{p, rts::Vector{1, 1}, 'r'} {
+rts::Blocker test::Factory::rock(rts::Point p) {
+  return rts::Blocker{p, rts::Vector{1, 1}, std::make_unique<Ui>('r')};
 }
 
-rts::Map::Cell test::CellCreator::operator()(const rts::World& world, rts::Point p, char c) const {
+void test::MapInitializer::operator()(rts::World& world, rts::Point p, char c) const {
   switch (c) {
     case 'b':
-      return Building::create(p, &world.sides[0]);
+      world.add(Factory::building(p, &world.sides[0]));
+      break;
     case 'g':
-      return Geyser::create(p);
+      world.add(Factory::geyser(p));
+      break;
     case 'r':
-      return Rock::create(p);
-    default:
-      return rts::Map::Free{};
+      world.add(Factory::rock(p));
+      break;
   }
 }
