@@ -1,6 +1,7 @@
 #include "rts/Ability.h"
 
 #include "rts/World.h"
+#include "rts/dimensions.h"
 
 #include <cassert>
 
@@ -11,4 +12,9 @@ void rts::Ability::step(const World& world, const Entity& entity, WorldActionLis
     nextStepTime_ = world.time + t;
   else
     cancel();
+}
+
+void rts::Ability::cancel() {
+  state_.reset();
+  nextStepTime_ = GameTimeInf;
 }

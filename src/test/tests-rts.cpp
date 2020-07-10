@@ -1,7 +1,9 @@
 #include "catch2/catch.hpp"
 #include "rts/Engine.h"
+#include "rts/Path.h"
 #include "rts/World.h"
 #include "tests-rts-assets.h"
+#include "tests-rts-util.h"
 #include "tests-util.h"
 #include "util/Timer.h"
 
@@ -81,6 +83,12 @@ TEST_CASE("Hello world!", "[rts]") {
       REQUIRE(ce.area.topLeft == pos);
       REQUIRE(ce.nextStepTime == GameTimeSecond);
 
+      SECTION("The path is found") {
+        auto [path, isComplete] = findPath(world, pos, targetPos);
+        REQUIRE(isComplete);
+        REQUIRE(path == Path{{20, 4}, {20, 3}});
+      }
+
       SECTION("The entity moves") {
         while (pos != targetPos) {
           world.time += GameTimeSecond;
@@ -92,12 +100,15 @@ TEST_CASE("Hello world!", "[rts]") {
           REQUIRE(isFree(cworld.map.at(prevPos)));
           REQUIRE(hasEntity(cworld.map.at(pos)));
           REQUIRE(moveAbility.active());
-          REQUIRE(moveAbility.nextStepTime() == world.time + GameTimeSecond);
+          if (pos != targetPos)
+            REQUIRE(moveAbility.nextStepTime() == world.time + GameTimeSecond);
+          else
+            REQUIRE(moveAbility.nextStepTime() == world.time + 1);
           REQUIRE(ce.nextStepTime == moveAbility.nextStepTime());
         }
 
         // the next step deactivates the ability
-        world.time += GameTimeSecond;
+        world.time += 1;
         world.update(ce.step(cworld));
         REQUIRE(ce.area.topLeft == targetPos);
         REQUIRE(!moveAbility.active());
@@ -309,6 +320,133 @@ TEST_CASE("Hello world!", "[rts]") {
       REQUIRE(elapsed() == finalElapsed);
       REQUIRE(inputCalls == totalFrames);
       REQUIRE(outputCalls == totalFrames);
+    }
+  }
+
+  SECTION("Try some moves!") {
+    EntityId eid{world.add(test::Factory::simpleton(Point{20, 5}, side0))};
+    auto& entity{world.entities[eid]};
+
+    SECTION("Already there") {
+      REQUIRE(
+          test::runMove(world, entity, Point{20, 5}) ==
+          test::MoveStepList{{{20, 5}, 0}, {{20, 5}, 1}});
+    }
+
+    SECTION("One cell straight") {
+      REQUIRE(
+          test::runMove(world, entity, Point{20, 6}) ==
+          test::MoveStepList{{{20, 5}, 0}, {{20, 6}, 100}, {{20, 6}, 101}});
+    }
+
+    SECTION("One cell diagonal") {
+      REQUIRE(
+          test::runMove(world, entity, Point{21, 6}) ==
+          test::MoveStepList{{{20, 5}, 0}, {{21, 6}, 141}, {{21, 6}, 142}});
+    }
+
+    SECTION("Straight line") {
+      REQUIRE(
+          test::runMove(world, entity, Point{20, 3}) ==
+          test::MoveStepList{{{20, 5}, 0}, {{20, 4}, 100}, {{20, 3}, 200}, {{20, 3}, 201}});
+    }
+
+    SECTION("Straight and diagonal") {
+      REQUIRE(
+          test::runMove(world, entity, Point{21, 3}) ==
+          test::MoveStepList{{{20, 5}, 0}, {{20, 4}, 100}, {{21, 3}, 241}, {{21, 3}, 242}});
+    }
+
+    SECTION("Path around the rocks") {
+      REQUIRE(
+          test::runMove(world, entity, Point{17, 7}) ==
+          test::MoveStepList{
+              {{20, 5}, 0},
+              {{19, 5}, 100},
+              {{18, 5}, 200},
+              {{17, 5}, 300},
+              {{16, 5}, 400},
+              {{15, 5}, 500},
+              {{14, 5}, 600},
+              {{13, 6}, 741},
+              {{13, 7}, 841},
+              {{14, 8}, 982},
+              {{15, 7}, 1123},
+              {{16, 7}, 1223},
+              {{17, 7}, 1323},
+              {{17, 7}, 1324}});
+    }
+
+    SECTION("Path around an entity") {
+      world.add(test::Factory::building({24, 4}, side0));
+      REQUIRE(
+          test::runMove(world, entity, Point{27, 5}) ==
+          test::MoveStepList{
+              {{20, 5}, 0},
+              {{21, 5}, 100},
+              {{22, 5}, 200},
+              {{23, 5}, 300},
+              {{23, 4}, 401},  // collision
+              {{24, 3}, 542},
+              {{25, 3}, 642},
+              {{26, 4}, 783},
+              {{27, 5}, 924},
+              {{27, 5}, 925}});
+    }
+
+    SECTION("Path around adjacent entity") {
+      world.add(test::Factory::simpleton({21, 5}, side0));
+      REQUIRE(
+          test::runMove(world, entity, Point{22, 5}) ==
+          test::MoveStepList{{{20, 5}, 0}, {{21, 4}, 141}, {{22, 5}, 282}, {{22, 5}, 283}});
+    }
+
+    SECTION("Move next to target object") {
+      REQUIRE(
+          test::runMove(world, entity, Point{31, 0}) ==
+          test::MoveStepList{
+              {{20, 5}, 0},
+              {{21, 4}, 141},
+              {{22, 4}, 241},
+              {{23, 3}, 382},
+              {{24, 2}, 523},
+              {{25, 2}, 623},
+              {{26, 2}, 723},
+              {{27, 2}, 823},
+              {{28, 1}, 964},
+              {{29, 1}, 1064},
+              {{29, 1}, 1065}});
+    }
+
+    SECTION("Move next to target blocker") {
+      REQUIRE(
+          test::runMove(world, entity, Point{16, 6}) ==
+          test::MoveStepList{
+              {{20, 5}, 0}, {{19, 5}, 100}, {{18, 5}, 200}, {{17, 5}, 300}, {{17, 5}, 301}});
+    }
+
+    SECTION("Blocked and unblocked") {
+      forEachPoint(rts::Rectangle{{19, 4}, {3, 3}}, [&](Point p) {
+        if (p != rts::Point{20, 5})
+          world.add(test::Factory::simpleton(p, side0));
+      });
+      REQUIRE(
+          test::runMove(world, entity, Point{23, 5}, 350) ==
+          test::MoveStepList{{{20, 5}, 0}, {{20, 5}, 350}});
+      world.destroy(EntityWId{cworld.entities, getEntityId(world.map.at(21, 5))});
+      REQUIRE(
+          test::continueMove(world, entity, 550) ==
+          test::MoveStepList{{{20, 5}, 350}, {{21, 5}, 500}, {{21, 5}, 550}});
+      for (Coordinate y : {4, 5, 6})
+        world.add(test::Factory::simpleton({22, y}, side0));
+      world.add(test::Factory::simpleton({20, 5}, side0));
+      REQUIRE(
+          test::continueMove(world, entity, 750) ==
+          test::MoveStepList{{{21, 5}, 550}, {{21, 5}, 750}});
+      world.destroy(EntityWId{cworld.entities, getEntityId(world.map.at(22, 5))});
+      REQUIRE(
+          test::continueMove(world, entity) ==
+          test::MoveStepList{{{21, 5}, 750}, {{22, 5}, 900}, {{23, 5}, 1000}, {{23, 5}, 1001}});
     }
   }
 }

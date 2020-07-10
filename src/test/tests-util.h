@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <string>
+#include <utility>
 
 namespace test {
   struct FakeController {
@@ -22,6 +23,15 @@ namespace Catch {
     static std::string convert(const Duration& d) {
       return std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(d).count()) +
           "us";
+    }
+  };
+
+  template<typename T1, typename T2>
+  struct StringMaker<std::pair<T1, T2>> {
+    using Pair = std::pair<T1, T2>;
+    static std::string convert(const Pair& p) {
+      return "{" + StringMaker<T1>::convert(p.first) + ", " + StringMaker<T1>::convert(p.second) +
+          "}";
     }
   };
 }

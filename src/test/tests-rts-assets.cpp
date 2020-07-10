@@ -2,6 +2,7 @@
 
 #include "rts/World.h"
 #include "rts/abilities.h"
+#include "rts/dimensions.h"
 
 #include <utility>
 
@@ -13,10 +14,10 @@ const std::string test::map{
     "                                        \n"  // 3
     "                                        \n"  // 4
     "                                        \n"  // 5
-    "                                     bb \n"  // 6
-    "                                     bb \n"  // 7
-    "                                     bb \n"  // 8
-    "                                        \n"  // 9
+    "              rrrrr                  bb \n"  // 6
+    "              r   r                  bb \n"  // 7
+    "                  r                  bb \n"  // 8
+    "                  r                     \n"  // 9
 };
 
 std::vector<rts::Side> test::makeSides() {

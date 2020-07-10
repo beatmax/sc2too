@@ -1,6 +1,8 @@
 #pragma once
 
 #include "AbilityState.h"
+#include "dimensions.h"
+#include "types.h"
 
 #include <functional>
 #include <memory>
@@ -22,10 +24,7 @@ namespace rts {
 
     void trigger(Point target) { state_ = createState_(target); }
     void step(const World& world, const Entity& entity, WorldActionList& actions);
-    void cancel() {
-      state_.reset();
-      nextStepTime_ = GameTimeInf;
-    }
+    void cancel();
 
   private:
     const std::string name_;

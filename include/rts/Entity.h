@@ -2,6 +2,7 @@
 
 #include "Ability.h"
 #include "WorldObject.h"
+#include "dimensions.h"
 #include "types.h"
 
 #include <utility>

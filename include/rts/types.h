@@ -12,6 +12,7 @@ namespace rts {
   class Blocker;
   class Engine;
   class Entity;
+  class Map;
   class Resource;
   class ResourceField;
   class Side;
@@ -34,11 +35,6 @@ namespace rts {
   using Speed = uint32_t;      // distance per game unit = cells per second
   using Fps = uint32_t;
   using Quantity = uint32_t;
-
-  constexpr Distance CellDistance{100};
-  constexpr GameTime GameTimeSecond{100};
-  constexpr GameTime GameTimeInf{std::numeric_limits<GameTime>::max()};
-  constexpr GameSpeed GameSpeedNormal{100};
 
   using util::geo::Coordinate;
   using util::geo::Point;

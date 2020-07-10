@@ -50,7 +50,7 @@ rts::Map::Map(World& world, const MapInitializer& init, const std::vector<std::s
 }
 
 rts::WorldObject& rts::getObject(World& world, Map::Cell& c) {
-  return std::visit([&world](auto id) -> rts::WorldObject& { return world[id]; }, c);
+  return std::visit([&world](auto id) -> rts::WorldObject& { return world[id]; }, c.content);
 }
 
 const rts::WorldObject& rts::getObject(const World& world, const Map::Cell& c) {
@@ -58,7 +58,7 @@ const rts::WorldObject& rts::getObject(const World& world, const Map::Cell& c) {
 }
 
 rts::WorldObject* rts::getObjectPtr(World& world, Map::Cell& c) {
-  return std::visit([&world](auto id) { return worldObjectPtr(world, id); }, c);
+  return std::visit([&world](auto id) { return worldObjectPtr(world, id); }, c.content);
 }
 
 const rts::WorldObject* rts::getObjectPtr(const World& world, const Map::Cell& c) {

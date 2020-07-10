@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <iosfwd>
 #include <sys/types.h>
 
@@ -67,7 +68,22 @@ namespace util::geo {
     bool right;
   };
 
+  inline Rectangle boundingBox(const Rectangle& r) {
+    return {r.topLeft - Vector{1, 1}, r.size + Vector{2, 2}};
+  }
+
   std::ostream& operator<<(std::ostream& os, const Point& p);
   std::ostream& operator<<(std::ostream& os, const Vector& v);
   std::ostream& operator<<(std::ostream& os, const Rectangle& r);
+}
+
+namespace std {
+  template<>
+  struct hash<util::geo::Point> {
+    std::size_t operator()(const util::geo::Point& p) const noexcept {
+      auto h1{std::hash<util::geo::Coordinate>{}(p.x)};
+      auto h2{std::hash<util::geo::Coordinate>{}(p.y)};
+      return h1 ^ (h2 << 1);
+    }
+  };
 }

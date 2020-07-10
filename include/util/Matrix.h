@@ -13,6 +13,7 @@ namespace util {
 
     Dim rows() const { return rows_; }
     Dim cols() const { return cols_; }
+    size_t size() const { return data_.size(); }
 
     T& operator()(Dim i, Dim j) { return data_[i * cols_ + j]; }
     const T& operator()(Dim i, Dim j) const { return data_[i * cols_ + j]; }

@@ -13,6 +13,8 @@
 #include <variant>
 #include <vector>
 
+#define MAP_DEBUG
+
 namespace rts {
 
   class MapInitializer;
@@ -21,13 +23,26 @@ namespace rts {
   class Map {
   public:
     using Free = std::monostate;
-    using Cell = std::variant<Free, BlockerId, EntityId, ResourceFieldId>;
+    using Content = std::variant<Free, BlockerId, EntityId, ResourceFieldId>;
+
+    struct Cell {
+      Content content;
+#ifdef MAP_DEBUG
+      struct {
+        int color{0};
+      } debug;
+#endif
+    };
 
     explicit Map(World& world, const MapInitializer& init, std::istream&& is);
     explicit Map(World& world, const MapInitializer& init, const std::vector<std::string>& lines);
 
+    Map(const Map&) = delete;
+    Map& operator=(const Map&) = delete;
+
     const Coordinate maxX;
     const Coordinate maxY;
+    size_t size() const { return cells_.size(); }
 
     Cell& at(Point p) { return at(p.x, p.y); }
     Cell& at(Coordinate x, Coordinate y) { return cells_(y, x); }
@@ -35,20 +50,20 @@ namespace rts {
     const Cell& at(Coordinate x, Coordinate y) const { return cells_(y, x); }
 
     template<typename T>
-    void set(Point p, T&& o) {
-      cells_(p.y, p.x) = std::forward<T>(o);
+    void setContent(Point p, T&& o) {
+      cells_(p.y, p.x).content = std::forward<T>(o);
     }
 
     template<typename T>
-    void set(const Rectangle& area, const T& o) {
-      forEachPoint(area, [this, &o](Point p) { cells_(p.y, p.x) = o; });
+    void setContent(const Rectangle& area, const T& o) {
+      forEachPoint(area, [this, &o](Point p) { cells_(p.y, p.x).content = o; });
     }
 
   private:
     util::Matrix<Cell, Coordinate> cells_;
   };
 
-  inline bool isFree(const Map::Cell& c) { return std::holds_alternative<Map::Free>(c); }
+  inline bool isFree(const Map::Cell& c) { return std::holds_alternative<Map::Free>(c.content); }
   inline bool hasObject(const Map::Cell& c) { return !isFree(c); }
 
   WorldObject& getObject(World& world, Map::Cell& c);
@@ -57,19 +72,23 @@ namespace rts {
   WorldObject* getObjectPtr(World& world, Map::Cell& c);
   const WorldObject* getObjectPtr(const World& world, const Map::Cell& c);
 
-  inline bool hasBlocker(const Map::Cell& c) { return std::holds_alternative<BlockerId>(c); }
-  inline bool hasEntity(const Map::Cell& c) { return std::holds_alternative<EntityId>(c); }
+  inline bool hasBlocker(const Map::Cell& c) {
+    return std::holds_alternative<BlockerId>(c.content);
+  }
+  inline bool hasEntity(const Map::Cell& c) { return std::holds_alternative<EntityId>(c.content); }
   inline bool hasResourceField(const Map::Cell& c) {
-    return std::holds_alternative<ResourceFieldId>(c);
+    return std::holds_alternative<ResourceFieldId>(c.content);
   }
 
-  inline BlockerId getBlockerId(Map::Cell& c) { return std::get<BlockerId>(c); }
-  inline BlockerId getBlockerId(const Map::Cell& c) { return std::get<BlockerId>(c); }
-  inline EntityId getEntityId(Map::Cell& c) { return std::get<EntityId>(c); }
-  inline EntityId getEntityId(const Map::Cell& c) { return std::get<EntityId>(c); }
-  inline ResourceFieldId getResourceFieldId(Map::Cell& c) { return std::get<ResourceFieldId>(c); }
+  inline BlockerId getBlockerId(Map::Cell& c) { return std::get<BlockerId>(c.content); }
+  inline BlockerId getBlockerId(const Map::Cell& c) { return std::get<BlockerId>(c.content); }
+  inline EntityId getEntityId(Map::Cell& c) { return std::get<EntityId>(c.content); }
+  inline EntityId getEntityId(const Map::Cell& c) { return std::get<EntityId>(c.content); }
+  inline ResourceFieldId getResourceFieldId(Map::Cell& c) {
+    return std::get<ResourceFieldId>(c.content);
+  }
   inline ResourceFieldId getResourceFieldId(const Map::Cell& c) {
-    return std::get<ResourceFieldId>(c);
+    return std::get<ResourceFieldId>(c.content);
   }
 
   class MapInitializer {

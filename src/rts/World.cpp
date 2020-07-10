@@ -1,11 +1,9 @@
 #include "rts/World.h"
 
 #include "rts/Entity.h"
-#include "util/misc.h"
 
 #include <algorithm>
 #include <cassert>
-#include <cstdlib>
 #include <stdexcept>
 #include <utility>
 
@@ -21,47 +19,41 @@ void rts::World::update(const WorldActionList& actions) {
 
 rts::EntityId rts::World::add(Entity&& e) {
   auto id{entities.emplace(std::move(e))};
-  map.set(entities[id].area, id);
+  map.setContent(entities[id].area, id);
   return id;
 }
 
 rts::BlockerId rts::World::add(Blocker&& b) {
   auto id{blockers.emplace(std::move(b))};
-  map.set(blockers[id].area, id);
+  map.setContent(blockers[id].area, id);
   return id;
 }
 
 rts::ResourceFieldId rts::World::add(ResourceField&& rf) {
   auto id{resourceFields.emplace(std::move(rf))};
-  map.set(resourceFields[id].area, id);
+  map.setContent(resourceFields[id].area, id);
   return id;
 }
 
 void rts::World::destroy(EntityWId e) {
   if (auto entity = entities[e]) {
     assert(hasEntity(map.at(entity->area.topLeft)));
-    map.set(entity->area, Map::Free{});
+    map.setContent(entity->area, Map::Free{});
     entities.erase(EntityId(e));
   }
 }
 
-void rts::World::moveTowards(Point p, EntityWId e) {
+void rts::World::move(EntityWId e, Path* path) {
   if (auto entity = entities[e]) {
     assert(entity->area.size == Vector({1, 1}));  // no need to move big entities so far
-    Point pos{entity->area.topLeft};
-    assert(hasEntity(map.at(pos)));
-
-    Vector v{p - pos};
-    if (abs(v.x) > abs(v.y))
-      pos += Vector{util::unit(v.x), 0};
-    else
-      pos += Vector{0, util::unit(v.y)};
-
-    if (isFree(map.at(pos))) {
+    assert(!path->empty());
+    Point next{path->front()};
+    if (isFree(map.at(next))) {
+      path->pop_front();
       auto& epos = entity->area.topLeft;
-      map.set(epos, Map::Free{});
-      map.set(pos, EntityId(e));
-      epos = pos;
+      map.setContent(epos, Map::Free{});
+      map.setContent(next, EntityId(e));
+      epos = next;
     }
   }
 }

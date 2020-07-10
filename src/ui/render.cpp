@@ -101,3 +101,17 @@ void ui::render(WINDOW* win, const rts::World& world, const Camera& camera) {
   for (rts::WorldObjectCPtr obj : visibleObjects)
     draw(win, camera, *obj);
 }
+
+#ifdef MAP_DEBUG
+void ui::mapDebug(WINDOW* win, const rts::World& world, const Camera& camera) {
+  const auto& topLeft = camera.topLeft();
+  const auto& bottomRight = camera.bottomRight();
+
+  for (rts::Coordinate cellY = topLeft.y; cellY < bottomRight.y; ++cellY) {
+    for (rts::Coordinate cellX = topLeft.x; cellX < bottomRight.x; ++cellX) {
+      if (auto color{world.map.at(cellX, cellY).debug.color}; color)
+        highlight(win, camera, {cellX, cellY}, COLOR_PAIR(color));
+    }
+  }
+}
+#endif

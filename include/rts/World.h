@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Map.h"
+#include "Path.h"
 #include "Side.h"
 #include "WorldAction.h"
 #include "types.h"
@@ -44,7 +45,7 @@ namespace rts {
     ResourceFieldId add(ResourceField&& rf);
 
     void destroy(EntityWId e);
-    void moveTowards(Point p, EntityWId e);
+    void move(EntityWId e, Path* path);
 
     Entity& operator[](EntityId id) { return entities[id]; }
     const Entity& operator[](EntityId id) const { return entities[id]; }

@@ -123,6 +123,11 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& world, cons
   werase(ios_.controlWin);
 
   grid(ios_.renderWin);
+
+#ifdef MAP_DEBUG
+  mapDebug(ios_.renderWin, world, player.camera);
+#endif
+
   highlight(
       ios_.renderWin, player.camera, ios_.clickedCell,
       ios_.clickedButton ? graph::red() : graph::green());
