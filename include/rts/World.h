@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Map.h"
-#include "Path.h"
 #include "Side.h"
 #include "WorldAction.h"
 #include "types.h"
@@ -39,13 +38,27 @@ namespace rts {
     Map map;
 
     void update(const WorldActionList& actions);
+    void update(const action::AbilityStepAction& action);
 
-    EntityId add(Entity&& e);
-    BlockerId add(Blocker&& b);
-    ResourceFieldId add(ResourceField&& rf);
+    template<typename... Args>
+    EntityId createEntity(Args&&... args) {
+      return create(entities, std::forward<Args>(args)...);
+    }
 
-    void destroy(EntityWId e);
-    void move(EntityWId e, Path* path);
+    template<typename... Args>
+    BlockerId createBlocker(Args&&... args) {
+      return create(blockers, std::forward<Args>(args)...);
+    }
+
+    template<typename... Args>
+    ResourceFieldId createResourceField(Args&&... args) {
+      return create(resourceFields, std::forward<Args>(args)...);
+    }
+
+    void move(Entity& e, Point p);
+
+    void destroy(const Entity& e);
+    void destroy(EntityId e) { destroy(entities[e]); }
 
     Entity& operator[](EntityId id) { return entities[id]; }
     const Entity& operator[](EntityId id) const { return entities[id]; }
@@ -70,5 +83,13 @@ namespace rts {
 
     ResourceField& resourceFieldAt(Point p);
     const ResourceField& resourceFieldAt(Point p) const;
+
+  private:
+    template<typename P, typename... Args>
+    auto create(P& pool, Args&&... args) {
+      auto id{pool.emplace(std::forward<Args>(args)...)};
+      map.setContent(pool[id].area, id);
+      return id;
+    }
   };
 }

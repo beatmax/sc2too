@@ -13,6 +13,8 @@
 #include <vector>
 
 namespace test {
+  constexpr rts::AbilityId MoveAbilityId{1};
+
   extern const std::string map;
 
   std::vector<rts::Side> makeSides();
@@ -31,10 +33,10 @@ namespace test {
   extern const rts::Resource gas;
 
   struct Factory {
-    static rts::Entity simpleton(rts::Point p, rts::SideCPtr sd);
-    static rts::Entity building(rts::Point p, rts::SideCPtr sd);
-    static rts::ResourceField geyser(rts::Point p);
-    static rts::Blocker rock(rts::Point p);
+    static rts::EntityId simpleton(rts::World& w, rts::Point p, rts::SideCPtr sd);
+    static rts::EntityId building(rts::World& w, rts::Point p, rts::SideCPtr sd);
+    static rts::ResourceFieldId geyser(rts::World& w, rts::Point p);
+    static rts::BlockerId rock(rts::World& w, rts::Point p);
   };
 
   class MapInitializer : public rts::MapInitializer {

@@ -32,13 +32,13 @@ int main() try {
 
   ui::Player player{&world.sides[0], ui::Camera{{0, 0}, {world.map.maxX, world.map.maxY}}};
 
-  auto probe{world.add(sc2::Factory::probe(rts::Point{20, 10}, &world.sides[0]))};
+  auto probe{sc2::Factory::probe(world, rts::Point{20, 10}, &world.sides[0])};
   player.selection.push_back(rts::EntityWId{world.entities, probe});
 
 #ifdef EXTRA_PROBES
   forEachPoint(rts::Rectangle{{20, 11}, {2, 3}}, [&](rts::Point p) {
     player.selection.push_back(
-        rts::EntityWId{world.entities, world.add(sc2::Factory::probe(p, &world.sides[0]))});
+        rts::EntityWId{world.entities, sc2::Factory::probe(world, p, &world.sides[0])});
   });
 #endif
 

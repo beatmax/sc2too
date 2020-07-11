@@ -1,15 +1,13 @@
 #pragma once
 
-#include "rts/Blocker.h"
-#include "rts/Entity.h"
-#include "rts/ResourceField.h"
+#include "rts/types.h"
 
 namespace sc2 {
   struct Factory {
-    static rts::Entity nexus(rts::Point p, rts::SideCPtr sd);
-    static rts::Entity probe(rts::Point p, rts::SideCPtr sd);
-    static rts::ResourceField geyser(rts::Point p);
-    static rts::ResourceField mineralPatch(rts::Point p);
-    static rts::Blocker rock(rts::Point p);
+    static rts::EntityId nexus(rts::World& w, rts::Point p, rts::SideCPtr sd);
+    static rts::EntityId probe(rts::World& w, rts::Point p, rts::SideCPtr sd);
+    static rts::ResourceFieldId geyser(rts::World& w, rts::Point p);
+    static rts::ResourceFieldId mineralPatch(rts::World& w, rts::Point p);
+    static rts::BlockerId rock(rts::World& w, rts::Point p);
   };
 }

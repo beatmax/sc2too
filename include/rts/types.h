@@ -9,6 +9,7 @@
 
 namespace rts {
 
+  class Ability;
   class Blocker;
   class Engine;
   class Entity;
@@ -19,6 +20,7 @@ namespace rts {
   class World;
   class WorldObject;
 
+  using AbilityId = util::PoolObjectId<Ability>;
   using BlockerId = util::PoolObjectId<Blocker>;
   using BlockerWId = util::PoolObjectWeakId<Blocker>;
   using EntityId = util::PoolObjectId<Entity>;

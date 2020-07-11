@@ -32,34 +32,35 @@ std::map<char, int> test::Ui::count;
 
 const rts::Resource test::gas{std::make_unique<Ui>('g')};
 
-rts::Entity test::Factory::simpleton(rts::Point p, rts::SideCPtr sd) {
-  rts::Entity e{p, rts::Vector{1, 1}, sd, std::make_unique<Ui>('s')};
+rts::EntityId test::Factory::simpleton(rts::World& w, rts::Point p, rts::SideCPtr sd) {
+  auto id{w.createEntity(p, rts::Vector{1, 1}, sd, std::make_unique<Ui>('s'))};
+  auto& e{w.entities[id]};
   e.addAbility(rts::abilities::move(rts::CellDistance / rts::GameTimeSecond));
-  return e;
+  return id;
 }
 
-rts::Entity test::Factory::building(rts::Point p, rts::SideCPtr sd) {
-  return rts::Entity{p, rts::Vector{2, 3}, sd, std::make_unique<Ui>('b')};
+rts::EntityId test::Factory::building(rts::World& w, rts::Point p, rts::SideCPtr sd) {
+  return w.createEntity(p, rts::Vector{2, 3}, sd, std::make_unique<Ui>('b'));
 }
 
-rts::ResourceField test::Factory::geyser(rts::Point p) {
-  return rts::ResourceField{p, rts::Vector{2, 2}, &gas, 100, std::make_unique<Ui>('g')};
+rts::ResourceFieldId test::Factory::geyser(rts::World& w, rts::Point p) {
+  return w.createResourceField(p, rts::Vector{2, 2}, &gas, 100, std::make_unique<Ui>('g'));
 }
 
-rts::Blocker test::Factory::rock(rts::Point p) {
-  return rts::Blocker{p, rts::Vector{1, 1}, std::make_unique<Ui>('r')};
+rts::BlockerId test::Factory::rock(rts::World& w, rts::Point p) {
+  return w.createBlocker(p, rts::Vector{1, 1}, std::make_unique<Ui>('r'));
 }
 
 void test::MapInitializer::operator()(rts::World& world, rts::Point p, char c) const {
   switch (c) {
     case 'b':
-      world.add(Factory::building(p, &world.sides[0]));
+      Factory::building(world, p, &world.sides[0]);
       break;
     case 'g':
-      world.add(Factory::geyser(p));
+      Factory::geyser(world, p);
       break;
     case 'r':
-      world.add(Factory::rock(p));
+      Factory::rock(world, p);
       break;
   }
 }

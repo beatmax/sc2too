@@ -57,7 +57,7 @@ rts::WorldActionList ui::Input::process(
       }
     }
     else {
-      addActions(actions, player.processInput(world, event));
+      rts::addActions(actions, player.processInput(world, event));
     }
   }
 
@@ -67,7 +67,7 @@ rts::WorldActionList ui::Input::process(
       InputEvent event{nextMouseEvent(player.camera)};
       if (event.type != InputType::Unknown) {
         if (!processMouseInput(event))
-          addActions(actions, player.processInput(world, event));
+          rts::addActions(actions, player.processInput(world, event));
       }
     }
   }

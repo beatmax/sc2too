@@ -9,16 +9,16 @@ void sc2::MapInitializer::operator()(rts::World& world, rts::Point p, char c) co
   assert(!world.sides.empty());
   switch (c) {
     case 'g':
-      world.add(Factory::geyser(p));
+      Factory::geyser(world, p);
       break;
     case 'm':
-      world.add(Factory::mineralPatch(p));
+      Factory::mineralPatch(world, p);
       break;
     case 'n':
-      world.add(Factory::nexus(p, &world.sides[nexusCnt_++ % world.sides.size()]));
+      Factory::nexus(world, p, &world.sides[nexusCnt_++ % world.sides.size()]);
       return;
     case 'r':
-      world.add(Factory::rock(p));
+      Factory::rock(world, p);
       break;
   }
 }

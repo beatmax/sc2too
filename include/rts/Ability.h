@@ -8,7 +8,6 @@
 #include <memory>
 #include <string>
 #include <utility>
-#include <vector>
 
 namespace rts {
   class Ability {
@@ -24,6 +23,7 @@ namespace rts {
 
     void trigger(Point target) { state_ = createState_(target); }
     void step(const World& world, const Entity& entity, WorldActionList& actions);
+    void stepAction(World& world, Entity& entity);
     void cancel();
 
   private:
@@ -32,6 +32,4 @@ namespace rts {
     const CreateState createState_;
     AbilityStateUPtr state_;
   };
-
-  using AbilityList = std::vector<Ability>;
 }

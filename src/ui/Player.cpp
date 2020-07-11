@@ -28,8 +28,10 @@ rts::WorldActionList ui::Player::processInput(const rts::World& world, const Inp
     rts::WorldActionList actions;
     for (auto wid : selection) {
       if (auto entity = world.entities[wid]) {
-        if (!entity->abilities.empty())
-          addActions(actions, entity->trigger(entity->abilities.front(), world, event.mouseCell));
+        if (auto a{entity->abilities.begin()}; a != entity->abilities.end()) {
+          rts::addActions(
+              actions, entity->trigger(entity->abilities.id(*a), world, event.mouseCell));
+        }
       }
     }
     return actions;

@@ -5,13 +5,14 @@
 
 #include <algorithm>
 
-rts::WorldActionList rts::Entity::trigger(Ability& a, const World& world, Point target) const {
+rts::WorldActionList rts::Entity::trigger(AbilityId a, const World& world, Point target) const {
+  Ability& ability{abilities[a]};
   cancelAll();
-  a.trigger(target);
+  ability.trigger(target);
 
   WorldActionList actions;
-  a.step(world, *this, actions);
-  nextStepTime = std::min(nextStepTime, a.nextStepTime());
+  ability.step(world, *this, actions);
+  nextStepTime = std::min(nextStepTime, ability.nextStepTime());
   return actions;
 }
 
@@ -25,6 +26,12 @@ rts::WorldActionList rts::Entity::step(const World& world) const {
     }
   }
   return actions;
+}
+
+void rts::Entity::stepAction(World& world, AbilityId a) {
+  auto& ability{abilities[a]};
+  ability.stepAction(world, *this);
+  nextStepTime = std::min(nextStepTime, ability.nextStepTime());
 }
 
 void rts::Entity::cancelAll() const {

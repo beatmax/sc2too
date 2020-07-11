@@ -6,17 +6,19 @@
 
 using namespace rts;
 
-test::MoveStepList test::runMove(World& world, Entity& entity, Point target, GameTime timeout) {
-  REQUIRE(entity.abilities.size() > 0);
-  Ability& moveAbility = entity.abilities.front();
-  REQUIRE(moveAbility.name() == "move");
+namespace {
+  constexpr AbilityId MoveAbilityId{1};
+}
 
-  world.update(entity.trigger(moveAbility, world, target));
+test::MoveStepList test::runMove(World& world, Entity& entity, Point target, GameTime timeout) {
+  REQUIRE(entity.abilities[MoveAbilityId].name() == "move");
+
+  world.update(entity.trigger(MoveAbilityId, world, target));
   return continueMove(world, entity, timeout);
 }
 
 test::MoveStepList test::continueMove(World& world, Entity& entity, GameTime timeout) {
-  Ability& moveAbility = entity.abilities.front();
+  Ability& moveAbility{entity.abilities[MoveAbilityId]};
 
   MoveStepList result;
   result.emplace_back(entity.area.topLeft, world.time);
@@ -28,6 +30,7 @@ test::MoveStepList test::continueMove(World& world, Entity& entity, GameTime tim
       result.emplace_back(entity.area.topLeft, world.time);
   }
 
-  result.emplace_back(entity.area.topLeft, world.time);
+  if (MoveStep{entity.area.topLeft, world.time} != result.back())
+    result.emplace_back(entity.area.topLeft, world.time);
   return result;
 }

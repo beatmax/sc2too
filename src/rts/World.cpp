@@ -1,6 +1,7 @@
 #include "rts/World.h"
 
 #include "rts/Entity.h"
+#include "rts/WorldAction.h"
 
 #include <algorithm>
 #include <cassert>
@@ -13,49 +14,29 @@ rts::World::World(std::vector<Side> s, const MapInitializer& init, std::istream&
 }
 
 void rts::World::update(const WorldActionList& actions) {
-  for (auto& action : actions)
-    action(*this);
+  for (const auto& action : actions)
+    std::visit([this](const auto& a) { update(a); }, action);
 }
 
-rts::EntityId rts::World::add(Entity&& e) {
-  auto id{entities.emplace(std::move(e))};
-  map.setContent(entities[id].area, id);
-  return id;
-}
-
-rts::BlockerId rts::World::add(Blocker&& b) {
-  auto id{blockers.emplace(std::move(b))};
-  map.setContent(blockers[id].area, id);
-  return id;
-}
-
-rts::ResourceFieldId rts::World::add(ResourceField&& rf) {
-  auto id{resourceFields.emplace(std::move(rf))};
-  map.setContent(resourceFields[id].area, id);
-  return id;
-}
-
-void rts::World::destroy(EntityWId e) {
-  if (auto entity = entities[e]) {
-    assert(hasEntity(map.at(entity->area.topLeft)));
-    map.setContent(entity->area, Map::Free{});
-    entities.erase(EntityId(e));
+void rts::World::update(const action::AbilityStepAction& action) {
+  if (auto entity = entities[action.entityWId]) {
+    entity->stepAction(*this, action.abilityId);
   }
 }
 
-void rts::World::move(EntityWId e, Path* path) {
-  if (auto entity = entities[e]) {
-    assert(entity->area.size == Vector({1, 1}));  // no need to move big entities so far
-    assert(!path->empty());
-    Point next{path->front()};
-    if (isFree(map.at(next))) {
-      path->pop_front();
-      auto& epos = entity->area.topLeft;
-      map.setContent(epos, Map::Free{});
-      map.setContent(next, EntityId(e));
-      epos = next;
-    }
-  }
+void rts::World::move(Entity& e, Point p) {
+  assert(e.area.size == Vector({1, 1}));  // no need to move big entities so far
+  assert(isFree(map.at(p)));
+  auto& epos = e.area.topLeft;
+  map.setContent(epos, Map::Free{});
+  map.setContent(p, entities.id(e));
+  epos = p;
+}
+
+void rts::World::destroy(const Entity& e) {
+  assert(hasEntity(map.at(e.area.topLeft)));
+  map.setContent(e.area, Map::Free{});
+  entities.erase(entities.id(e));
 }
 
 rts::WorldObject& rts::World::operator[](Map::Free) {

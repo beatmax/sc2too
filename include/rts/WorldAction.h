@@ -1,20 +1,27 @@
 #pragma once
 
 #include "types.h"
-#include "util/functional.h"
 
 #include <iterator>
 #include <utility>
+#include <variant>
 #include <vector>
 
 namespace rts {
 
-  using WorldAction = std::function<void(World&)>;
+  namespace action {
+    struct AbilityStepAction {
+      EntityWId entityWId;
+      AbilityId abilityId;
+    };
+  }
+
+  using WorldAction = std::variant<action::AbilityStepAction>;
   using WorldActionList = std::vector<WorldAction>;
 
-  template<typename F, typename... Args>
-  void addAction(WorldActionList& actions, F f, Args&&... args) {
-    actions.push_back(util::Binder<F>{}(f, std::forward<Args>(args)...));
+  template<typename T>
+  void addAction(WorldActionList& actions, T&& action) {
+    actions.push_back(std::forward<T>(action));
   }
 
   inline void addActions(WorldActionList& actions, WorldActionList&& moreActions) {
