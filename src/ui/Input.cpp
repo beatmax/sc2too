@@ -61,6 +61,9 @@ rts::WorldActionList ui::Input::process(
     }
   }
 
+  if (auto pointerEvent{X::pointerEvent()})
+    rts::addActions(actions, player.processInput(world, *pointerEvent));
+
   int c;
   while ((c = getch()) != ERR) {
     if (c == KEY_MOUSE) {

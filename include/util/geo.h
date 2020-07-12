@@ -45,6 +45,7 @@ namespace util::geo {
   inline Vector operator-(const Point& a, const Point& b) { return {a.x - b.x, a.y - b.y}; }
   inline Vector operator+(const Vector& v1, const Vector& v2) { return {v1.x + v2.x, v1.y + v2.y}; }
   inline Vector operator-(const Vector& v1, const Vector& v2) { return {v1.x - v2.x, v1.y - v2.y}; }
+  inline Vector operator-(const Vector& v) { return {-v.x, -v.y}; }
 
   template<typename F>
   void forEachPoint(const Rectangle& rect, F&& f) {

@@ -3,12 +3,13 @@
 #include "rts/types.h"
 
 namespace ui {
-  enum class InputType { Unknown, KeyPress, KeyRelease, MousePress, MouseRelease };
+  enum class InputType { Unknown, KeyPress, KeyRelease, MousePress, MouseRelease, EdgeScroll };
+
   enum class InputKeySym {
     Unknown,
     Escape,
-    Right,
     Left,
+    Right,
     Up,
     Down,
     F1,
@@ -24,9 +25,16 @@ namespace ui {
     F11,
     F12
   };
+
   using InputState = unsigned int;
   using InputKeyCode = unsigned int;
   enum class InputButton { Unknown, Button1, Button2, Button3 };
+
+  using ScrollDirection = unsigned int;
+  constexpr ScrollDirection ScrollDirectionLeft{0b0001};
+  constexpr ScrollDirection ScrollDirectionRight{0b0010};
+  constexpr ScrollDirection ScrollDirectionUp{0b0100};
+  constexpr ScrollDirection ScrollDirectionDown{0b1000};
 
   struct InputEvent {
     InputType type;
@@ -35,5 +43,6 @@ namespace ui {
     InputKeySym symbol;
     InputButton mouseButton;
     rts::Point mouseCell;
+    ScrollDirection scrollDirection;
   };
 }
