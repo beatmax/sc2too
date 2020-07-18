@@ -1,5 +1,6 @@
 #include "catch2/catch.hpp"
 #include "util/Pool.h"
+#include "util/WeakList.h"
 
 namespace {
   int dummyCount{0};
@@ -12,10 +13,13 @@ namespace {
     int s{++dummySerial}, x{};
   };
 
+  inline bool operator<(const Dummy& d1, const Dummy& d2) { return d1.x < d2.x; }
+
   constexpr uint32_t MaxDummies{4};
   using DummyPool = util::Pool<Dummy, MaxDummies>;
   using DummyId = DummyPool::Id;
   using DummyWeakId = DummyPool::WeakId;
+  using DummyWeakList = util::WeakList<Dummy, 3>;
 }
 
 TEST_CASE("Objects are emplaced and erased, lifetime is tracked by weak ids", "[Pool]") {
@@ -136,4 +140,42 @@ TEST_CASE("Objects are emplaced and erased, lifetime is tracked by weak ids", "[
   }
 
   REQUIRE(dummyCount == 0);
+}
+
+TEST_CASE("Objects are emplaced and erased, lifetime is tracked by weak lists", "[Pool]") {
+  DummyPool pool;
+  const DummyPool& cpool{pool};
+
+  DummyWeakList weakList;
+
+  auto listItems = [&]() {
+    std::vector<int> v;
+    for (const Dummy* d : weakList.items(cpool))
+      v.push_back(d->x);
+    return v;
+  };
+
+  REQUIRE(listItems() == std::vector<int>{});
+
+  DummyId id3{pool.emplace(103)};
+  DummyId id2{pool.emplace(102)};
+  DummyId id4{pool.emplace(104)};
+  DummyId id1{pool.emplace(101)};
+
+  weakList.set(cpool, {id1, id4, id2});
+  REQUIRE(listItems() == std::vector<int>{101, 102, 104});
+
+  pool.erase(id1);
+  id1 = pool.emplace(101);
+  REQUIRE(listItems() == std::vector<int>{102, 104});
+
+  weakList.add(cpool, {id1, id2});
+  REQUIRE(listItems() == std::vector<int>{101, 102, 104});
+
+  pool.erase(id1);
+  weakList.add(cpool, {id3});
+  REQUIRE(listItems() == std::vector<int>{102, 103, 104});
+
+  weakList.remove({id2, id4});
+  REQUIRE(listItems() == std::vector<int>{103});
 }

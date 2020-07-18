@@ -3,7 +3,9 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
+#include <functional>
 #include <utility>
+#include <vector>
 
 namespace util {
 
@@ -65,6 +67,8 @@ namespace util {
     detail::pool::Index idx{};
 
     explicit operator bool() const { return idx != 0; }
+    bool operator==(PoolObjectId other) const { return idx == other.idx; }
+    bool operator!=(PoolObjectId other) const { return idx != other.idx; }
   };
 
   template<typename T>
@@ -74,9 +78,15 @@ namespace util {
 
     PoolObjectWeakId() = default;
 
-    template<typename FL>
-    PoolObjectWeakId(const FL& list, PoolObjectId<T> id)
-      : idx{id.idx}, gen{list.items_[id.idx].gen} {}
+    template<typename Pool>
+    PoolObjectWeakId(const Pool& pool, PoolObjectId<T> id)
+      : idx{id.idx}, gen{pool.items_[id.idx].gen} {}
+
+    template<typename Pool>
+    PoolObjectId<T> lock(const Pool& pool) {
+      auto& item{pool.items_[idx]};
+      return {item.gen == gen ? idx : 0};
+    }
 
     explicit operator bool() const { return idx != 0; }
     explicit operator PoolObjectId<T>() const { return {idx}; }
@@ -92,6 +102,9 @@ namespace util {
     using Value = T;
     using Id = PoolObjectId<Value>;
     using WeakId = PoolObjectWeakId<Value>;
+    using IdList = std::vector<Id>;
+    using PtrList = std::vector<Value*>;
+    using CPtrList = std::vector<const Value*>;
     using iterator = detail::pool::Iterator<Value, N, typename Array::iterator>;
     using const_iterator = detail::pool::Iterator<Value, N, typename Array::const_iterator>;
 
@@ -114,6 +127,9 @@ namespace util {
       return item.gen == wid.gen ? &item.value : nullptr;
     }
     const Value* operator[](WeakId wid) const { return const_cast<Pool&>(*this)[wid]; }
+
+    PtrList operator[](const IdList& ids);
+    CPtrList operator[](const IdList& ids) const;
 
     iterator begin() { return iterator{items_.begin(), items_.end()}; }
     iterator end() { return iterator{items_.end()}; }
@@ -180,5 +196,36 @@ namespace util {
     item.nextFree = firstFree;
     firstFree = id.idx;
   }
+
+  template<typename T, uint32_t N>
+  auto Pool<T, N>::operator[](const IdList& ids) -> PtrList {
+    PtrList ptrs;
+    ptrs.reserve(ids.size());
+    for (auto id : ids)
+      ptrs.push_back(&(*this)[id]);
+    return ptrs;
+  }
+
+  template<typename T, uint32_t N>
+  auto Pool<T, N>::operator[](const IdList& ids) const -> CPtrList {
+    CPtrList ptrs;
+    ptrs.reserve(ids.size());
+    for (auto id : ids)
+      ptrs.push_back(&(*this)[id]);
+    return ptrs;
+  }
+
+  template<typename Pool, typename Compare = std::less<typename Pool::Value>>
+  struct PoolCompare {
+    using Id = typename Pool::Id;
+    using Value = typename Pool::Value;
+
+    const Pool& pool;
+    Compare comp;
+
+    PoolCompare(const Pool& pool, const Compare& comp = Compare{}) : pool{pool}, comp{comp} {}
+
+    bool operator()(Id id1, Id id2) const { return comp(pool[id1], pool[id2]); }
+  };
 
 }
