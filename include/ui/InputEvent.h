@@ -27,6 +27,10 @@ namespace ui {
   };
 
   using InputState = unsigned int;
+  constexpr InputState ShiftPressed{0b0001};
+  constexpr InputState ControlPressed{0b0100};
+  constexpr InputState AltPressed{0b1000};
+
   using InputKeyCode = unsigned int;
   enum class InputButton { Unknown, Button1, Button2, Button3 };
 

@@ -25,6 +25,7 @@ namespace rts {
   using BlockerWId = util::PoolObjectWeakId<Blocker>;
   using EntityId = util::PoolObjectId<Entity>;
   using EntityWId = util::PoolObjectWeakId<Entity>;
+  using EntityCPtr = const Entity*;
   using ResourceCPtr = const Resource*;
   using ResourceFieldId = util::PoolObjectId<ResourceField>;
   using ResourceFieldWId = util::PoolObjectWeakId<ResourceField>;

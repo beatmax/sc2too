@@ -130,8 +130,8 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& world, cons
 
   highlight(
       ios_.renderWin, player.camera, ios_.clickedCell,
-      ios_.clickedButton ? graph::red() : graph::green());
-  render(ios_.renderWin, world, player.camera);
+      ios_.clickedButton ? graph::red() : graph::yellow());
+  render(ios_.renderWin, world, player.camera, player.selection);
 
   drawResourceQuantities(ios_, player);
   drawGameTime(ios_, engine, world);

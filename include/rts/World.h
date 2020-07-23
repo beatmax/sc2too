@@ -14,7 +14,10 @@ namespace rts {
   class World {
   public:
     constexpr static size_t MaxSides{8};
-    constexpr static size_t MaxEntities{200 * MaxSides};
+    constexpr static size_t MaxSideUnits{200};
+    constexpr static size_t MaxSideBuildings{1000};
+    constexpr static size_t MaxSideEntities{MaxSideUnits + MaxSideBuildings};
+    constexpr static size_t MaxEntities{MaxSideEntities * MaxSides};
     constexpr static size_t MaxBlockers{10000};
     constexpr static size_t MaxResourceFields{10000};
 

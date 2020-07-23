@@ -121,6 +121,8 @@ ui::InputEvent ui::Input::nextMouseEvent(const Camera& camera) {
     ievent.type = InputType::Unknown;
   }
   else {
+    ievent.state = X::inputState();
+
     if (event.bstate & BUTTON1_PRESSED) {
       ievent.type = InputType::MousePress;
       ievent.mouseButton = InputButton::Button1;

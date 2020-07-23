@@ -36,10 +36,10 @@ namespace util {
     void remove(const IdList& ids);
 
     template<typename Pool>
-    IdList lock(Pool& pool);
+    IdList lock(Pool& pool) const;
 
     template<typename Pool>
-    auto items(Pool& pool) {
+    auto items(Pool& pool) const {
       return pool[lock(pool)];
     }
 
@@ -48,8 +48,8 @@ namespace util {
     void doSet(const Pool& pool, const IdList& ids);
 
     Compare comp_;
-    Array array_;
-    uint32_t n_{0};
+    mutable Array array_;
+    mutable uint32_t n_{0};
   };
 
   template<typename T, uint32_t N, typename Compare>
@@ -84,7 +84,7 @@ namespace util {
 
   template<typename T, uint32_t N, typename Compare>
   template<typename Pool>
-  auto WeakList<T, N, Compare>::lock(Pool& pool) -> IdList {
+  auto WeakList<T, N, Compare>::lock(Pool& pool) const -> IdList {
     Array updated;
     IdList ids;
     ids.reserve(n_);

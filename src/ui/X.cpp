@@ -9,6 +9,7 @@ constexpr auto ITEdgeScroll = ui::InputType::EdgeScroll;
 #include <X11/keysym.h>
 #include <map>
 #include <stdexcept>
+#include <tuple>
 #include <utility>
 
 namespace {
@@ -47,15 +48,15 @@ namespace {
         display, window, &root, &x, &y, &displayWidth, &displayHeight, &borderWidth, &depth);
   }
 
-  std::pair<int, int> queryPointer() {
+  std::tuple<int, int, unsigned int> queryPointer() {
     Window window = DefaultRootWindow(display);
     Window root, child;
     int rootX, rootY, winX, winY;
     unsigned int mask;
     if (!XQueryPointer(display, window, &root, &child, &rootX, &rootY, &winX, &winY, &mask))
-      return {-1, -1};
+      return {-1, -1, 0};
     else
-      return {rootX, rootY};
+      return {rootX, rootY, mask};
   }
 }
 
@@ -109,7 +110,7 @@ ui::InputEvent ui::X::nextEvent() {
 }
 
 std::optional<ui::InputEvent> ui::X::pointerEvent() {
-  auto [x, y] = queryPointer();
+  auto [x, y, state] = queryPointer();
   auto hDirection{(x == 0) ? ScrollDirectionLeft
                            : (x == int(displayWidth - 1)) ? ScrollDirectionRight : 0};
   auto vDirection{(y == 0) ? ScrollDirectionUp
@@ -120,9 +121,15 @@ std::optional<ui::InputEvent> ui::X::pointerEvent() {
     edgeScrollDirection = direction;
 
     InputEvent ievent;
+    ievent.state = state;
     ievent.type = ITEdgeScroll;
     ievent.scrollDirection = direction;
     return ievent;
   }
   return std::nullopt;
+}
+
+ui::InputState ui::X::inputState() {
+  auto [x, y, state] = queryPointer();
+  return state;
 }

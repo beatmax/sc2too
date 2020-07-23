@@ -22,8 +22,9 @@ namespace ui {
 
     ScreenRect toScreenRect(const Camera& camera, const rts::Rectangle& area) {
       const rts::Vector relativeTopLeft{area.topLeft - camera.topLeft()};
-      return {ScreenPoint{0, 0} + toScreenVector(relativeTopLeft),
-              toScreenVector(area.size) - ScreenVector{1, 1}};
+      return {
+          ScreenPoint{0, 0} + toScreenVector(relativeTopLeft),
+          toScreenVector(area.size) - ScreenVector{1, 1}};
     }
 
     void draw(WINDOW* win, const Camera& camera, const rts::WorldObject& object) {
@@ -45,6 +46,46 @@ namespace ui {
             win, drawRect.topLeft.y + v.y, drawRect.topLeft.x, &matrix(sp.y, sp.x),
             drawRect.size.x);
       }
+    }
+
+    void drawHLine(WINDOW* win, ScreenPoint p, int width) {
+      if (p.y >= 0 && p.y < dim::totalCellHeight) {
+        auto begin{std::max(0, int(p.x))};
+        auto end{std::min(int(p.x + width), dim::totalCellWidth)};
+        for (auto x{begin}; x < end; ++x)
+          graph::drawBoxSegment(win, p.y, x, graph::BoxSegment::HLine);
+      }
+    }
+
+    void drawVLine(WINDOW* win, ScreenPoint p, int height) {
+      if (p.x >= 0 && p.x < dim::totalCellWidth) {
+        auto begin{std::max(0, int(p.y))};
+        auto end{std::min(int(p.y + height), dim::totalCellHeight)};
+        for (auto y{begin}; y < end; ++y)
+          graph::drawBoxSegment(win, y, p.x, graph::BoxSegment::VLine);
+      }
+    }
+
+    void drawRect(WINDOW* win, const ScreenRect& rect) {
+      const ScreenPoint bottomRight{rect.topLeft + rect.size - ScreenVector{1, 1}};
+      const auto& [xLeft, yTop] = rect.topLeft;
+      const auto& [xRight, yBottom] = bottomRight;
+      if (yTop >= 0) {
+        if (xLeft >= 0)
+          graph::drawBoxSegment(win, yTop, xLeft, graph::BoxSegment::ULCorner);
+        if (xRight < dim::totalCellWidth)
+          graph::drawBoxSegment(win, yTop, xRight, graph::BoxSegment::URCorner);
+      }
+      if (yBottom < dim::totalCellHeight) {
+        if (xLeft >= 0)
+          graph::drawBoxSegment(win, yBottom, xLeft, graph::BoxSegment::LLCorner);
+        if (xRight < dim::totalCellWidth)
+          graph::drawBoxSegment(win, yBottom, xRight, graph::BoxSegment::LRCorner);
+      }
+      drawHLine(win, {xLeft + 1, yTop}, rect.size.x - 2);
+      drawHLine(win, {xLeft + 1, yBottom}, rect.size.x - 2);
+      drawVLine(win, {xLeft, yTop + 1}, rect.size.y - 2);
+      drawVLine(win, {xRight, yTop + 1}, rect.size.y - 2);
     }
   }
 }
@@ -68,6 +109,29 @@ void ui::grid(WINDOW* win) {
   }
 }
 
+void ui::render(
+    WINDOW* win, const rts::World& world, const Camera& camera, const rts::Selection& selection) {
+  const auto& topLeft = camera.topLeft();
+  const auto& bottomRight = camera.bottomRight();
+
+  auto selectedItems{selection.items(world)};
+  const std::set<rts::WorldObjectCPtr> selectedObjects{selectedItems.begin(), selectedItems.end()};
+
+  std::set<rts::WorldObjectCPtr> visibleObjects;
+  for (rts::Coordinate cellY = topLeft.y; cellY < bottomRight.y; ++cellY) {
+    for (rts::Coordinate cellX = topLeft.x; cellX < bottomRight.x; ++cellX) {
+      if (auto obj = world.objectPtrAt({cellX, cellY}))
+        visibleObjects.insert(obj);
+    }
+  }
+
+  for (rts::WorldObjectCPtr obj : visibleObjects) {
+    draw(win, camera, *obj);
+    if (selectedObjects.find(obj) != selectedObjects.end())
+      drawBoundingBox(win, camera, obj->area, graph::green());
+  }
+}
+
 void ui::highlight(WINDOW* win, const Camera& camera, rts::Point cell, int color) {
   if (!camera.area().contains(cell))
     return;
@@ -86,20 +150,9 @@ void ui::highlight(WINDOW* win, const Camera& camera, rts::Point cell, int color
     mvwvline(win, topLeft.y, topLeft.x + dim::cellWidth, 0, dim::cellHeight);
 }
 
-void ui::render(WINDOW* win, const rts::World& world, const Camera& camera) {
-  const auto& topLeft = camera.topLeft();
-  const auto& bottomRight = camera.bottomRight();
-
-  std::set<rts::WorldObjectCPtr> visibleObjects;
-  for (rts::Coordinate cellY = topLeft.y; cellY < bottomRight.y; ++cellY) {
-    for (rts::Coordinate cellX = topLeft.x; cellX < bottomRight.x; ++cellX) {
-      if (auto obj = world.objectPtrAt({cellX, cellY}))
-        visibleObjects.insert(obj);
-    }
-  }
-
-  for (rts::WorldObjectCPtr obj : visibleObjects)
-    draw(win, camera, *obj);
+void ui::drawBoundingBox(WINDOW* win, const Camera& camera, const rts::Rectangle& area, int color) {
+  wattrset(win, color);
+  drawRect(win, boundingBox(toScreenRect(camera, area)));
 }
 
 #ifdef MAP_DEBUG
@@ -110,7 +163,7 @@ void ui::mapDebug(WINDOW* win, const rts::World& world, const Camera& camera) {
   for (rts::Coordinate cellY = topLeft.y; cellY < bottomRight.y; ++cellY) {
     for (rts::Coordinate cellX = topLeft.x; cellX < bottomRight.x; ++cellX) {
       if (auto color{world.map.at(cellX, cellY).debug.color}; color)
-        highlight(win, camera, {cellX, cellY}, COLOR_PAIR(color));
+        highlight(win, camera, rts::Point{cellX, cellY}, COLOR_PAIR(color));
     }
   }
 }

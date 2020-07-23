@@ -20,6 +20,22 @@ namespace ui::graph {
   inline int white() { return COLOR_PAIR(ColorPair::White); }
   inline int darkGrey() { return COLOR_PAIR(ColorPair::DarkGrey); }
 
+  enum class BoxSegment : int {
+    None = 0b0000,
+    ULCorner = 0b0110,
+    LLCorner = 0b1100,
+    URCorner = 0b0011,
+    LRCorner = 0b1001,
+    LTee = 0b1110,
+    RTee = 0b1011,
+    BTee = 0b1101,
+    TTee = 0b0111,
+    HLine = 0b0101,
+    VLine = 0b1010,
+    Plus = 0b1111
+  };
+
   void init();
   void drawBorders(const std::vector<WINDOW*>& windows);
+  void drawBoxSegment(WINDOW* win, int y, int x, BoxSegment segment);
 }

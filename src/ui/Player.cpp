@@ -50,14 +50,24 @@ rts::WorldActionList ui::Player::processInput(const rts::World& world, const Inp
   else if (event.type == InputType::EdgeScroll && !scrollKeyCnt) {
     camera.setMoveDirection(scrollDirectionVector(event.scrollDirection));
   }
+  else if (event.type == InputType::MousePress && event.mouseButton == InputButton::Button1) {
+    auto& cell{world.map.at(event.mouseCell)};
+    if (event.state & ControlPressed) {
+      if (hasEntity(cell))
+        selection.add(world, {getEntityId(cell)});
+    }
+    else {
+      if (hasEntity(cell))
+        selection.set(world, {getEntityId(cell)});
+      else
+        selection.set(world, {});
+    }
+  }
   else if (event.type == InputType::MousePress && event.mouseButton == InputButton::Button3) {
     rts::WorldActionList actions;
-    for (auto wid : selection) {
-      if (auto entity = world.entities[wid]) {
-        if (auto a{entity->abilities.begin()}; a != entity->abilities.end()) {
-          rts::addActions(
-              actions, entity->trigger(entity->abilities.id(*a), world, event.mouseCell));
-        }
+    for (auto entity : selection.items(world)) {
+      if (auto a{entity->abilities.begin()}; a != entity->abilities.end()) {
+        rts::addActions(actions, entity->trigger(entity->abilities.id(*a), world, event.mouseCell));
       }
     }
     return actions;
