@@ -52,7 +52,7 @@ rts::WorldActionList ui::Player::processInput(const rts::World& world, const Inp
   }
   else if (event.type == InputType::MousePress && event.mouseButton == InputButton::Button1) {
     auto& cell{world.map.at(event.mouseCell)};
-    if (event.state & ControlPressed) {
+    if (event.state & (ShiftPressed | ControlPressed | AltPressed)) {
       if (hasEntity(cell))
         selection.add(world, {getEntityId(cell)});
     }

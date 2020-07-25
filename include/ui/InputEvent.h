@@ -23,7 +23,13 @@ namespace ui {
     F9,
     F10,
     F11,
-    F12
+    F12,
+    Shift_L,
+    Shift_R,
+    Control_L,
+    Control_R,
+    Alt_L,
+    Alt_R
   };
 
   using InputState = unsigned int;
@@ -31,7 +37,6 @@ namespace ui {
   constexpr InputState ControlPressed{0b0100};
   constexpr InputState AltPressed{0b1000};
 
-  using InputKeyCode = unsigned int;
   enum class InputButton { Unknown, Button1, Button2, Button3 };
 
   using ScrollDirection = unsigned int;
@@ -43,7 +48,6 @@ namespace ui {
   struct InputEvent {
     InputType type;
     InputState state;
-    InputKeyCode keycode;
     InputKeySym symbol;
     InputButton mouseButton;
     rts::Point mouseCell;

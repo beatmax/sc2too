@@ -11,5 +11,6 @@ namespace ui::X {
   bool pendingEvent();
   InputEvent nextEvent();
   std::optional<InputEvent> pointerEvent();
-  InputState inputState();
+
+  extern InputState inputState;
 }
