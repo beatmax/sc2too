@@ -6,8 +6,5 @@ namespace sc2 {
   class MapInitializer : public rts::MapInitializer {
   public:
     void operator()(rts::World& world, rts::Point p, char c) const final;
-
-  private:
-    mutable size_t nexusCnt_{};
   };
 }

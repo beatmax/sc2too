@@ -7,7 +7,6 @@
 #include "util/Pool.h"
 
 #include <memory>
-#include <vector>
 
 namespace rts {
 
@@ -15,26 +14,21 @@ namespace rts {
   public:
     constexpr static size_t MaxSides{8};
     constexpr static size_t MaxSideUnits{200};
-    constexpr static size_t MaxSideBuildings{1000};
-    constexpr static size_t MaxSideEntities{MaxSideUnits + MaxSideBuildings};
+    constexpr static size_t MaxSideStructures{1000};
+    constexpr static size_t MaxSideEntities{MaxSideUnits + MaxSideStructures};
     constexpr static size_t MaxEntities{MaxSideEntities * MaxSides};
     constexpr static size_t MaxBlockers{10000};
     constexpr static size_t MaxResourceFields{10000};
 
-    // note: do not create on stack
-    World(std::vector<Side> s, const MapInitializer& init, std::istream&& is);
+    // note: do not create a World on the stack
+    static std::unique_ptr<World> create() { return std::make_unique<World>(); }
 
-    template<typename... Args>
-    static std::unique_ptr<World> create(Args&&... args) {
-      return std::make_unique<World>(std::forward<Args>(args)...);
-    }
-
+    World() = default;
     World(const World&) = delete;
     World& operator=(const World&) = delete;
 
     GameTime time{};
-
-    std::vector<Side> sides;
+    util::Pool<Side, MaxSides> sides;
     util::Pool<Entity, MaxEntities> entities;
     util::Pool<Blocker, MaxBlockers> blockers;
     util::Pool<ResourceField, MaxResourceFields> resourceFields;
@@ -42,6 +36,11 @@ namespace rts {
 
     void update(const WorldActionList& actions);
     void update(const action::AbilityStepAction& action);
+
+    template<typename... Args>
+    SideId createSide(Args&&... args) {
+      return sides.emplace(std::forward<Args>(args)...);
+    }
 
     template<typename... Args>
     EntityId createEntity(Args&&... args) {

@@ -75,9 +75,9 @@ namespace ui {
       initWins(ios);
     }
 
-    void drawResourceQuantities(const IOState& ios, const Player& player) {
+    void drawResourceQuantities(const IOState& ios, const rts::World& world, const Player& player) {
       int x = dim::defaultWinWidth;
-      const rts::ResourceMap& resources{player.side->resources()};
+      const rts::ResourceMap& resources{world.sides[player.side].resources()};
       for (auto it = resources.rbegin(); it != resources.rend(); ++it) {
         x -= 10;
         mvwprintw(ios.headerWin, 0, x, "%c: %u", repr(*it->first), it->second);
@@ -133,7 +133,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& world, cons
       ios_.clickedButton ? graph::red() : graph::yellow());
   render(ios_.renderWin, world, player.camera, player.selection);
 
-  drawResourceQuantities(ios_, player);
+  drawResourceQuantities(ios_, world, player);
   drawGameTime(ios_, engine, world);
   drawGameSpeed(ios_, engine);
   drawFps(ios_, engine);

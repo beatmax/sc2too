@@ -4,8 +4,8 @@
 
 #include <cassert>
 
-ui::SideUi::SideUi(int sideId) {
-  switch (sideId) {
+ui::SideUi::SideUi(int n) {
+  switch (n) {
     case 0:
       color = graph::cyan();
       break;

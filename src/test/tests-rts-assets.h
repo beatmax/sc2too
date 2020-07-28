@@ -5,7 +5,6 @@
 #include "rts/Map.h"
 #include "rts/Resource.h"
 #include "rts/ResourceField.h"
-#include "rts/Side.h"
 #include "rts/types.h"
 
 #include <map>
@@ -14,10 +13,12 @@
 
 namespace test {
   constexpr rts::AbilityId MoveAbilityId{1};
+  constexpr rts::SideId Side1Id{1};
+  constexpr rts::SideId Side2Id{2};
 
   extern const std::string map;
 
-  std::vector<rts::Side> makeSides();
+  std::vector<rts::SideId> makeSides(rts::World& world);
 
   struct Ui : rts::Ui {
     static std::map<char, int> count;
@@ -33,8 +34,8 @@ namespace test {
   extern const rts::Resource gas;
 
   struct Factory {
-    static rts::EntityId simpleton(rts::World& w, rts::Point p, rts::SideCPtr sd);
-    static rts::EntityId building(rts::World& w, rts::Point p, rts::SideCPtr sd);
+    static rts::EntityId simpleton(rts::World& w, rts::Point p, rts::SideId sd);
+    static rts::EntityId building(rts::World& w, rts::Point p, rts::SideId sd);
     static rts::ResourceFieldId geyser(rts::World& w, rts::Point p);
     static rts::BlockerId rock(rts::World& w, rts::Point p);
   };

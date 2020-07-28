@@ -29,7 +29,7 @@ namespace rts {
   using ResourceCPtr = const Resource*;
   using ResourceFieldId = util::PoolObjectId<ResourceField>;
   using ResourceFieldWId = util::PoolObjectWeakId<ResourceField>;
-  using SideCPtr = const Side*;
+  using SideId = util::PoolObjectId<Side>;
   using WorldObjectCPtr = const WorldObject*;
 
   using Distance = uint32_t;   // = 1/100 cell width/height

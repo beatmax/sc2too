@@ -11,11 +11,11 @@
 #include <iostream>
 
 namespace {
-  std::vector<rts::Side> makeSides() {
-    std::vector<rts::Side> sides;
+  std::vector<rts::SideId> makeSides(rts::World& world) {
+    std::vector<rts::SideId> sides;
     const auto& resources = sc2::Resources::initialResources();
-    for (int sideId = 0; sideId <= 1; ++sideId)
-      sides.push_back(rts::Side{resources, std::make_unique<ui::SideUi>(sideId)});
+    for (int n = 0; n <= 1; ++n)
+      sides.push_back(world.createSide(resources, std::make_unique<ui::SideUi>(n)));
     return sides;
   }
 }
@@ -24,14 +24,15 @@ int main() try {
   ui::IO io;
 
   sc2::Assets::init();
-  auto worldPtr{rts::World::create(
-      makeSides(), sc2::Assets::mapInitializer(), std::ifstream{"data/maps/ascii_jungle.txt"})};
+  auto worldPtr{rts::World::create()};
   rts::World& world{*worldPtr};
 
-  ui::Player player{&world.sides[0], ui::Camera{{0, 0}, {world.map.maxX, world.map.maxY}}};
+  const auto sides{makeSides(world)};
+  world.map.load(world, sc2::Assets::mapInitializer(), std::ifstream{"data/maps/ascii_jungle.txt"});
+  ui::Player player{sides[0], ui::Camera{{0, 0}, {world.map.maxX(), world.map.maxY()}}};
 
   forEachPoint(rts::Rectangle{{20, 11}, {2, 3}}, [&](rts::Point p) {
-    player.selection.add(world, {sc2::Factory::probe(world, p, &world.sides[0])});
+    player.selection.add(world, {sc2::Factory::probe(world, p, sides[0])});
   });
 
   rts::Engine engine{world};

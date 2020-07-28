@@ -8,11 +8,6 @@
 #include <stdexcept>
 #include <utility>
 
-rts::World::World(std::vector<Side> s, const MapInitializer& init, std::istream&& is)
-  : sides{std::move(s)}, map{*this, init, std::move(is)} {
-  assert(sides.size() <= MaxSides);
-}
-
 void rts::World::update(const WorldActionList& actions) {
   for (const auto& action : actions)
     std::visit([this](const auto& a) { update(a); }, action);

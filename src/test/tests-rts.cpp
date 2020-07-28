@@ -13,13 +13,26 @@ using namespace Catch::Matchers;
 using namespace rts;
 
 TEST_CASE("Hello world!", "[rts]") {
-  auto worldPtr{
-      World::create(test::makeSides(), test::MapInitializer{}, std::istringstream{test::map})};
+  auto worldPtr{World::create()};
   World& world{*worldPtr};
   const World& cworld{world};
 
-  REQUIRE(cworld.map.maxX == 40);
-  REQUIRE(cworld.map.maxY == 10);
+  auto sides{test::makeSides(world)};
+  REQUIRE(sides.size() == 2);
+  REQUIRE(sides[0] == test::Side1Id);
+  REQUIRE(sides[1] == test::Side2Id);
+
+  const rts::Side& side1{cworld.sides[test::Side1Id]};
+  const rts::Side& side2{cworld.sides[test::Side2Id]};
+  REQUIRE(side1.quantity(&test::gas) == 0);
+  REQUIRE(test::repr(side1.ui()) == '1');
+  REQUIRE(side2.quantity(&test::gas) == 0);
+  REQUIRE(test::repr(side2.ui()) == '2');
+
+  world.map.load(world, test::MapInitializer{}, std::istringstream{test::map});
+
+  REQUIRE(cworld.map.maxX() == 40);
+  REQUIRE(cworld.map.maxY() == 10);
   REQUIRE(isFree(cworld.map.at(9, 1)));
   REQUIRE(hasBlocker(cworld.map.at(10, 1)));
   REQUIRE(hasBlocker(cworld.map.at(11, 1)));
@@ -47,17 +60,9 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(&cworld.resourceFieldAt(p) == &geyser);
   });
 
-  REQUIRE(cworld.sides.size() == 2);
-  REQUIRE(cworld.sides[0].quantity(&test::gas) == 0);
-  REQUIRE(test::repr(cworld.sides[0].ui()) == '0');
-  REQUIRE(cworld.sides[1].quantity(&test::gas) == 0);
-  REQUIRE(test::repr(cworld.sides[1].ui()) == '1');
-
-  const SideCPtr side0{&cworld.sides[0]};
-
   SECTION("An entity is added to the world") {
     Point pos{20, 5};
-    EntityId eid{test::Factory::simpleton(world, pos, side0)};
+    EntityId eid{test::Factory::simpleton(world, pos, test::Side1Id)};
     REQUIRE(hasEntity(cworld.map.at(pos)));
     Entity& e{world.entityAt(pos)};
     const Entity& ce{cworld.entityAt(pos)};
@@ -130,7 +135,7 @@ TEST_CASE("Hello world!", "[rts]") {
 
     REQUIRE(test::Ui::count['b'] == 1);
 
-    EntityId eid{test::Factory::building(world, area.topLeft, side0)};
+    EntityId eid{test::Factory::building(world, area.topLeft, test::Side1Id)};
     const Entity& ce{cworld.entityAt(area.topLeft)};
     REQUIRE(ce.area == area);
     REQUIRE(test::repr(ce.ui) == 'b');
@@ -275,7 +280,7 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("The engine runs and updates the world") {
-      auto eid{test::Factory::simpleton(world, Point{20, 5}, side0)};
+      auto eid{test::Factory::simpleton(world, Point{20, 5}, test::Side1Id)};
       auto& entity{world.entities[eid]};
 
       const GameTime frameTime{10};
@@ -315,7 +320,7 @@ TEST_CASE("Hello world!", "[rts]") {
   }
 
   SECTION("Try some moves!") {
-    EntityId eid{test::Factory::simpleton(world, Point{20, 5}, side0)};
+    EntityId eid{test::Factory::simpleton(world, Point{20, 5}, test::Side1Id)};
     auto& entity{world.entities[eid]};
 
     SECTION("Already there") {
@@ -368,7 +373,7 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("Path around an entity") {
-      test::Factory::building(world, {24, 4}, side0);
+      test::Factory::building(world, {24, 4}, test::Side1Id);
       REQUIRE(
           test::runMove(world, entity, Point{27, 5}) ==
           test::MoveStepList{
@@ -391,7 +396,7 @@ TEST_CASE("Hello world!", "[rts]") {
       ++world.time;
       WorldActionList actions{entity.step(cworld)};
       REQUIRE(!actions.empty());
-      test::Factory::building(world, {24, 4}, side0);
+      test::Factory::building(world, {24, 4}, test::Side1Id);
       world.update(actions);
       REQUIRE(entity.area.topLeft == rts::Point{23, 5});
       REQUIRE(
@@ -406,7 +411,7 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("Path around adjacent entity") {
-      test::Factory::simpleton(world, {21, 5}, side0);
+      test::Factory::simpleton(world, {21, 5}, test::Side1Id);
       REQUIRE(
           test::runMove(world, entity, Point{22, 5}) ==
           test::MoveStepList{{{20, 5}, 0}, {{21, 4}, 141}, {{22, 5}, 282}});
@@ -437,7 +442,7 @@ TEST_CASE("Hello world!", "[rts]") {
     SECTION("Blocked and unblocked") {
       forEachPoint(rts::Rectangle{{19, 4}, {3, 3}}, [&](Point p) {
         if (p != rts::Point{20, 5})
-          test::Factory::simpleton(world, p, side0);
+          test::Factory::simpleton(world, p, test::Side1Id);
       });
       REQUIRE(
           test::runMove(world, entity, Point{23, 5}, 350) ==
@@ -447,8 +452,8 @@ TEST_CASE("Hello world!", "[rts]") {
           test::continueMove(world, entity, 550) ==
           test::MoveStepList{{{20, 5}, 350}, {{21, 5}, 500}, {{21, 5}, 550}});
       for (Coordinate y : {4, 5, 6})
-        test::Factory::simpleton(world, {22, y}, side0);
-      test::Factory::simpleton(world, {20, 5}, side0);
+        test::Factory::simpleton(world, {22, y}, test::Side1Id);
+      test::Factory::simpleton(world, {20, 5}, test::Side1Id);
       REQUIRE(
           test::continueMove(world, entity, 750) ==
           test::MoveStepList{{{21, 5}, 550}, {{21, 5}, 750}});

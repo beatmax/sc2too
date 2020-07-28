@@ -58,7 +58,7 @@ namespace util {
       }
 
       AIt it_;
-      const AIt end_;
+      AIt end_;
     };
   }
 

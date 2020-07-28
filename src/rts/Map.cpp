@@ -30,18 +30,19 @@ namespace rts {
   }
 }
 
-rts::Map::Map(World& world, const MapInitializer& init, std::istream&& is)
-  : Map{world, init, expand(util::fs::readLines(is))} {
+void rts::Map::load(World& world, const MapInitializer& init, std::istream&& is) {
+  load(world, init, expand(util::fs::readLines(is)));
 }
 
-rts::Map::Map(World& world, const MapInitializer& init, const std::vector<std::string>& lines)
-  : maxX{lines.empty() ? 0 : Coordinate(lines.front().size())},
-    maxY{Coordinate(lines.size())},
-    cells_(maxY, maxX) {
-  for (Coordinate y = 0; y < maxY; ++y) {
+void rts::Map::load(
+    World& world, const MapInitializer& init, const std::vector<std::string>& lines) {
+  const Coordinate cols{lines.empty() ? 0 : Coordinate(lines.front().size())};
+  const Coordinate rows(lines.size());
+  cells_ = CellMatrix{rows, cols};
+  for (Coordinate y = 0; y < rows; ++y) {
     const auto& line = lines[y];
-    assert(Coordinate(line.size()) == maxX);
-    for (Coordinate x = 0; x < maxX; ++x) {
+    assert(Coordinate(line.size()) == cols);
+    for (Coordinate x = 0; x < cols; ++x) {
       Point p{x, y};
       if (isFree(at(p)))
         init(world, p, line[x]);

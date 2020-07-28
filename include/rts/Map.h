@@ -34,14 +34,15 @@ namespace rts {
 #endif
     };
 
-    explicit Map(World& world, const MapInitializer& init, std::istream&& is);
-    explicit Map(World& world, const MapInitializer& init, const std::vector<std::string>& lines);
+    void load(World& world, const MapInitializer& init, std::istream&& is);
+    void load(World& world, const MapInitializer& init, const std::vector<std::string>& lines);
 
+    Map() = default;
     Map(const Map&) = delete;
     Map& operator=(const Map&) = delete;
 
-    const Coordinate maxX;
-    const Coordinate maxY;
+    Coordinate maxX() const { return cells_.cols(); }
+    Coordinate maxY() const { return cells_.rows(); }
     size_t size() const { return cells_.size(); }
 
     Cell& at(Point p) { return at(p.x, p.y); }
@@ -60,7 +61,9 @@ namespace rts {
     }
 
   private:
-    util::Matrix<Cell, Coordinate> cells_;
+    using CellMatrix = util::Matrix<Cell, Coordinate>;
+
+    CellMatrix cells_;
   };
 
   inline bool isFree(const Map::Cell& c) { return std::holds_alternative<Map::Free>(c.content); }

@@ -10,7 +10,7 @@
 
 namespace ui {
   struct Player {
-    rts::SideCPtr side;
+    rts::SideId side;
     Camera camera;
     rts::Selection selection;
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "catch2/catch.hpp"
+#include "util/Pool.h"
 
 #include <chrono>
 #include <string>
@@ -33,5 +34,11 @@ namespace Catch {
       return "{" + StringMaker<T1>::convert(p.first) + ", " + StringMaker<T1>::convert(p.second) +
           "}";
     }
+  };
+
+  template<typename T>
+  struct StringMaker<util::PoolObjectId<T>> {
+    using Id = util::PoolObjectId<T>;
+    static std::string convert(const Id& id) { return std::to_string(id.idx); }
   };
 }

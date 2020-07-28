@@ -7,6 +7,9 @@
 
 namespace sc2::ui {
   struct Entity : ::ui::SpriteUi<rts::Entity> {
+    int sideColor;
+
+    explicit Entity(int sc) : sideColor{sc} {}
     int defaultColor(const rts::Entity&) const final;
   };
 
@@ -19,10 +22,12 @@ namespace sc2::ui {
   };
 
   struct Nexus : Entity {
+    using Entity::Entity;
     const ::ui::Sprite& sprite(const rts::Entity&) const final;
   };
 
   struct Probe : Entity {
+    using Entity::Entity;
     const ::ui::Sprite& sprite(const rts::Entity&) const final;
   };
 

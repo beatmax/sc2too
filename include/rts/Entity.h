@@ -14,12 +14,11 @@ namespace rts {
     constexpr static size_t MaxAbilities{15};
     using AbilityPool = util::Pool<Ability, MaxAbilities>;
 
-    SideCPtr side;
+    SideId side;
     mutable AbilityPool abilities;
     mutable GameTime nextStepTime{GameTimeInf};
 
-    Entity(Point p, Vector s, SideCPtr sd, UiUPtr ui)
-      : WorldObject{p, s, std::move(ui)}, side{sd} {}
+    Entity(Point p, Vector s, SideId sd, UiUPtr ui) : WorldObject{p, s, std::move(ui)}, side{sd} {}
 
     AbilityId addAbility(Ability&& a) { return abilities.emplace(std::move(a)); }
 

@@ -40,7 +40,7 @@ namespace rts {
       size_t size() const { return map.size(); }
 
       bool inBounds(Point p) const {
-        return p.x >= 0 && p.x < map.maxX && p.y >= 0 && p.y < map.maxY;
+        return p.x >= 0 && p.x < map.maxX() && p.y >= 0 && p.y < map.maxY();
       }
 
       int neighbors(Point p, std::pair<Point, float> result[]) const;
@@ -91,7 +91,7 @@ std::pair<rts::Path, bool> rts::findPath(const World& world, Point start, Point 
 
 #ifdef MAP_DEBUG
   auto& m{const_cast<Map&>(world.map)};
-  forEachPoint(Rectangle{{0, 0}, {m.maxX, m.maxY}}, [&](Point p) {
+  forEachPoint(Rectangle{{0, 0}, {m.maxX(), m.maxY()}}, [&](Point p) {
     m.at(p).debug.color = state.count(p) ? 4 : 0;
   });
 #endif
