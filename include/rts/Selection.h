@@ -1,6 +1,7 @@
 #pragma once
 
 #include "World.h"
+#include "constants.h"
 #include "util/WeakList.h"
 
 #include <utility>
@@ -22,6 +23,6 @@ namespace rts {
       bool operator()(const Entity& e1, const Entity& e2) const { return &e1 < &e2; }
     };
 
-    util::WeakList<Entity, World::MaxSideEntities, Compare> list_;
+    util::WeakList<Entity, MaxSideEntities, Compare> list_;
   };
 }

@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+#include <limits>
+
 namespace rts {
   constexpr Distance CellDistance{100};
   constexpr Distance DiagonalDistance{141};

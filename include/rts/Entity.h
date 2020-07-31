@@ -1,30 +1,28 @@
 #pragma once
 
-#include "Ability.h"
+#include "AbilityState.h"
 #include "WorldObject.h"
+#include "constants.h"
 #include "dimensions.h"
 #include "types.h"
 #include "util/Pool.h"
 
+#include <array>
 #include <utility>
 
 namespace rts {
   class Entity : public WorldObject {
   public:
-    constexpr static size_t MaxAbilities{15};
-    using AbilityPool = util::Pool<Ability, MaxAbilities>;
-
+    EntityTypeId type;
     SideId side;
-    mutable AbilityPool abilities;
+    mutable std::array<AbilityState, MaxEntityAbilities> abilityStates;
     mutable GameTime nextStepTime{GameTimeInf};
 
-    Entity(Point p, Vector s, SideId sd, UiUPtr ui) : WorldObject{p, s, std::move(ui)}, side{sd} {}
+    Entity(Point p, Vector s, EntityTypeId t, SideId sd, UiUPtr ui);
 
-    AbilityId addAbility(Ability&& a) { return abilities.emplace(std::move(a)); }
-
-    WorldActionList trigger(AbilityId a, const World& world, Point target) const;
+    WorldActionList trigger(AbilityId ability, const World& world, Point target) const;
     WorldActionList step(const World& world) const;
-    void stepAction(World& world, AbilityId a);
+    void stepAction(World& world, EntityAbilityIndex abilityIndex);
     void cancelAll() const;
   };
 }

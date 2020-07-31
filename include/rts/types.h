@@ -13,6 +13,7 @@ namespace rts {
   class Blocker;
   class Engine;
   class Entity;
+  class EntityType;
   class Map;
   class Resource;
   class ResourceField;
@@ -20,12 +21,25 @@ namespace rts {
   class World;
   class WorldObject;
 
+  template<typename Tag>
+  class NamedIndex {
+  public:
+    explicit constexpr NamedIndex(size_t i) : i_{i} {}
+    static constexpr NamedIndex None{std::numeric_limits<size_t>::max()};
+    operator size_t() const { return i_; }
+
+  private:
+    size_t i_;
+  };
+
   using AbilityId = util::PoolObjectId<Ability>;
   using BlockerId = util::PoolObjectId<Blocker>;
   using BlockerWId = util::PoolObjectWeakId<Blocker>;
   using EntityId = util::PoolObjectId<Entity>;
   using EntityWId = util::PoolObjectWeakId<Entity>;
   using EntityCPtr = const Entity*;
+  using EntityTypeId = util::PoolObjectId<EntityType>;
+  using EntityAbilityIndex = NamedIndex<struct EntityAbilityIndexTag>;
   using ResourceCPtr = const Resource*;
   using ResourceFieldId = util::PoolObjectId<ResourceField>;
   using ResourceFieldWId = util::PoolObjectWeakId<ResourceField>;

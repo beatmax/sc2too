@@ -1,35 +1,28 @@
 #pragma once
 
-#include "AbilityState.h"
-#include "dimensions.h"
 #include "types.h"
 
 #include <functional>
 #include <memory>
-#include <string>
 #include <utility>
 
 namespace rts {
+  class ActiveAbilityState;
+  using ActiveAbilityStateUPtr = std::unique_ptr<ActiveAbilityState>;
+
   class Ability {
   public:
-    using CreateState = std::function<AbilityStateUPtr(Point)>;
-
-    Ability(std::string name, CreateState cs)
-      : name_{std::move(name)}, createState_{std::move(cs)} {}
-
-    const std::string& name() const { return name_; }
-    bool active() const { return bool(state_); }
-    GameTime nextStepTime() const { return nextStepTime_; }
-
-    void trigger(Point target) { state_ = createState_(target); }
-    void step(const World& world, const Entity& entity, WorldActionList& actions);
-    void stepAction(World& world, Entity& entity);
-    void cancel();
+    explicit Ability(UiUPtr ui) : ui_{std::move(ui)} {}
+    const Ui& ui() const { return *ui_; }
 
   private:
-    const std::string name_;
-    GameTime nextStepTime_{GameTimeInf};
-    const CreateState createState_;
-    AbilityStateUPtr state_;
+    UiUPtr ui_;
+  };
+
+  struct AbilityInstance {
+    using CreateActiveState = std::function<ActiveAbilityStateUPtr(Point)>;
+
+    AbilityId abilityId;
+    CreateActiveState createActiveState;
   };
 }

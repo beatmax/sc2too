@@ -15,7 +15,7 @@ void rts::World::update(const WorldActionList& actions) {
 
 void rts::World::update(const action::AbilityStepAction& action) {
   if (auto entity = entities[action.entityWId]) {
-    entity->stepAction(*this, action.abilityId);
+    entity->stepAction(*this, action.abilityIndex);
   }
 }
 

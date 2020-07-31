@@ -12,7 +12,7 @@ namespace rts {
   namespace action {
     struct AbilityStepAction {
       EntityWId entityWId;
-      AbilityId abilityId;
+      EntityAbilityIndex abilityIndex;
     };
   }
 

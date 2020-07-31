@@ -1,8 +1,10 @@
 #pragma once
 
+#include "EntityType.h"
 #include "Map.h"
 #include "Side.h"
 #include "WorldAction.h"
+#include "constants.h"
 #include "types.h"
 #include "util/Pool.h"
 
@@ -12,14 +14,6 @@ namespace rts {
 
   class World {
   public:
-    constexpr static size_t MaxSides{8};
-    constexpr static size_t MaxSideUnits{200};
-    constexpr static size_t MaxSideStructures{1000};
-    constexpr static size_t MaxSideEntities{MaxSideUnits + MaxSideStructures};
-    constexpr static size_t MaxEntities{MaxSideEntities * MaxSides};
-    constexpr static size_t MaxBlockers{10000};
-    constexpr static size_t MaxResourceFields{10000};
-
     // note: do not create a World on the stack
     static std::unique_ptr<World> create() { return std::make_unique<World>(); }
 
@@ -30,6 +24,8 @@ namespace rts {
     GameTime time{};
     util::Pool<Side, MaxSides> sides;
     util::Pool<Entity, MaxEntities> entities;
+    util::Pool<EntityType, MaxEntityTypes> entityTypes;
+    util::Pool<Ability, MaxAbilities> abilities;
     util::Pool<Blocker, MaxBlockers> blockers;
     util::Pool<ResourceField, MaxResourceFields> resourceFields;
     Map map;

@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Ability.h"
+#include "types.h"
 
 namespace rts::abilities {
 
-  Ability move(Speed speed);
+  AbilityInstance move(AbilityId ability, Speed speed);
 
 }

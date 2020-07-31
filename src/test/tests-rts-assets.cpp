@@ -2,8 +2,6 @@
 
 #include "rts/Side.h"
 #include "rts/World.h"
-#include "rts/abilities.h"
-#include "rts/dimensions.h"
 
 #include <utility>
 
@@ -34,14 +32,11 @@ std::map<char, int> test::Ui::count;
 const rts::Resource test::gas{std::make_unique<Ui>('g')};
 
 rts::EntityId test::Factory::simpleton(rts::World& w, rts::Point p, rts::SideId sd) {
-  auto id{w.createEntity(p, rts::Vector{1, 1}, sd, std::make_unique<Ui>('s'))};
-  auto& e{w.entities[id]};
-  e.addAbility(rts::abilities::move(rts::CellDistance / rts::GameTimeSecond));
-  return id;
+  return w.createEntity(p, rts::Vector{1, 1}, SimpletonTypeId, sd, std::make_unique<Ui>('s'));
 }
 
 rts::EntityId test::Factory::building(rts::World& w, rts::Point p, rts::SideId sd) {
-  return w.createEntity(p, rts::Vector{2, 3}, sd, std::make_unique<Ui>('b'));
+  return w.createEntity(p, rts::Vector{2, 3}, BuildingTypeId, sd, std::make_unique<Ui>('b'));
 }
 
 rts::ResourceFieldId test::Factory::geyser(rts::World& w, rts::Point p) {

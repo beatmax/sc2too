@@ -2,6 +2,8 @@
 #include "rts/Engine.h"
 #include "rts/Path.h"
 #include "rts/World.h"
+#include "rts/abilities.h"
+#include "rts/dimensions.h"
 #include "tests-rts-assets.h"
 #include "tests-rts-util.h"
 #include "tests-util.h"
@@ -17,13 +19,21 @@ TEST_CASE("Hello world!", "[rts]") {
   World& world{*worldPtr};
   const World& cworld{world};
 
+  REQUIRE(world.abilities.emplace(std::make_unique<test::Ui>('m')) == test::MoveAbilityId);
+  REQUIRE(test::repr(world.abilities[test::MoveAbilityId].ui()) == 'm');
+
+  REQUIRE(world.entityTypes.emplace(std::make_unique<test::Ui>('S')) == test::SimpletonTypeId);
+  REQUIRE(world.entityTypes.emplace(std::make_unique<test::Ui>('B')) == test::BuildingTypeId);
+  world.entityTypes[test::SimpletonTypeId].abilities[0] =
+      abilities::move(test::MoveAbilityId, CellDistance / GameTimeSecond);
+
   auto sides{test::makeSides(world)};
   REQUIRE(sides.size() == 2);
   REQUIRE(sides[0] == test::Side1Id);
   REQUIRE(sides[1] == test::Side2Id);
 
-  const rts::Side& side1{cworld.sides[test::Side1Id]};
-  const rts::Side& side2{cworld.sides[test::Side2Id]};
+  const Side& side1{cworld.sides[test::Side1Id]};
+  const Side& side2{cworld.sides[test::Side2Id]};
   REQUIRE(side1.quantity(&test::gas) == 0);
   REQUIRE(test::repr(side1.ui()) == '1');
   REQUIRE(side2.quantity(&test::gas) == 0);
@@ -78,8 +88,9 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("The 'move' ability is triggered") {
-      Ability& moveAbility = e.abilities[test::MoveAbilityId];
-      REQUIRE(moveAbility.name() == "move");
+      auto ai{world.entityTypes[e.type].abilityIndex(test::MoveAbilityId)};
+      REQUIRE(ai != EntityAbilityIndex::None);
+      AbilityState& moveAbilityState{e.abilityStates[ai]};
 
       const Point targetPos{20, 3};
       world.update(ce.trigger(test::MoveAbilityId, cworld, targetPos));
@@ -103,15 +114,15 @@ TEST_CASE("Hello world!", "[rts]") {
           REQUIRE(isFree(cworld.map.at(prevPos)));
           REQUIRE(hasEntity(cworld.map.at(pos)));
           if (pos != targetPos) {
-            REQUIRE(moveAbility.active());
-            REQUIRE(moveAbility.nextStepTime() == world.time + GameTimeSecond);
+            REQUIRE(moveAbilityState.active());
+            REQUIRE(moveAbilityState.nextStepTime() == world.time + GameTimeSecond);
           }
           else {
             // the last step deactivates the ability
-            REQUIRE(!moveAbility.active());
-            REQUIRE(moveAbility.nextStepTime() == rts::GameTimeInf);
+            REQUIRE(!moveAbilityState.active());
+            REQUIRE(moveAbilityState.nextStepTime() == GameTimeInf);
           }
-          REQUIRE(ce.nextStepTime == moveAbility.nextStepTime());
+          REQUIRE(ce.nextStepTime == moveAbilityState.nextStepTime());
         }
       }
 
@@ -294,7 +305,7 @@ TEST_CASE("Hello world!", "[rts]") {
       test::FakeController controller;
       int inputCalls{0}, outputCalls{0};
 
-      auto processInput = [&](const rts::World& w) -> WorldActionList {
+      auto processInput = [&](const World& w) -> WorldActionList {
         ++inputCalls;
         if (inputCalls == 1)
           return entity.trigger(test::MoveAbilityId, w, targetPos);
@@ -307,7 +318,7 @@ TEST_CASE("Hello world!", "[rts]") {
         return {};
       };
 
-      auto updateOutput = [&](const rts::World&) { ++outputCalls; };
+      auto updateOutput = [&](const World&) { ++outputCalls; };
 
       engine.run(controller, processInput, updateOutput);
 
@@ -398,7 +409,7 @@ TEST_CASE("Hello world!", "[rts]") {
       REQUIRE(!actions.empty());
       test::Factory::building(world, {24, 4}, test::Side1Id);
       world.update(actions);
-      REQUIRE(entity.area.topLeft == rts::Point{23, 5});
+      REQUIRE(entity.area.topLeft == Point{23, 5});
       REQUIRE(
           test::continueMove(world, entity) ==
           test::MoveStepList{
@@ -440,8 +451,8 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("Blocked and unblocked") {
-      forEachPoint(rts::Rectangle{{19, 4}, {3, 3}}, [&](Point p) {
-        if (p != rts::Point{20, 5})
+      forEachPoint(Rectangle{{19, 4}, {3, 3}}, [&](Point p) {
+        if (p != Point{20, 5})
           test::Factory::simpleton(world, p, test::Side1Id);
       });
       REQUIRE(

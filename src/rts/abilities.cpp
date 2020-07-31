@@ -1,5 +1,6 @@
 #include "rts/abilities.h"
 
+#include "rts/AbilityState.h"
 #include "rts/Entity.h"
 #include "rts/Path.h"
 #include "rts/World.h"
@@ -16,26 +17,24 @@ namespace rts {
     void addStepAction(
         const World& world,
         const Entity& entity,
-        const Ability& ability,
+        EntityAbilityIndex abilityIndex,
         WorldActionList& actions) {
-      addAction(
-          actions,
-          action::AbilityStepAction{world.entities.weakId(entity), entity.abilities.id(ability)});
+      addAction(actions, action::AbilityStepAction{world.entities.weakId(entity), abilityIndex});
     }
   }
 }
 
 namespace rts::abilities::state {
 
-  class Move : public AbilityStateTpl<Move> {
+  class Move : public ActiveAbilityStateTpl<Move> {
   public:
     explicit Move(Point target, Speed speed) : target_{target}, speed_{speed} {}
     GameTime step(
         const World& world,
         const Entity& entity,
-        const Ability& ability,
+        EntityAbilityIndex abilityIndex,
         WorldActionList& actions) final;
-    GameTime stepAction(World& world, Entity& entity, Ability& ability) final;
+    GameTime stepAction(World& world, Entity& entity) final;
 
   private:
     const Point target_;
@@ -46,11 +45,14 @@ namespace rts::abilities::state {
 }
 
 rts::GameTime rts::abilities::state::Move::step(
-    const World& world, const Entity& entity, const Ability& ability, WorldActionList& actions) {
+    const World& world,
+    const Entity& entity,
+    EntityAbilityIndex abilityIndex,
+    WorldActionList& actions) {
   const Point& pos{entity.area.topLeft};
 
   if (!path_.empty() && isFree(world.map.at(path_.front()))) {
-    addStepAction(world, entity, ability, actions);
+    addStepAction(world, entity, abilityIndex, actions);
     return GameTimeInf;
   }
 
@@ -64,8 +66,7 @@ rts::GameTime rts::abilities::state::Move::step(
                                       : (path_.empty() && !completePath_) ? MoveRetryTime : 1;
 }
 
-rts::GameTime rts::abilities::state::Move::stepAction(
-    World& world, Entity& entity, Ability& ability) {
+rts::GameTime rts::abilities::state::Move::stepAction(World& world, Entity& entity) {
   assert(!path_.empty());
   Point newPos{path_.front()};
   if (isFree(world.map.at(newPos))) {
@@ -81,6 +82,6 @@ rts::GameTime rts::abilities::state::Move::stepAction(
   }
 }
 
-rts::Ability rts::abilities::move(Speed speed) {
-  return Ability{"move", state::Move::creator(speed)};
+rts::AbilityInstance rts::abilities::move(AbilityId ability, Speed speed) {
+  return AbilityInstance{ability, state::Move::creator(speed)};
 }

@@ -66,8 +66,9 @@ rts::WorldActionList ui::Player::processInput(const rts::World& world, const Inp
   else if (event.type == InputType::MousePress && event.mouseButton == InputButton::Button3) {
     rts::WorldActionList actions;
     for (auto entity : selection.items(world)) {
-      if (auto a{entity->abilities.begin()}; a != entity->abilities.end()) {
-        rts::addActions(actions, entity->trigger(entity->abilities.id(*a), world, event.mouseCell));
+      const auto& entityType{world.entityTypes[entity->type]};
+      if (auto a{entityType.defaultAbilityOnGround}) {
+        rts::addActions(actions, entity->trigger(a, world, event.mouseCell));
       }
     }
     return actions;

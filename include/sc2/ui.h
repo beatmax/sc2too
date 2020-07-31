@@ -21,6 +21,10 @@ namespace sc2::ui {
     const ::ui::Sprite& sprite(const rts::ResourceField&) const final;
   };
 
+  struct NexusType : rts::Ui {};
+
+  struct ProbeType : rts::Ui {};
+
   struct Nexus : Entity {
     using Entity::Entity;
     const ::ui::Sprite& sprite(const rts::Entity&) const final;
@@ -34,4 +38,6 @@ namespace sc2::ui {
   struct Rock : ::ui::SpriteUi<rts::Blocker> {
     const ::ui::Sprite& sprite(const rts::Blocker&) const final;
   };
+
+  struct MoveAbility : rts::Ui {};
 }

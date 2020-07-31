@@ -13,6 +13,8 @@
 
 namespace test {
   constexpr rts::AbilityId MoveAbilityId{1};
+  constexpr rts::EntityTypeId SimpletonTypeId{1};
+  constexpr rts::EntityTypeId BuildingTypeId{2};
   constexpr rts::SideId Side1Id{1};
   constexpr rts::SideId Side2Id{2};
 
