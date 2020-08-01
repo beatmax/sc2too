@@ -31,7 +31,6 @@ namespace rts {
     Map map;
 
     void update(const WorldActionList& actions);
-    void update(const action::AbilityStepAction& action);
 
     template<typename... Args>
     SideId createSide(Args&&... args) {
@@ -82,7 +81,12 @@ namespace rts {
     ResourceField& resourceFieldAt(Point p);
     const ResourceField& resourceFieldAt(Point p) const;
 
+    RelativeContent relativeContent(SideId side, Point p) const;
+
   private:
+    void update(const action::CommandAction& action);
+    void update(const action::AbilityStepAction& action);
+
     template<typename P, typename... Args>
     auto create(P& pool, Args&&... args) {
       auto id{pool.emplace(std::forward<Args>(args)...)};

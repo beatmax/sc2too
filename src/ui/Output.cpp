@@ -113,6 +113,9 @@ void ui::Output::init() {
 }
 
 void ui::Output::update(const rts::Engine& engine, const rts::World& world, const Player& player) {
+  const auto& camera{player.camera};
+  const auto& side{world.sides[player.side]};
+
   if (termResized) {
     termResized = false;
     onTermResized(ios_);
@@ -125,13 +128,13 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& world, cons
   grid(ios_.renderWin);
 
 #ifdef MAP_DEBUG
-  mapDebug(ios_.renderWin, world, player.camera);
+  mapDebug(ios_.renderWin, world, camera);
 #endif
 
   highlight(
-      ios_.renderWin, player.camera, ios_.clickedCell,
+      ios_.renderWin, camera, ios_.clickedCell,
       ios_.clickedButton ? graph::red() : graph::yellow());
-  render(ios_.renderWin, world, player.camera, player.selection);
+  render(ios_.renderWin, world, camera, side.selection());
 
   drawResourceQuantities(ios_, world, player);
   drawGameTime(ios_, engine, world);
@@ -154,12 +157,11 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& world, cons
     mvwprintw(ios_.headerWin, 0, 40, "=== GAME PAUSED ===");
   }
   else {
-    const auto& c{player.camera};
     mvwprintw(ios_.headerWin, 0, 0, "F10:menu");
     mvwprintw(
-        ios_.headerWin, 0, 32, "(%d, %d) - (%d, %d) : (%d, %d) : %d", c.topLeft().x, c.topLeft().y,
-        c.bottomRight().x, c.bottomRight().y, ios_.clickedCell.x, ios_.clickedCell.y,
-        ios_.clickedButton);
+        ios_.headerWin, 0, 32, "(%d, %d) - (%d, %d) : (%d, %d) : %d", camera.topLeft().x,
+        camera.topLeft().y, camera.bottomRight().x, camera.bottomRight().y, ios_.clickedCell.x,
+        ios_.clickedCell.y, ios_.clickedButton);
   }
 
   for (auto* win : allWins)

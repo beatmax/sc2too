@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <limits>
 #include <memory>
+#include <vector>
 
 namespace rts {
 
@@ -38,6 +39,8 @@ namespace rts {
   using EntityId = util::PoolObjectId<Entity>;
   using EntityWId = util::PoolObjectWeakId<Entity>;
   using EntityCPtr = const Entity*;
+  using EntityIdList = std::vector<EntityId>;
+  using EntityCPtrList = std::vector<EntityCPtr>;
   using EntityTypeId = util::PoolObjectId<EntityType>;
   using EntityAbilityIndex = NamedIndex<struct EntityAbilityIndexTag>;
   using ResourceCPtr = const Resource*;
@@ -57,6 +60,8 @@ namespace rts {
   using util::geo::Point;
   using util::geo::Rectangle;
   using util::geo::Vector;
+
+  enum class RelativeContent : size_t { Friend, Foe, Ground, Resource, Count };
 
   class Ui {
   public:

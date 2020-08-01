@@ -57,12 +57,12 @@ rts::WorldActionList ui::Input::process(
       }
     }
     else {
-      rts::addActions(actions, player.processInput(world, event));
+      rts::addCommand(actions, player.side, player.processInput(world, event));
     }
   }
 
   if (auto pointerEvent{X::pointerEvent()})
-    rts::addActions(actions, player.processInput(world, *pointerEvent));
+    rts::addCommand(actions, player.side, player.processInput(world, *pointerEvent));
 
   int c;
   while ((c = getch()) != ERR) {
@@ -70,7 +70,7 @@ rts::WorldActionList ui::Input::process(
       InputEvent event{nextMouseEvent(player.camera)};
       if (event.type != InputType::Unknown) {
         if (!processMouseInput(event))
-          rts::addActions(actions, player.processInput(world, event));
+          rts::addCommand(actions, player.side, player.processInput(world, event));
       }
     }
   }

@@ -1,6 +1,7 @@
 #include "ui/Player.h"
 
 #include "rts/Entity.h"
+#include "rts/Side.h"
 #include "rts/World.h"
 
 namespace ui {
@@ -42,7 +43,10 @@ namespace ui {
   }
 }
 
-rts::WorldActionList ui::Player::processInput(const rts::World& world, const InputEvent& event) {
+std::optional<rts::Command> ui::Player::processInput(
+    const rts::World& world, const InputEvent& event) {
+  using SelectionCmd = rts::command::Selection;
+
   if (event.type == InputType::KeyPress || event.type == InputType::KeyRelease) {
     if (auto scrollDirection{keyScrollDirection(event.symbol)})
       processKeyScrollEvent(event.type, scrollDirection, camera);
@@ -54,25 +58,18 @@ rts::WorldActionList ui::Player::processInput(const rts::World& world, const Inp
     auto& cell{world.map.at(event.mouseCell)};
     if (event.state & (ShiftPressed | ControlPressed | AltPressed)) {
       if (hasEntity(cell))
-        selection.add(world, {getEntityId(cell)});
+        return SelectionCmd{SelectionCmd::Add, {getEntityId(cell)}};
     }
     else {
       if (hasEntity(cell))
-        selection.set(world, {getEntityId(cell)});
+        return SelectionCmd{SelectionCmd::Set, {getEntityId(cell)}};
       else
-        selection.set(world, {});
+        return SelectionCmd{SelectionCmd::Set, {}};
     }
   }
   else if (event.type == InputType::MousePress && event.mouseButton == InputButton::Button3) {
-    rts::WorldActionList actions;
-    for (auto entity : selection.items(world)) {
-      const auto& entityType{world.entityTypes[entity->type]};
-      if (auto a{entityType.defaultAbilityOnGround}) {
-        rts::addActions(actions, entity->trigger(a, world, event.mouseCell));
-      }
-    }
-    return actions;
+    return rts::command::TriggerDefaultAbility{event.mouseCell};
   }
 
-  return {};
+  return std::nullopt;
 }

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "World.h"
 #include "constants.h"
+#include "types.h"
 #include "util/WeakList.h"
 
 #include <utility>
@@ -10,13 +10,11 @@
 namespace rts {
   class Selection {
   public:
-    using IdList = std::vector<EntityId>;
-    using CPtrList = std::vector<EntityCPtr>;
-
-    void set(const World& world, IdList ids) { list_.set(world.entities, std::move(ids)); }
-    void add(const World& world, IdList ids) { list_.add(world.entities, std::move(ids)); }
-    void remove(const IdList& ids) { list_.remove(ids); }
-    CPtrList items(const World& world) const { return list_.items(world.entities); }
+    void set(const World& world, EntityIdList ids);
+    void add(const World& world, EntityIdList ids);
+    void remove(const EntityIdList& ids);
+    EntityCPtrList items(const World& world) const;
+    EntityTypeId subselectionType(const World& world) const;
 
   private:
     struct Compare {

@@ -12,9 +12,7 @@ namespace rts {
   class EntityType {
   public:
     std::array<AbilityInstance, MaxEntityAbilities> abilities{};
-    AbilityId defaultAbilityOnFriend{};
-    AbilityId defaultAbilityOnFoe{};
-    AbilityId defaultAbilityOnGround{};
+    std::array<AbilityId, size_t(RelativeContent::Count)> defaultAbility{};
     UiUPtr ui;
 
     explicit EntityType(UiUPtr ui) : ui{std::move(ui)} {}

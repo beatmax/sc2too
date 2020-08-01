@@ -13,12 +13,6 @@ void rts::World::update(const WorldActionList& actions) {
     std::visit([this](const auto& a) { update(a); }, action);
 }
 
-void rts::World::update(const action::AbilityStepAction& action) {
-  if (auto entity = entities[action.entityWId]) {
-    entity->stepAction(*this, action.abilityIndex);
-  }
-}
-
 void rts::World::move(Entity& e, Point p) {
   assert(e.area.size == Vector({1, 1}));  // no need to move big entities so far
   assert(isFree(map.at(p)));
@@ -83,4 +77,23 @@ rts::ResourceField& rts::World::resourceFieldAt(Point p) {
 
 const rts::ResourceField& rts::World::resourceFieldAt(Point p) const {
   return const_cast<World&>(*this).resourceFieldAt(p);
+}
+
+rts::RelativeContent rts::World::relativeContent(SideId side, Point p) const {
+  auto& cell{map.at(p)};
+  if (hasEntity(cell))
+    return (entityAt(p).side == side) ? RelativeContent::Friend : RelativeContent::Foe;
+  else if (hasResourceField(cell))
+    return RelativeContent::Resource;
+  return RelativeContent::Ground;
+}
+
+void rts::World::update(const action::CommandAction& action) {
+  sides[action.sideId].exec(*this, action.command);
+}
+
+void rts::World::update(const action::AbilityStepAction& action) {
+  if (auto entity = entities[action.entityWId]) {
+    entity->stepAction(*this, action.abilityIndex);
+  }
 }

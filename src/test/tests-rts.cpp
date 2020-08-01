@@ -334,6 +334,8 @@ TEST_CASE("Hello world!", "[rts]") {
     EntityId eid{test::Factory::simpleton(world, Point{20, 5}, test::Side1Id)};
     auto& entity{world.entities[eid]};
 
+    test::select(world, test::Side1Id, {eid});
+
     SECTION("Already there") {
       REQUIRE(
           test::runMove(world, entity, Point{20, 5}) ==
@@ -367,36 +369,34 @@ TEST_CASE("Hello world!", "[rts]") {
     SECTION("Path around the rocks") {
       REQUIRE(
           test::runMove(world, entity, Point{17, 7}) ==
-          test::MoveStepList{
-              {{20, 5}, 0},
-              {{19, 5}, 100},
-              {{18, 5}, 200},
-              {{17, 5}, 300},
-              {{16, 5}, 400},
-              {{15, 5}, 500},
-              {{14, 5}, 600},
-              {{13, 6}, 741},
-              {{13, 7}, 841},
-              {{14, 8}, 982},
-              {{15, 7}, 1123},
-              {{16, 7}, 1223},
-              {{17, 7}, 1323}});
+          test::MoveStepList{{{20, 5}, 0},
+                             {{19, 5}, 100},
+                             {{18, 5}, 200},
+                             {{17, 5}, 300},
+                             {{16, 5}, 400},
+                             {{15, 5}, 500},
+                             {{14, 5}, 600},
+                             {{13, 6}, 741},
+                             {{13, 7}, 841},
+                             {{14, 8}, 982},
+                             {{15, 7}, 1123},
+                             {{16, 7}, 1223},
+                             {{17, 7}, 1323}});
     }
 
     SECTION("Path around an entity") {
       test::Factory::building(world, {24, 4}, test::Side1Id);
       REQUIRE(
           test::runMove(world, entity, Point{27, 5}) ==
-          test::MoveStepList{
-              {{20, 5}, 0},
-              {{21, 5}, 100},
-              {{22, 5}, 200},
-              {{23, 5}, 300},
-              {{23, 4}, 401},  // collision
-              {{24, 3}, 542},
-              {{25, 3}, 642},
-              {{26, 4}, 783},
-              {{27, 5}, 924}});
+          test::MoveStepList{{{20, 5}, 0},
+                             {{21, 5}, 100},
+                             {{22, 5}, 200},
+                             {{23, 5}, 300},
+                             {{23, 4}, 401},  // collision
+                             {{24, 3}, 542},
+                             {{25, 3}, 642},
+                             {{26, 4}, 783},
+                             {{27, 5}, 924}});
     }
 
     SECTION("Path around an entity that appears after step calculation") {
@@ -412,13 +412,12 @@ TEST_CASE("Hello world!", "[rts]") {
       REQUIRE(entity.area.topLeft == Point{23, 5});
       REQUIRE(
           test::continueMove(world, entity) ==
-          test::MoveStepList{
-              {{23, 5}, 400},
-              {{23, 4}, 402},  // collision
-              {{24, 3}, 543},
-              {{25, 3}, 643},
-              {{26, 4}, 784},
-              {{27, 5}, 925}});
+          test::MoveStepList{{{23, 5}, 400},
+                             {{23, 4}, 402},  // collision
+                             {{24, 3}, 543},
+                             {{25, 3}, 643},
+                             {{26, 4}, 784},
+                             {{27, 5}, 925}});
     }
 
     SECTION("Path around adjacent entity") {
@@ -431,17 +430,16 @@ TEST_CASE("Hello world!", "[rts]") {
     SECTION("Move next to target object") {
       REQUIRE(
           test::runMove(world, entity, Point{31, 0}) ==
-          test::MoveStepList{
-              {{20, 5}, 0},
-              {{21, 4}, 141},
-              {{22, 4}, 241},
-              {{23, 3}, 382},
-              {{24, 2}, 523},
-              {{25, 2}, 623},
-              {{26, 2}, 723},
-              {{27, 2}, 823},
-              {{28, 1}, 964},
-              {{29, 1}, 1064}});
+          test::MoveStepList{{{20, 5}, 0},
+                             {{21, 4}, 141},
+                             {{22, 4}, 241},
+                             {{23, 3}, 382},
+                             {{24, 2}, 523},
+                             {{25, 2}, 623},
+                             {{26, 2}, 723},
+                             {{27, 2}, 823},
+                             {{28, 1}, 964},
+                             {{29, 1}, 1064}});
     }
 
     SECTION("Move next to target blocker") {
