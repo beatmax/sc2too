@@ -43,9 +43,14 @@ namespace util {
       return pool[lock(pool)];
     }
 
+    bool contains(Id id) const;
+
   private:
     template<typename Pool>
     void doSet(const Pool& pool, const IdList& ids);
+
+    auto begin() const { return array_.begin(); }
+    auto end() const { return array_.begin() + n_; }
 
     Compare comp_;
     mutable Array array_;
@@ -76,10 +81,10 @@ namespace util {
 
   template<typename T, uint32_t N, typename Compare>
   void WeakList<T, N, Compare>::remove(const IdList& ids) {
-    auto it = std::remove_if(array_.begin(), array_.end(), [&ids](WeakId wid) {
+    auto it = std::remove_if(begin(), end(), [&ids](WeakId wid) {
       return std::find(ids.begin(), ids.end(), Id(wid)) != ids.end();
     });
-    n_ = std::distance(array_.begin(), it);
+    n_ = std::distance(begin(), it);
   }
 
   template<typename T, uint32_t N, typename Compare>
@@ -100,6 +105,11 @@ namespace util {
       array_ = updated;
     }
     return ids;
+  }
+
+  template<typename T, uint32_t N, typename Compare>
+  bool WeakList<T, N, Compare>::contains(Id id) const {
+    return std::find_if(begin(), end(), [id](WeakId wid) { return id == Id(wid); }) != end();
   }
 
   template<typename T, uint32_t N, typename Compare>

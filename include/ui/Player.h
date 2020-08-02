@@ -13,5 +13,8 @@ namespace ui {
     Camera camera;
 
     std::optional<rts::Command> processInput(const rts::World& world, const InputEvent& event);
+
+  private:
+    rts::EntityIdList visibleSameType(const rts::World& world, rts::EntityId entity);
   };
 }

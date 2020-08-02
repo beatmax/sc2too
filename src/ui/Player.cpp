@@ -45,8 +45,6 @@ namespace ui {
 
 std::optional<rts::Command> ui::Player::processInput(
     const rts::World& world, const InputEvent& event) {
-  using SelectionCmd = rts::command::Selection;
-
   if (event.type == InputType::KeyPress || event.type == InputType::KeyRelease) {
     if (auto scrollDirection{keyScrollDirection(event.symbol)})
       processKeyScrollEvent(event.type, scrollDirection, camera);
@@ -55,16 +53,24 @@ std::optional<rts::Command> ui::Player::processInput(
     camera.setMoveDirection(scrollDirectionVector(event.scrollDirection));
   }
   else if (event.type == InputType::MousePress && event.mouseButton == InputButton::Button1) {
-    auto& cell{world.map.at(event.mouseCell)};
-    if (event.state & (ShiftPressed | ControlPressed | AltPressed)) {
-      if (hasEntity(cell))
-        return SelectionCmd{SelectionCmd::Add, {getEntityId(cell)}};
+    using RC = rts::RelativeContent;
+    using SelectionCmd = rts::command::Selection;
+
+    auto rc{world.relativeContent(side, event.mouseCell)};
+    if (rc == RC::Friend) {
+      auto entity{getEntityId(world.map.at(event.mouseCell))};
+      auto entities{(event.state & ControlPressed) ? visibleSameType(world, entity)
+                                                   : rts::EntityIdList{entity}};
+      if (event.state & ShiftPressed) {
+        bool alreadySelected{world.sides[side].selection().contains(entity)};
+        return SelectionCmd{alreadySelected ? SelectionCmd::Remove : SelectionCmd::Add, entities};
+      }
+      else {
+        return SelectionCmd{SelectionCmd::Set, entities};
+      }
     }
-    else {
-      if (hasEntity(cell))
-        return SelectionCmd{SelectionCmd::Set, {getEntityId(cell)}};
-      else
-        return SelectionCmd{SelectionCmd::Set, {}};
+    else if (!(event.state & ShiftPressed)) {
+      return SelectionCmd{SelectionCmd::Set, {}};
     }
   }
   else if (event.type == InputType::MousePress && event.mouseButton == InputButton::Button3) {
@@ -72,4 +78,25 @@ std::optional<rts::Command> ui::Player::processInput(
   }
 
   return std::nullopt;
+}
+
+rts::EntityIdList ui::Player::visibleSameType(const rts::World& world, rts::EntityId entity) {
+  rts::EntityIdList result;
+  const auto type{world.entities[entity].type};
+  const auto& topLeft = camera.topLeft();
+  const auto& bottomRight = camera.bottomRight();
+
+  for (rts::Coordinate cellY = topLeft.y; cellY < bottomRight.y; ++cellY) {
+    for (rts::Coordinate cellX = topLeft.x; cellX < bottomRight.x; ++cellX) {
+      const auto& cell{world.map.at(cellX, cellY)};
+      if (hasEntity(cell)) {
+        auto eId{getEntityId(cell)};
+        const auto& e{world.entities[eId]};
+        if (e.type == type && e.side == side)
+          result.push_back(eId);
+      }
+    }
+  }
+
+  return result;
 }

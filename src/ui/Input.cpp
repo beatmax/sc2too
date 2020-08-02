@@ -20,6 +20,16 @@ namespace {
         nullptr);
     mouseinterval(0);
   }
+
+  rts::Point getTarget(const std::optional<rts::Command>& cmd) {
+    if (cmd) {
+      if (auto* c{std::get_if<rts::command::TriggerAbility>(&*cmd)})
+        return c->target;
+      if (auto* c{std::get_if<rts::command::TriggerDefaultAbility>(&*cmd)})
+        return c->target;
+    }
+    return {-1, -1};
+  }
 }
 
 ui::Input::Input(IOState& ios) : ios_{ios} {
@@ -48,6 +58,11 @@ rts::WorldActionList ui::Input::process(
     return actions;
   }
 
+  auto addCommand = [&](std::optional<rts::Command>&& cmd) {
+    ios_.clickedTarget = getTarget(cmd);
+    rts::addCommand(actions, player.side, std::move(cmd));
+  };
+
   while (X::pendingEvent()) {
     InputEvent event{X::nextEvent()};
     if (processKbInput(engine, event)) {
@@ -57,12 +72,12 @@ rts::WorldActionList ui::Input::process(
       }
     }
     else {
-      rts::addCommand(actions, player.side, player.processInput(world, event));
+      addCommand(player.processInput(world, event));
     }
   }
 
   if (auto pointerEvent{X::pointerEvent()})
-    rts::addCommand(actions, player.side, player.processInput(world, *pointerEvent));
+    addCommand(player.processInput(world, *pointerEvent));
 
   int c;
   while ((c = getch()) != ERR) {
@@ -70,7 +85,7 @@ rts::WorldActionList ui::Input::process(
       InputEvent event{nextMouseEvent(player.camera)};
       if (event.type != InputType::Unknown) {
         if (!processMouseInput(event))
-          rts::addCommand(actions, player.side, player.processInput(world, event));
+          addCommand(player.processInput(world, event));
       }
     }
   }
@@ -101,7 +116,6 @@ bool ui::Input::processKbInput(rts::Engine& engine, const InputEvent& event) {
 
 bool ui::Input::processMouseInput(const InputEvent& event) {
   if (event.type == InputType::MousePress) {
-    ios_.clickedCell = event.mouseCell;
     ios_.clickedButton = int(event.mouseButton);
     return false;
   }

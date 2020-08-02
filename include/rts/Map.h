@@ -13,7 +13,7 @@
 #include <variant>
 #include <vector>
 
-#define MAP_DEBUG
+//#define MAP_DEBUG
 
 namespace rts {
 

@@ -18,7 +18,7 @@ namespace ui {
     WINDOW* controlWin{nullptr};
 
     bool quit{false};
-    rts::Point clickedCell{-1, -1};
+    rts::Point clickedTarget{-1, -1};
     int clickedButton{0};
   };
 }
