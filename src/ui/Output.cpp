@@ -135,6 +135,8 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& world, cons
       ios_.renderWin, camera, ios_.clickedTarget,
       ios_.clickedButton ? graph::red() : graph::yellow());
   render(ios_.renderWin, world, camera, side.selection());
+  if (player.selectionBox)
+    drawBoundingBox(ios_.renderWin, camera, *player.selectionBox, graph::green());
 
   drawResourceQuantities(ios_, world, player);
   drawGameTime(ios_, engine, world);
@@ -160,8 +162,8 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& world, cons
     mvwprintw(ios_.headerWin, 0, 0, "F10:menu");
     mvwprintw(
         ios_.headerWin, 0, 32, "(%d, %d) - (%d, %d) : (%d, %d) : %d", camera.topLeft().x,
-        camera.topLeft().y, camera.bottomRight().x, camera.bottomRight().y, ios_.clickedTarget.x,
-        ios_.clickedTarget.y, ios_.clickedButton);
+        camera.topLeft().y, camera.bottomRight().x, camera.bottomRight().y, ios_.mousePosition.x,
+        ios_.mousePosition.y, ios_.clickedButton);
   }
 
   for (auto* win : allWins)

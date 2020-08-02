@@ -13,6 +13,7 @@ namespace ui {
     explicit Input(IOState& ioState);
 
     void init();
+    void finish();
     rts::WorldActionList process(rts::Engine& engine, const rts::World& world, Player& player);
 
   private:

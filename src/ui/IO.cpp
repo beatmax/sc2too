@@ -17,6 +17,7 @@ ui::IO::IO() : state_{std::make_unique<IOState>()}, input{*state_}, output{*stat
 }
 
 ui::IO::~IO() {
+  input.finish();
   X::finish();
 }
 

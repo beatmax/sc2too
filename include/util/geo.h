@@ -73,6 +73,8 @@ namespace util::geo {
     return {r.topLeft - Vector{1, 1}, r.size + Vector{2, 2}};
   }
 
+  Rectangle fixNegativeSize(Rectangle r);
+
   std::ostream& operator<<(std::ostream& os, const Point& p);
   std::ostream& operator<<(std::ostream& os, const Vector& v);
   std::ostream& operator<<(std::ostream& os, const Rectangle& r);

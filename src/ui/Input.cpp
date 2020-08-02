@@ -6,6 +6,8 @@
 #include "dim.h"
 #include "rts/Engine.h"
 
+#include <stdio.h>
+
 #ifdef HAS_NCURSESW_NCURSES_H
 #include <ncursesw/ncurses.h>
 #else
@@ -19,7 +21,12 @@ namespace {
             BUTTON3_RELEASED | REPORT_MOUSE_POSITION,
         nullptr);
     mouseinterval(0);
+
+    // mouse motion reporting
+    printf("\033[?1003h\n");
   }
+
+  void finishMouse() { printf("\033[?1003l\n"); }
 
   rts::Point getTarget(const std::optional<rts::Command>& cmd) {
     if (cmd) {
@@ -41,6 +48,10 @@ void ui::Input::init() {
   keypad(stdscr, true);
   nodelay(stdscr, true);
   initMouse();
+}
+
+void ui::Input::finish() {
+  finishMouse();
 }
 
 rts::WorldActionList ui::Input::process(
@@ -115,14 +126,14 @@ bool ui::Input::processKbInput(rts::Engine& engine, const InputEvent& event) {
 }
 
 bool ui::Input::processMouseInput(const InputEvent& event) {
-  if (event.type == InputType::MousePress) {
+  if (event.mouseCell)
+    ios_.mousePosition = *event.mouseCell;
+
+  if (event.type == InputType::MousePress)
     ios_.clickedButton = int(event.mouseButton);
-    return false;
-  }
-  else if (event.type == InputType::MouseRelease) {
+  else if (event.type == InputType::MouseRelease)
     ios_.clickedButton = 0;
-    return true;
-  }
+
   return false;
 }
 
@@ -130,43 +141,46 @@ ui::InputEvent ui::Input::nextMouseEvent(const Camera& camera) {
   MEVENT event;
   InputEvent ievent;
 
-  if (getmouse(&event) != OK || !wenclose(ios_.renderWin, event.y, event.x) ||
-      !wmouse_trafo(ios_.renderWin, &event.y, &event.x, false)) {
+  if (getmouse(&event) != OK) {
     ievent.type = InputType::Unknown;
+    return ievent;
   }
-  else {
-    ievent.state = X::inputState;
 
-    if (event.bstate & BUTTON1_PRESSED) {
-      ievent.type = InputType::MousePress;
-      ievent.mouseButton = InputButton::Button1;
-    }
-    else if (event.bstate & BUTTON2_PRESSED) {
-      ievent.type = InputType::MousePress;
-      ievent.mouseButton = InputButton::Button2;
-    }
-    else if (event.bstate & BUTTON3_PRESSED) {
-      ievent.type = InputType::MousePress;
-      ievent.mouseButton = InputButton::Button3;
-    }
-    else if (event.bstate & BUTTON1_RELEASED) {
-      ievent.type = InputType::MouseRelease;
-      ievent.mouseButton = InputButton::Button1;
-    }
-    else if (event.bstate & BUTTON2_RELEASED) {
-      ievent.type = InputType::MouseRelease;
-      ievent.mouseButton = InputButton::Button2;
-    }
-    else if (event.bstate & BUTTON3_RELEASED) {
-      ievent.type = InputType::MouseRelease;
-      ievent.mouseButton = InputButton::Button3;
-    }
-    else {
-      ievent.type = InputType::Unknown;
-    }
-
+  if (wenclose(ios_.renderWin, event.y, event.x) &&
+      wmouse_trafo(ios_.renderWin, &event.y, &event.x, false)) {
     ievent.mouseCell = camera.area().topLeft +
         rts::Vector{event.x / (dim::cellWidth + 1), event.y / (dim::cellHeight + 1)};
+  }
+
+  ievent.state = X::inputState;
+
+  if (event.bstate & BUTTON1_PRESSED) {
+    ievent.type = InputType::MousePress;
+    ievent.mouseButton = InputButton::Button1;
+  }
+  else if (event.bstate & BUTTON2_PRESSED) {
+    ievent.type = InputType::MousePress;
+    ievent.mouseButton = InputButton::Button2;
+  }
+  else if (event.bstate & BUTTON3_PRESSED) {
+    ievent.type = InputType::MousePress;
+    ievent.mouseButton = InputButton::Button3;
+  }
+  else if (event.bstate & BUTTON1_RELEASED) {
+    ievent.type = InputType::MouseRelease;
+    ievent.mouseButton = InputButton::Button1;
+  }
+  else if (event.bstate & BUTTON2_RELEASED) {
+    ievent.type = InputType::MouseRelease;
+    ievent.mouseButton = InputButton::Button2;
+  }
+  else if (event.bstate & BUTTON3_RELEASED) {
+    ievent.type = InputType::MouseRelease;
+    ievent.mouseButton = InputButton::Button3;
+  }
+  else {
+    ievent.type = InputType::MousePosition;
+    ievent.mouseButton = InputButton::Unknown;
   }
 
   return ievent;

@@ -15,6 +15,18 @@ auto util::geo::intersection(const Rectangle& r1, const Rectangle& r2) -> Rectan
   return {topLeft, size};
 }
 
+auto util::geo::fixNegativeSize(Rectangle r) -> Rectangle {
+  if (r.size.x <= 0) {
+    r.size.x = -r.size.x + 1;
+    r.topLeft.x -= r.size.x;
+  }
+  if (r.size.y <= 0) {
+    r.size.y = -r.size.y + 1;
+    r.topLeft.y -= r.size.y;
+  }
+  return r;
+}
+
 std::ostream& util::geo::operator<<(std::ostream& os, const Point& p) {
   return os << '(' << p.x << ", " << p.y << ')';
 }

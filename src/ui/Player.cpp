@@ -3,6 +3,7 @@
 #include "rts/Entity.h"
 #include "rts/Side.h"
 #include "rts/World.h"
+#include "util/geo.h"
 
 namespace ui {
   namespace {
@@ -52,29 +53,45 @@ std::optional<rts::Command> ui::Player::processInput(
   else if (event.type == InputType::EdgeScroll && !scrollKeyCnt) {
     camera.setMoveDirection(scrollDirectionVector(event.scrollDirection));
   }
-  else if (event.type == InputType::MousePress && event.mouseButton == InputButton::Button1) {
-    using RC = rts::RelativeContent;
-    using SelectionCmd = rts::command::Selection;
+  else if (event.type == InputType::MousePress && event.mouseCell) {
+    auto mouseCell{*event.mouseCell};
 
-    auto rc{world.relativeContent(side, event.mouseCell)};
-    if (rc == RC::Friend) {
-      auto entity{getEntityId(world.map.at(event.mouseCell))};
-      auto entities{(event.state & ControlPressed) ? visibleSameType(world, entity)
-                                                   : rts::EntityIdList{entity}};
-      if (event.state & ShiftPressed) {
-        bool alreadySelected{world.sides[side].selection().contains(entity)};
-        return SelectionCmd{alreadySelected ? SelectionCmd::Remove : SelectionCmd::Add, entities};
+    if (event.mouseButton == InputButton::Button1) {
+      using RC = rts::RelativeContent;
+      using SelectionCmd = rts::command::Selection;
+
+      auto rc{world.relativeContent(side, mouseCell)};
+      if (rc == RC::Friend) {
+        auto entity{getEntityId(world.map.at(mouseCell))};
+        auto entities{(event.state & ControlPressed) ? visibleSameType(world, entity)
+                                                     : rts::EntityIdList{entity}};
+        if (event.state & ShiftPressed) {
+          bool alreadySelected{world.sides[side].selection().contains(entity)};
+          return SelectionCmd{alreadySelected ? SelectionCmd::Remove : SelectionCmd::Add, entities};
+        }
+        else {
+          return SelectionCmd{SelectionCmd::Set, entities};
+        }
       }
-      else {
-        return SelectionCmd{SelectionCmd::Set, entities};
+      else if (rc == RC::Ground) {
+        selectionBox = {mouseCell, {1, 1}};
+        selectionBoxStart_ = mouseCell;
+      }
+      else if (!(event.state & ShiftPressed)) {
+        return SelectionCmd{SelectionCmd::Set, {}};
       }
     }
-    else if (!(event.state & ShiftPressed)) {
-      return SelectionCmd{SelectionCmd::Set, {}};
+    else if (event.mouseButton == InputButton::Button3) {
+      return rts::command::TriggerDefaultAbility{mouseCell};
     }
   }
-  else if (event.type == InputType::MousePress && event.mouseButton == InputButton::Button3) {
-    return rts::command::TriggerDefaultAbility{event.mouseCell};
+  else if (event.type == InputType::MouseRelease && event.mouseButton == InputButton::Button1) {
+    selectionBox.reset();
+  }
+  else if (event.type == InputType::MousePosition && selectionBox && event.mouseCell) {
+    auto mouseCell{*event.mouseCell};
+    selectionBox = util::geo::fixNegativeSize(
+        {selectionBoxStart_, mouseCell - selectionBoxStart_ + rts::Vector{1, 1}});
   }
 
   return std::nullopt;

@@ -2,8 +2,18 @@
 
 #include "rts/types.h"
 
+#include <optional>
+
 namespace ui {
-  enum class InputType { Unknown, KeyPress, KeyRelease, MousePress, MouseRelease, EdgeScroll };
+  enum class InputType {
+    Unknown,
+    KeyPress,
+    KeyRelease,
+    MousePress,
+    MouseRelease,
+    MousePosition,
+    EdgeScroll
+  };
 
   enum class InputKeySym {
     Unknown,
@@ -50,7 +60,7 @@ namespace ui {
     InputState state;
     InputKeySym symbol;
     InputButton mouseButton;
-    rts::Point mouseCell;
+    std::optional<rts::Point> mouseCell;
     ScrollDirection scrollDirection;
   };
 }
