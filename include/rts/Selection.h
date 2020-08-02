@@ -14,7 +14,6 @@ namespace rts {
     void add(const World& world, EntityIdList ids);
     void remove(const EntityIdList& ids);
     EntityCPtrList items(const World& world) const;
-    EntityTypeId subselectionType(const World& world) const;
 
   private:
     struct Compare {

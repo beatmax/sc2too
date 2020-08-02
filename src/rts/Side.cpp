@@ -7,18 +7,16 @@ void rts::Side::exec(const World& world, const Command& cmd) {
 }
 
 void rts::Side::exec(const World& world, const command::TriggerAbility& cmd) {
-  for (auto entity : selection_.items(world)) {
-    const auto& entityType{world.entityTypes[entity->type]};
+  for (auto entity : selection_.items(world))
     entity->trigger(cmd.ability, world, cmd.target);
-  }
 }
 
 void rts::Side::exec(const World& world, const command::TriggerDefaultAbility& cmd) {
-  if (auto st{selection_.subselectionType(world)}) {
-    const auto& entityType{world.entityTypes[st]};
+  for (auto entity : selection_.items(world)) {
+    const auto& entityType{world.entityTypes[entity->type]};
     auto rc{world.relativeContent(world.sides.id(*this), cmd.target)};
     if (auto a{entityType.defaultAbility[size_t(rc)]})
-      exec(world, command::TriggerAbility{a, cmd.target});
+      entity->trigger(a, world, cmd.target);
   }
 }
 

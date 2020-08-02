@@ -17,8 +17,3 @@ void rts::Selection::remove(const EntityIdList& ids) {
 rts::EntityCPtrList rts::Selection::items(const World& world) const {
   return list_.items(world.entities);
 }
-
-rts::EntityTypeId rts::Selection::subselectionType(const World& world) const {
-  auto entities{items(world)};
-  return entities.empty() ? EntityTypeId{} : entities.front()->type;
-}

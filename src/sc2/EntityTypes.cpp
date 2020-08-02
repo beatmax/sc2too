@@ -12,7 +12,10 @@ void sc2::EntityTypes::init(rts::World& w) {
   {
     auto& probeType{w.entityTypes[probe]};
     probeType.abilities[0] = rts::abilities::move(Abilities::move, rts::Speed{4});
-    probeType.defaultAbility[size_t(rts::RelativeContent::Ground)] = Abilities::move;
+
+    using RC = rts::RelativeContent;
+    for (auto rc : {RC::Friend, RC::Foe, RC::Ground, RC::Resource})
+      probeType.defaultAbility[size_t(rc)] = Abilities::move;
   }
 }
 
