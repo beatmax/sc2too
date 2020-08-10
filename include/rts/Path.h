@@ -9,6 +9,6 @@ namespace rts {
 
   using Path = std::deque<Point>;
 
-  std::pair<Path, bool> findPath(const World& world, Point start, Point goal);
+  std::pair<Path, bool> findPath(const World& w, Point start, Point goal);
 
 }

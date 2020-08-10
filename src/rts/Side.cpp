@@ -2,31 +2,31 @@
 
 #include "rts/World.h"
 
-void rts::Side::exec(const World& world, const Command& cmd) {
-  std::visit([&](auto&& c) { exec(world, c); }, cmd);
+void rts::Side::exec(const World& w, const Command& cmd) {
+  std::visit([&](auto&& c) { exec(w, c); }, cmd);
 }
 
-void rts::Side::exec(const World& world, const command::TriggerAbility& cmd) {
-  for (auto entity : selection_.items(world))
-    entity->trigger(cmd.ability, world, cmd.target);
+void rts::Side::exec(const World& w, const command::TriggerAbility& cmd) {
+  for (auto entity : selection_.items(w))
+    entity->trigger(cmd.ability, w, cmd.target);
 }
 
-void rts::Side::exec(const World& world, const command::TriggerDefaultAbility& cmd) {
-  for (auto entity : selection_.items(world)) {
-    const auto& entityType{world.entityTypes[entity->type]};
-    auto rc{world.relativeContent(world.sides.id(*this), cmd.target)};
+void rts::Side::exec(const World& w, const command::TriggerDefaultAbility& cmd) {
+  for (auto entity : selection_.items(w)) {
+    const auto& entityType{w.entityTypes[entity->type]};
+    auto rc{w.relativeContent(w.sides.id(*this), cmd.target)};
     if (auto a{entityType.defaultAbility[size_t(rc)]})
-      entity->trigger(a, world, cmd.target);
+      entity->trigger(a, w, cmd.target);
   }
 }
 
-void rts::Side::exec(const World& world, const command::Selection& cmd) {
+void rts::Side::exec(const World& w, const command::Selection& cmd) {
   switch (cmd.action) {
     case command::Selection::Set:
-      selection_.set(world, cmd.entities);
+      selection_.set(w, cmd.entities);
       break;
     case command::Selection::Add:
-      selection_.add(world, cmd.entities);
+      selection_.add(w, cmd.entities);
       break;
     case command::Selection::Remove:
       selection_.remove(cmd.entities);

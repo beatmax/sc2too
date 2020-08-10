@@ -5,23 +5,23 @@
 
 #include <cassert>
 
-void sc2::MapInitializer::operator()(rts::World& world, rts::Point p, char c) const {
-  static auto sideIt = world.sides.begin();
-  assert(sideIt != world.sides.end());
+void sc2::MapInitializer::operator()(rts::World& w, rts::Point p, char c) const {
+  static auto sideIt = w.sides.begin();
+  assert(sideIt != w.sides.end());
   switch (c) {
     case 'g':
-      Factory::geyser(world, p);
+      Factory::geyser(w, p);
       break;
     case 'm':
-      Factory::mineralPatch(world, p);
+      Factory::mineralPatch(w, p);
       break;
     case 'n':
-      Factory::nexus(world, p, world.sides.id(*sideIt));
-      if (++sideIt == world.sides.end())
-        sideIt = world.sides.begin();
+      Factory::nexus(w, p, w.sides.id(*sideIt));
+      if (++sideIt == w.sides.end())
+        sideIt = w.sides.begin();
       return;
     case 'r':
-      Factory::rock(world, p);
+      Factory::rock(w, p);
       break;
   }
 }

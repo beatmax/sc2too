@@ -44,8 +44,7 @@ namespace ui {
   }
 }
 
-std::optional<rts::Command> ui::Player::processInput(
-    const rts::World& world, const InputEvent& event) {
+std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const InputEvent& event) {
   if (event.type == InputType::KeyPress || event.type == InputType::KeyRelease) {
     if (auto scrollDirection{keyScrollDirection(event.symbol)})
       processKeyScrollEvent(event.type, scrollDirection, camera);
@@ -60,13 +59,13 @@ std::optional<rts::Command> ui::Player::processInput(
       using RC = rts::RelativeContent;
       using SelectionCmd = rts::command::Selection;
 
-      auto rc{world.relativeContent(side, mouseCell)};
+      auto rc{w.relativeContent(side, mouseCell)};
       if (rc == RC::Friend) {
-        auto entity{getEntityId(world.map.at(mouseCell))};
-        auto entities{(event.state & ControlPressed) ? visibleSameType(world, entity)
+        auto entity{w.entityId(mouseCell)};
+        auto entities{(event.state & ControlPressed) ? visibleSameType(w, entity)
                                                      : rts::EntityIdList{entity}};
         if (event.state & ShiftPressed) {
-          bool alreadySelected{world.sides[side].selection().contains(entity)};
+          bool alreadySelected{w[side].selection().contains(entity)};
           return SelectionCmd{alreadySelected ? SelectionCmd::Remove : SelectionCmd::Add, entities};
         }
         else {
@@ -97,18 +96,16 @@ std::optional<rts::Command> ui::Player::processInput(
   return std::nullopt;
 }
 
-rts::EntityIdList ui::Player::visibleSameType(const rts::World& world, rts::EntityId entity) {
+rts::EntityIdList ui::Player::visibleSameType(const rts::World& w, rts::EntityId entity) {
   rts::EntityIdList result;
-  const auto type{world.entities[entity].type};
+  const auto type{w[entity].type};
   const auto& topLeft = camera.topLeft();
   const auto& bottomRight = camera.bottomRight();
 
   for (rts::Coordinate cellY = topLeft.y; cellY < bottomRight.y; ++cellY) {
     for (rts::Coordinate cellX = topLeft.x; cellX < bottomRight.x; ++cellX) {
-      const auto& cell{world.map.at(cellX, cellY)};
-      if (hasEntity(cell)) {
-        auto eId{getEntityId(cell)};
-        const auto& e{world.entities[eId]};
+      if (auto eId{w.entityId({cellX, cellY})}) {
+        const auto& e{w[eId]};
         if (e.type == type && e.side == side)
           result.push_back(eId);
       }

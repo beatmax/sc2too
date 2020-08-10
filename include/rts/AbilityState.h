@@ -20,11 +20,11 @@ namespace rts {
       activeState_ = ability.createActiveState(target);
     }
     void step(
-        const World& world,
+        const World& w,
         const Entity& entity,
         EntityAbilityIndex abilityIndex,
         WorldActionList& actions);
-    void stepAction(World& world, Entity& entity);
+    void stepAction(World& w, Entity& entity);
     void cancel();
 
   private:
@@ -36,11 +36,11 @@ namespace rts {
   public:
     virtual ~ActiveAbilityState() = 0;
     virtual GameTime step(
-        const World& world,
+        const World& w,
         const Entity& entity,
         EntityAbilityIndex abilityIndex,
         WorldActionList& actions) = 0;
-    virtual GameTime stepAction(World& world, Entity& entity) = 0;
+    virtual GameTime stepAction(World& w, Entity& entity) = 0;
   };
 
   template<typename Derived>

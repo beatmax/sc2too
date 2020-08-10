@@ -6,25 +6,25 @@
 #include <cassert>
 
 void rts::AbilityState::step(
-    const World& world,
+    const World& w,
     const Entity& entity,
     EntityAbilityIndex abilityIndex,
     WorldActionList& actions) {
   assert(activeState_);
-  GameTime t = activeState_->step(world, entity, abilityIndex, actions);
+  GameTime t = activeState_->step(w, entity, abilityIndex, actions);
   if (t == GameTimeInf)
     nextStepTime_ = t;
   else if (t)
-    nextStepTime_ = world.time + t;
+    nextStepTime_ = w.time + t;
   else
     cancel();
 }
 
-void rts::AbilityState::stepAction(World& world, Entity& entity) {
+void rts::AbilityState::stepAction(World& w, Entity& entity) {
   assert(activeState_);
-  GameTime t = activeState_->stepAction(world, entity);
+  GameTime t = activeState_->stepAction(w, entity);
   if (t)
-    nextStepTime_ = world.time + t;
+    nextStepTime_ = w.time + t;
   else
     cancel();
 }

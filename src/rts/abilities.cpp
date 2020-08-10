@@ -15,11 +15,11 @@ namespace rts {
     constexpr GameTime MoveRetryTime{100};
 
     void addStepAction(
-        const World& world,
+        const World& w,
         const Entity& entity,
         EntityAbilityIndex abilityIndex,
         WorldActionList& actions) {
-      addAction(actions, action::AbilityStepAction{world.entities.weakId(entity), abilityIndex});
+      addAction(actions, action::AbilityStepAction{w.entities.weakId(entity), abilityIndex});
     }
   }
 }
@@ -30,11 +30,11 @@ namespace rts::abilities::state {
   public:
     explicit Move(Point target, Speed speed) : target_{target}, speed_{speed} {}
     GameTime step(
-        const World& world,
+        const World& w,
         const Entity& entity,
         EntityAbilityIndex abilityIndex,
         WorldActionList& actions) final;
-    GameTime stepAction(World& world, Entity& entity) final;
+    GameTime stepAction(World& w, Entity& entity) final;
 
   private:
     const Point target_;
@@ -45,14 +45,14 @@ namespace rts::abilities::state {
 }
 
 rts::GameTime rts::abilities::state::Move::step(
-    const World& world,
+    const World& w,
     const Entity& entity,
     EntityAbilityIndex abilityIndex,
     WorldActionList& actions) {
   const Point& pos{entity.area.topLeft};
 
-  if (!path_.empty() && isFree(world.map.at(path_.front()))) {
-    addStepAction(world, entity, abilityIndex, actions);
+  if (!path_.empty() && w[path_.front()].empty()) {
+    addStepAction(w, entity, abilityIndex, actions);
     return GameTimeInf;
   }
 
@@ -60,18 +60,18 @@ rts::GameTime rts::abilities::state::Move::step(
     return 0;
 
   const bool wasEmpty{path_.empty()};
-  std::tie(path_, completePath_) = findPath(world, pos, target_);
+  std::tie(path_, completePath_) = findPath(w, pos, target_);
 
   return (wasEmpty && !path_.empty()) ? adjacentDistance(pos, path_.front()) / speed_
                                       : (path_.empty() && !completePath_) ? MoveRetryTime : 1;
 }
 
-rts::GameTime rts::abilities::state::Move::stepAction(World& world, Entity& entity) {
+rts::GameTime rts::abilities::state::Move::stepAction(World& w, Entity& entity) {
   assert(!path_.empty());
   Point newPos{path_.front()};
-  if (isFree(world.map.at(newPos))) {
+  if (w[newPos].empty()) {
     path_.pop_front();
-    world.move(entity, newPos);
+    w.move(entity, newPos);
     if (path_.empty())
       return completePath_ ? 0 : 1;
     else

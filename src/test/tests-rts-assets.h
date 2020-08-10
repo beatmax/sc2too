@@ -20,7 +20,7 @@ namespace test {
 
   extern const std::string map;
 
-  std::vector<rts::SideId> makeSides(rts::World& world);
+  std::vector<rts::SideId> makeSides(rts::World& w);
 
   struct Ui : rts::Ui {
     static std::map<char, int> count;
@@ -44,6 +44,6 @@ namespace test {
 
   class MapInitializer : public rts::MapInitializer {
   public:
-    void operator()(rts::World& world, rts::Point p, char c) const final;
+    void operator()(rts::World& w, rts::Point p, char c) const final;
   };
 }

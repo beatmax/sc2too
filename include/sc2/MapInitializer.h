@@ -5,6 +5,6 @@
 namespace sc2 {
   class MapInitializer : public rts::MapInitializer {
   public:
-    void operator()(rts::World& world, rts::Point p, char c) const final;
+    void operator()(rts::World& w, rts::Point p, char c) const final;
   };
 }

@@ -20,9 +20,9 @@ namespace rts {
 
     Entity(Point p, Vector s, EntityTypeId t, SideId sd, UiUPtr ui);
 
-    WorldActionList trigger(AbilityId ability, const World& world, Point target) const;
-    WorldActionList step(const World& world) const;
-    void stepAction(World& world, EntityAbilityIndex abilityIndex);
+    WorldActionList trigger(AbilityId ability, const World& w, Point target) const;
+    WorldActionList step(const World& w) const;
+    void stepAction(World& w, EntityAbilityIndex abilityIndex);
     void cancelAll() const;
   };
 }

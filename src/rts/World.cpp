@@ -5,8 +5,17 @@
 
 #include <algorithm>
 #include <cassert>
-#include <stdexcept>
-#include <utility>
+
+namespace rts {
+  namespace {
+    template<typename Id>
+    WorldObject* objectPtr(World& w, Id id) {
+      return &w[id];
+    }
+
+    WorldObject* objectPtr(World&, Cell::Empty) { return nullptr; }
+  }
+}
 
 void rts::World::update(const WorldActionList& actions) {
   for (const auto& action : actions)
@@ -15,77 +24,30 @@ void rts::World::update(const WorldActionList& actions) {
 
 void rts::World::move(Entity& e, Point p) {
   assert(e.area.size == Vector({1, 1}));  // no need to move big entities so far
-  assert(isFree(map.at(p)));
+  assert(map[p].empty());
   auto& epos = e.area.topLeft;
-  map.setContent(epos, Map::Free{});
+  map.setContent(epos, Cell::Empty{});
   map.setContent(p, entities.id(e));
   epos = p;
 }
 
 void rts::World::destroy(const Entity& e) {
-  assert(hasEntity(map.at(e.area.topLeft)));
-  map.setContent(e.area, Map::Free{});
+  assert(map[e.area.topLeft].contains(Cell::Entity));
+  map.setContent(e.area, Cell::Empty{});
   entities.erase(entities.id(e));
 }
 
-rts::WorldObject& rts::World::operator[](Map::Free) {
-  throw std::logic_error{"tried to get object from free cell"};
-}
-
-const rts::WorldObject& rts::World::operator[](Map::Free f) const {
-  return const_cast<World&>(*this)[f];
-}
-
-rts::WorldObject& rts::World::objectAt(Point p) {
-  return getObject(*this, map.at(p));
-}
-
-const rts::WorldObject& rts::World::objectAt(Point p) const {
-  return getObject(*this, map.at(p));
-}
-
-rts::WorldObject* rts::World::objectPtrAt(Point p) {
-  return getObjectPtr(*this, map.at(p));
-}
-
-const rts::WorldObject* rts::World::objectPtrAt(Point p) const {
-  return getObjectPtr(*this, map.at(p));
-}
-
-rts::Entity& rts::World::entityAt(Point p) {
-  assert(hasEntity(map.at(p)));
-  return entities[getEntityId(map.at(p))];
-}
-
-const rts::Entity& rts::World::entityAt(Point p) const {
-  return const_cast<World&>(*this).entityAt(p);
-}
-
-rts::Blocker& rts::World::blockerAt(Point p) {
-  assert(hasBlocker(map.at(p)));
-  return blockers[getBlockerId(map.at(p))];
-}
-
-const rts::Blocker& rts::World::blockerAt(Point p) const {
-  return const_cast<World&>(*this).blockerAt(p);
-}
-
-rts::ResourceField& rts::World::resourceFieldAt(Point p) {
-  assert(hasResourceField(map.at(p)));
-  return resourceFields[getResourceFieldId(map.at(p))];
-}
-
-const rts::ResourceField& rts::World::resourceFieldAt(Point p) const {
-  return const_cast<World&>(*this).resourceFieldAt(p);
-}
-
 rts::RelativeContent rts::World::relativeContent(SideId side, Point p) const {
-  auto& cell{map.at(p)};
-  if (hasEntity(cell))
-    return (entityAt(p).side == side) ? RelativeContent::Friend : RelativeContent::Foe;
-  else if (hasResourceField(cell))
+  auto& cell{map[p]};
+  if (auto* e{entity(cell)})
+    return (e->side == side) ? RelativeContent::Friend : RelativeContent::Foe;
+  else if (cell.contains(Cell::ResourceField))
     return RelativeContent::Resource;
   return RelativeContent::Ground;
+}
+
+rts::WorldObject* rts::World::object(const Cell& c) {
+  return std::visit([this](auto id) { return objectPtr(*this, id); }, c.content);
 }
 
 void rts::World::update(const action::CommandAction& action) {

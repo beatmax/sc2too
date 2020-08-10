@@ -18,6 +18,7 @@ namespace rts {
   class Map;
   class Resource;
   class ResourceField;
+  class Selection;
   class Side;
   class World;
   class WorldObject;

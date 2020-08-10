@@ -10,10 +10,10 @@ rts::Entity::Entity(Point p, Vector s, EntityTypeId t, SideId sd, UiUPtr ui)
 }
 
 rts::WorldActionList rts::Entity::trigger(
-    AbilityId ability, const World& world, Point target) const {
+    AbilityId ability, const World& w, Point target) const {
   WorldActionList actions;
 
-  const auto& entityType{world.entityTypes[type]};
+  const auto& entityType{w[type]};
   auto ai{entityType.abilityIndex(ability)};
   if (ai == EntityAbilityIndex::None)
     return actions;
@@ -23,28 +23,28 @@ rts::WorldActionList rts::Entity::trigger(
   AbilityState& abilityState{abilityStates[ai]};
   abilityState.trigger(entityType.abilities[ai], target);
 
-  abilityState.step(world, *this, ai, actions);
+  abilityState.step(w, *this, ai, actions);
   nextStepTime = std::min(nextStepTime, abilityState.nextStepTime());
   return actions;
 }
 
-rts::WorldActionList rts::Entity::step(const World& world) const {
+rts::WorldActionList rts::Entity::step(const World& w) const {
   WorldActionList actions;
   nextStepTime = GameTimeInf;
   for (size_t i = 0; i < MaxEntityAbilities; ++i) {
     EntityAbilityIndex ai{i};
     auto& abilityState{abilityStates[ai]};
-    if (abilityState.nextStepTime() == world.time) {
-      abilityState.step(world, *this, ai, actions);
+    if (abilityState.nextStepTime() == w.time) {
+      abilityState.step(w, *this, ai, actions);
       nextStepTime = std::min(nextStepTime, abilityState.nextStepTime());
     }
   }
   return actions;
 }
 
-void rts::Entity::stepAction(World& world, EntityAbilityIndex abilityIndex) {
+void rts::Entity::stepAction(World& w, EntityAbilityIndex abilityIndex) {
   auto& abilityState{abilityStates[abilityIndex]};
-  abilityState.stepAction(world, *this);
+  abilityState.stepAction(w, *this);
   nextStepTime = std::min(nextStepTime, abilityState.nextStepTime());
 }
 

@@ -2,6 +2,8 @@
 
 #include <cstddef>
 
+//#define MAP_DEBUG
+
 namespace rts {
   constexpr static size_t MaxSides{8};
   constexpr static size_t MaxSideUnits{200};

@@ -34,8 +34,8 @@ namespace rts {
       const Map& map;
       const PointSet adjacentObjectsPoints;
 
-      Graph(const World& world, Point start)
-        : map{world.map}, adjacentObjectsPoints(calcAdjacentObjectsPoints(world, start)) {}
+      Graph(const World& w, Point start)
+        : map{w.map}, adjacentObjectsPoints(calcAdjacentObjectsPoints(w, start)) {}
 
       size_t size() const { return map.size(); }
 
@@ -46,14 +46,14 @@ namespace rts {
       int neighbors(Point p, std::pair<Point, float> result[]) const;
 
     private:
-      PointSet calcAdjacentObjectsPoints(const World& world, Point start);
+      PointSet calcAdjacentObjectsPoints(const World& w, Point start);
     };
 
     int Graph::neighbors(Point p, std::pair<Point, float> result[]) const {
       int n{0};
       for (auto [v, d] : NeighborVectors) {
         auto q{p + v};
-        if (inBounds(q) && !hasBlocker(map.at(q)) &&
+        if (inBounds(q) && !map[q].contains(Cell::Blocker) &&
             adjacentObjectsPoints.find(q) == adjacentObjectsPoints.end()) {
           result[n++] = {q, d};
         }
@@ -61,13 +61,13 @@ namespace rts {
       return n;
     }
 
-    auto Graph::calcAdjacentObjectsPoints(const World& world, Point start) -> PointSet {
+    auto Graph::calcAdjacentObjectsPoints(const World& w, Point start) -> PointSet {
       PointSet points;
 
       for (auto [v, d] : NeighborVectors) {
         auto np{start + v};
-        if (inBounds(np) && !hasBlocker(world.map.at(np))) {
-          if (auto object{world.objectPtrAt(np)}; object)
+        if (inBounds(np) && !w[np].contains(Cell::Blocker)) {
+          if (auto object{w.object(np)})
             forEachPoint(object->area, [&points](Point p) { points.insert(p); });
         }
       }
@@ -77,22 +77,22 @@ namespace rts {
   }
 }
 
-std::pair<rts::Path, bool> rts::findPath(const World& world, Point start, Point goal) {
+std::pair<rts::Path, bool> rts::findPath(const World& w, Point start, Point goal) {
   using AStar = util::AStar<Graph>;
 
-  auto object{world.objectPtrAt(goal)};
+  auto object{w.object(goal)};
   auto goalArea{object ? boundingBox(object->area) : Rectangle{goal, {1, 1}}};
   auto isGoal{[goalArea](Point p) { return goalArea.contains(p); }};
 
   auto h{[goal](Point p) { return diagonalDistance(p, goal); }};
 
   AStar::StateMap state;
-  Point closest{AStar::search(Graph{world, start}, start, isGoal, h, state)};
+  Point closest{AStar::search(Graph{w, start}, start, isGoal, h, state)};
 
 #ifdef MAP_DEBUG
-  auto& m{const_cast<Map&>(world.map)};
+  auto& m{const_cast<Map&>(w.map)};
   forEachPoint(Rectangle{{0, 0}, {m.maxX(), m.maxY()}}, [&](Point p) {
-    m.at(p).debug.color = state.count(p) ? 4 : 0;
+    m[p].debug.color = state.count(p) ? 4 : 0;
   });
 #endif
 

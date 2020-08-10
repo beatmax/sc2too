@@ -54,8 +54,7 @@ void ui::Input::finish() {
   finishMouse();
 }
 
-rts::WorldActionList ui::Input::process(
-    rts::Engine& engine, const rts::World& world, Player& player) {
+rts::WorldActionList ui::Input::process(rts::Engine& engine, const rts::World& w, Player& player) {
   rts::WorldActionList actions;
 
   if (ios_.menu.active()) {
@@ -83,12 +82,12 @@ rts::WorldActionList ui::Input::process(
       }
     }
     else {
-      addCommand(player.processInput(world, event));
+      addCommand(player.processInput(w, event));
     }
   }
 
   if (auto pointerEvent{X::pointerEvent()})
-    addCommand(player.processInput(world, *pointerEvent));
+    addCommand(player.processInput(w, *pointerEvent));
 
   int c;
   while ((c = getch()) != ERR) {
@@ -96,7 +95,7 @@ rts::WorldActionList ui::Input::process(
       InputEvent event{nextMouseEvent(player.camera)};
       if (event.type != InputType::Unknown) {
         if (!processMouseInput(event))
-          addCommand(player.processInput(world, event));
+          addCommand(player.processInput(w, event));
       }
     }
   }

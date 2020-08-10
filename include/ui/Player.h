@@ -15,11 +15,11 @@ namespace ui {
     std::optional<rts::Rectangle> selectionBox;
 
     Player(rts::SideId s, Camera&& c) : side{s}, camera{std::move(c)} {}
-    std::optional<rts::Command> processInput(const rts::World& world, const InputEvent& event);
+    std::optional<rts::Command> processInput(const rts::World& w, const InputEvent& event);
 
   private:
     rts::Point selectionBoxStart_;
 
-    rts::EntityIdList visibleSameType(const rts::World& world, rts::EntityId entity);
+    rts::EntityIdList visibleSameType(const rts::World& w, rts::EntityId entity);
   };
 }

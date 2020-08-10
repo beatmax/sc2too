@@ -11,38 +11,37 @@
 
 using namespace rts;
 
-void test::execCommand(rts::World& world, rts::SideId side, rts::Command command) {
+void test::execCommand(rts::World& w, rts::SideId side, rts::Command command) {
   WorldActionList actions;
   addCommand(actions, side, std::move(command));
-  world.update(actions);
+  w.update(actions);
 }
 
-void test::select(rts::World& world, rts::SideId side, rts::EntityIdList entities) {
-  execCommand(
-      world, side, rts::command::Selection{rts::command::Selection::Set, std::move(entities)});
+void test::select(rts::World& w, rts::SideId side, rts::EntityIdList entities) {
+  execCommand(w, side, rts::command::Selection{rts::command::Selection::Set, std::move(entities)});
 }
 
-test::MoveStepList test::runMove(World& world, Entity& entity, Point target, GameTime timeout) {
-  execCommand(world, entity.side, rts::command::TriggerAbility{MoveAbilityId, target});
-  return continueMove(world, entity, timeout);
+test::MoveStepList test::runMove(World& w, Entity& entity, Point target, GameTime timeout) {
+  execCommand(w, entity.side, rts::command::TriggerAbility{MoveAbilityId, target});
+  return continueMove(w, entity, timeout);
 }
 
-test::MoveStepList test::continueMove(World& world, Entity& entity, GameTime timeout) {
-  auto ai{world.entityTypes[entity.type].abilityIndex(MoveAbilityId)};
+test::MoveStepList test::continueMove(World& w, Entity& entity, GameTime timeout) {
+  auto ai{w[entity.type].abilityIndex(MoveAbilityId)};
   REQUIRE(ai != EntityAbilityIndex::None);
   AbilityState& moveAbilityState{entity.abilityStates[ai]};
 
   MoveStepList result;
-  result.emplace_back(entity.area.topLeft, world.time);
+  result.emplace_back(entity.area.topLeft, w.time);
 
-  while (moveAbilityState.active() && world.time < timeout) {
-    ++world.time;
-    world.update(entity.step(world));
+  while (moveAbilityState.active() && w.time < timeout) {
+    ++w.time;
+    w.update(entity.step(w));
     if (entity.area.topLeft != result.back().first)
-      result.emplace_back(entity.area.topLeft, world.time);
+      result.emplace_back(entity.area.topLeft, w.time);
   }
 
-  if (MoveStep{entity.area.topLeft, world.time} != result.back())
-    result.emplace_back(entity.area.topLeft, world.time);
+  if (MoveStep{entity.area.topLeft, w.time} != result.back())
+    result.emplace_back(entity.area.topLeft, w.time);
   return result;
 }

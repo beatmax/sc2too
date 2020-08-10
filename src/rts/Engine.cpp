@@ -1,8 +1,8 @@
 #include "rts/Engine.h"
 
 template<typename Clock>
-rts::EngineBase<Clock>::EngineBase(World& world, GameSpeed speed)
-  : world_{world}, initialGameSpeed_{speed} {
+rts::EngineBase<Clock>::EngineBase(World& w, GameSpeed speed)
+  : world_{w}, initialGameSpeed_{speed} {
   gameSpeed(initialGameSpeed_);
   targetFps(DefaultTargetFps);
   frameDuration_ = targetFrameDuration_;

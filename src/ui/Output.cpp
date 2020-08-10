@@ -75,17 +75,17 @@ namespace ui {
       initWins(ios);
     }
 
-    void drawResourceQuantities(const IOState& ios, const rts::World& world, const Player& player) {
+    void drawResourceQuantities(const IOState& ios, const rts::World& w, const Player& player) {
       int x = dim::defaultWinWidth;
-      const rts::ResourceMap& resources{world.sides[player.side].resources()};
+      const rts::ResourceMap& resources{w[player.side].resources()};
       for (auto it = resources.rbegin(); it != resources.rend(); ++it) {
         x -= 10;
         mvwprintw(ios.headerWin, 0, x, "%c: %u", repr(*it->first), it->second);
       }
     }
 
-    void drawGameTime(const IOState& ios, const rts::Engine& engine, const rts::World& world) {
-      auto tsec = world.time / engine.initialGameSpeed();
+    void drawGameTime(const IOState& ios, const rts::Engine& engine, const rts::World& w) {
+      auto tsec = w.time / engine.initialGameSpeed();
       mvwprintw(ios.controlWin, 0, 0, "%02d:%02d:%02d", tsec / 3600, (tsec / 60) % 60, tsec % 60);
     }
 
@@ -112,9 +112,9 @@ void ui::Output::init() {
   initWins(ios_);
 }
 
-void ui::Output::update(const rts::Engine& engine, const rts::World& world, const Player& player) {
+void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Player& player) {
   const auto& camera{player.camera};
-  const auto& side{world.sides[player.side]};
+  const auto& side{w[player.side]};
 
   if (termResized) {
     termResized = false;
@@ -128,18 +128,18 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& world, cons
   grid(ios_.renderWin);
 
 #ifdef MAP_DEBUG
-  mapDebug(ios_.renderWin, world, camera);
+  mapDebug(ios_.renderWin, w, camera);
 #endif
 
   highlight(
       ios_.renderWin, camera, ios_.clickedTarget,
       ios_.clickedButton ? graph::red() : graph::yellow());
-  render(ios_.renderWin, world, camera, side.selection());
+  render(ios_.renderWin, w, camera, side.selection());
   if (player.selectionBox)
     drawBoundingBox(ios_.renderWin, camera, *player.selectionBox, graph::green());
 
-  drawResourceQuantities(ios_, world, player);
-  drawGameTime(ios_, engine, world);
+  drawResourceQuantities(ios_, w, player);
+  drawGameTime(ios_, engine, w);
   drawGameSpeed(ios_, engine);
   drawFps(ios_, engine);
 

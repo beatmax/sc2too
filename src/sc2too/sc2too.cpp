@@ -13,11 +13,11 @@
 #include <iostream>
 
 namespace {
-  std::vector<rts::SideId> makeSides(rts::World& world) {
+  std::vector<rts::SideId> makeSides(rts::World& w) {
     std::vector<rts::SideId> sides;
     const auto& resources = sc2::Resources::initialResources();
     for (int n = 0; n <= 1; ++n)
-      sides.push_back(world.createSide(resources, std::make_unique<ui::SideUi>(n)));
+      sides.push_back(w.createSide(resources, std::make_unique<ui::SideUi>(n)));
     return sides;
   }
 }

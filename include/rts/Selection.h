@@ -10,10 +10,10 @@
 namespace rts {
   class Selection {
   public:
-    void set(const World& world, EntityIdList ids);
-    void add(const World& world, EntityIdList ids);
+    void set(const World& w, EntityIdList ids);
+    void add(const World& w, EntityIdList ids);
     void remove(const EntityIdList& ids);
-    EntityCPtrList items(const World& world) const;
+    EntityCPtrList items(const World& w) const;
     bool contains(EntityId id) const { return list_.contains(id); }
 
   private:

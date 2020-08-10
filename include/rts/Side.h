@@ -14,7 +14,7 @@ namespace rts {
     explicit Side(ResourceMap resources, UiUPtr ui)
       : resources_{std::move(resources)}, ui_{std::move(ui)} {}
 
-    void exec(const World& world, const Command& cmd);
+    void exec(const World& w, const Command& cmd);
     Selection& selection() { return selection_; }
     const Selection& selection() const { return selection_; }
     const ResourceMap& resources() const { return resources_; }
@@ -26,9 +26,9 @@ namespace rts {
     const Ui& ui() const { return *ui_; }
 
   private:
-    void exec(const World& world, const command::TriggerAbility& cmd);
-    void exec(const World& world, const command::TriggerDefaultAbility& cmd);
-    void exec(const World& world, const command::Selection& cmd);
+    void exec(const World& w, const command::TriggerAbility& cmd);
+    void exec(const World& w, const command::TriggerDefaultAbility& cmd);
+    void exec(const World& w, const command::Selection& cmd);
 
     ResourceMap resources_;
     Selection selection_;

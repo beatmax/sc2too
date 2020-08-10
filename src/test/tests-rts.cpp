@@ -43,39 +43,42 @@ TEST_CASE("Hello world!", "[rts]") {
 
   REQUIRE(cworld.map.maxX() == 40);
   REQUIRE(cworld.map.maxY() == 10);
-  REQUIRE(isFree(cworld.map.at(9, 1)));
-  REQUIRE(hasBlocker(cworld.map.at(10, 1)));
-  REQUIRE(hasBlocker(cworld.map.at(11, 1)));
-  REQUIRE(hasBlocker(cworld.map.at(12, 1)));
-  REQUIRE(test::repr(cworld.blockerAt({12, 1}).ui) == 'r');
-  REQUIRE(isFree(cworld.map.at(13, 1)));
+  REQUIRE(cworld.map(9, 1).empty());
+  REQUIRE(cworld.map(10, 1).contains(Cell::Blocker));
+  REQUIRE(cworld.map(11, 1).contains(Cell::Blocker));
+  REQUIRE(cworld.map(12, 1).contains(Cell::Blocker));
+  REQUIRE(test::repr(cworld.blocker({12, 1})->ui) == 'r');
+  REQUIRE(cworld.map(13, 1).empty());
 
   const Rectangle buildingArea{Point{37, 6}, rts::Vector{2, 3}};
-  REQUIRE(hasEntity(cworld.map.at(buildingArea.topLeft)));
-  Entity& building{world.entityAt(buildingArea.topLeft)};
-  REQUIRE(building.area == buildingArea);
-  REQUIRE(test::repr(building.ui) == 'b');
+  REQUIRE(cworld[buildingArea.topLeft].contains(Cell::Entity));
+  Entity* building{world.entity(buildingArea.topLeft)};
+  REQUIRE(building->area == buildingArea);
+  REQUIRE(test::repr(building->ui) == 'b');
   forEachPoint(buildingArea, [&](Point p) {
-    REQUIRE(hasEntity(cworld.map.at(p)));
-    REQUIRE(&world.entityAt(p) == &building);
+    auto* e{cworld.entity(p)};
+    REQUIRE(e != nullptr);
+    REQUIRE(e == building);
   });
 
   const Rectangle geyserArea{Point{30, 0}, rts::Vector{2, 2}};
-  REQUIRE(hasResourceField(cworld.map.at(geyserArea.topLeft)));
-  const ResourceField& geyser{cworld.resourceFieldAt(geyserArea.topLeft)};
-  REQUIRE(geyser.area == geyserArea);
-  REQUIRE(test::repr(geyser.ui) == 'g');
+  REQUIRE(cworld[geyserArea.topLeft].contains(Cell::ResourceField));
+  const ResourceField* geyser{cworld.resourceField(geyserArea.topLeft)};
+  REQUIRE(geyser != nullptr);
+  REQUIRE(geyser->area == geyserArea);
+  REQUIRE(test::repr(geyser->ui) == 'g');
   forEachPoint(geyserArea, [&](Point p) {
-    REQUIRE(hasResourceField(cworld.map.at(p)));
-    REQUIRE(&cworld.resourceFieldAt(p) == &geyser);
+    auto* rf{cworld.resourceField(p)};
+    REQUIRE(rf != nullptr);
+    REQUIRE(rf == geyser);
   });
 
   SECTION("An entity is added to the world") {
     Point pos{20, 5};
     EntityId eid{test::Factory::simpleton(world, pos, test::Side1Id)};
-    REQUIRE(hasEntity(cworld.map.at(pos)));
-    Entity& e{world.entityAt(pos)};
-    const Entity& ce{cworld.entityAt(pos)};
+    REQUIRE(cworld[pos].contains(Cell::Entity));
+    Entity& e{*world.entity(pos)};
+    const Entity& ce{*cworld.entity(pos)};
     REQUIRE(ce.area.topLeft == pos);
     REQUIRE(test::repr(ce.ui) == 's');
     REQUIRE(test::Ui::count['s'] == 1);
@@ -83,7 +86,7 @@ TEST_CASE("Hello world!", "[rts]") {
     SECTION("The entity is destroyed") {
       pos = ce.area.topLeft;
       world.destroy(eid);
-      REQUIRE(isFree(cworld.map.at(pos)));
+      REQUIRE(cworld[pos].empty());
       REQUIRE(test::Ui::count['s'] == 0);
     }
 
@@ -111,8 +114,8 @@ TEST_CASE("Hello world!", "[rts]") {
           Point prevPos{pos};
           --pos.y;
           REQUIRE(ce.area.topLeft == pos);
-          REQUIRE(isFree(cworld.map.at(prevPos)));
-          REQUIRE(hasEntity(cworld.map.at(pos)));
+          REQUIRE(cworld[prevPos].empty());
+          REQUIRE(cworld[pos].contains(Cell::Entity));
           if (pos != targetPos) {
             REQUIRE(moveAbilityState.active());
             REQUIRE(moveAbilityState.nextStepTime() == world.time + GameTimeSecond);
@@ -133,7 +136,7 @@ TEST_CASE("Hello world!", "[rts]") {
 
         pos = ce.area.topLeft;
         world.destroy(eid);
-        REQUIRE(isFree(cworld.map.at(pos)));
+        REQUIRE(cworld[pos].empty());
         REQUIRE(test::Ui::count['s'] == 0);
 
         world.update(actions);
@@ -147,26 +150,23 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(test::Ui::count['b'] == 1);
 
     EntityId eid{test::Factory::building(world, area.topLeft, test::Side1Id)};
-    const Entity& ce{cworld.entityAt(area.topLeft)};
+    const Entity& ce{*cworld.entity(area.topLeft)};
     REQUIRE(ce.area == area);
     REQUIRE(test::repr(ce.ui) == 'b');
     REQUIRE(test::Ui::count['b'] == 2);
 
     const Rectangle outRect{area.topLeft - rts::Vector{1, 1}, area.size + rts::Vector{2, 2}};
     forEachPoint(outRect, [&](Point p) {
-      if (area.contains(p)) {
-        REQUIRE(hasEntity(cworld.map.at(p)));
-        REQUIRE(&cworld.entityAt(p) == &ce);
-      }
-      else {
-        REQUIRE(isFree(cworld.map.at(p)));
-      }
+      if (area.contains(p))
+        REQUIRE(cworld.entity(p) == &ce);
+      else
+        REQUIRE(cworld[p].empty());
     });
 
     SECTION("The multi-cell entity is destroyed") {
       world.destroy(eid);
       REQUIRE(test::Ui::count['b'] == 1);
-      forEachPoint(area, [&](Point p) { REQUIRE(isFree(cworld.map.at(p))); });
+      forEachPoint(area, [&](Point p) { (cworld[p].empty()); });
     }
   }
 
@@ -456,7 +456,7 @@ TEST_CASE("Hello world!", "[rts]") {
       REQUIRE(
           test::runMove(world, entity, Point{23, 5}, 350) ==
           test::MoveStepList{{{20, 5}, 0}, {{20, 5}, 350}});
-      world.destroy(world.entityAt({21, 5}));
+      world.destroy(world.entityId({21, 5}));
       REQUIRE(
           test::continueMove(world, entity, 550) ==
           test::MoveStepList{{{20, 5}, 350}, {{21, 5}, 500}, {{21, 5}, 550}});
@@ -466,7 +466,7 @@ TEST_CASE("Hello world!", "[rts]") {
       REQUIRE(
           test::continueMove(world, entity, 750) ==
           test::MoveStepList{{{21, 5}, 550}, {{21, 5}, 750}});
-      world.destroy(world.entityAt({22, 5}));
+      world.destroy(world.entityId({22, 5}));
       REQUIRE(
           test::continueMove(world, entity) ==
           test::MoveStepList{{{21, 5}, 750}, {{22, 5}, 900}, {{23, 5}, 1000}});

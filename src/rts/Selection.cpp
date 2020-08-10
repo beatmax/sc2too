@@ -2,18 +2,18 @@
 
 #include "rts/World.h"
 
-void rts::Selection::set(const World& world, EntityIdList ids) {
-  list_.set(world.entities, std::move(ids));
+void rts::Selection::set(const World& w, EntityIdList ids) {
+  list_.set(w.entities, std::move(ids));
 }
 
-void rts::Selection::add(const World& world, EntityIdList ids) {
-  list_.add(world.entities, std::move(ids));
+void rts::Selection::add(const World& w, EntityIdList ids) {
+  list_.add(w.entities, std::move(ids));
 }
 
 void rts::Selection::remove(const EntityIdList& ids) {
   list_.remove(ids);
 }
 
-rts::EntityCPtrList rts::Selection::items(const World& world) const {
-  return list_.items(world.entities);
+rts::EntityCPtrList rts::Selection::items(const World& w) const {
+  return list_.items(w.entities);
 }

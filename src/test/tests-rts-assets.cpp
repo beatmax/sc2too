@@ -19,11 +19,11 @@ const std::string test::map{
     "                  r                     \n"  // 9
 };
 
-std::vector<rts::SideId> test::makeSides(rts::World& world) {
+std::vector<rts::SideId> test::makeSides(rts::World& w) {
   std::vector<rts::SideId> sides;
   const rts::ResourceMap resources{{&gas, 0}};
-  sides.push_back(world.createSide(resources, std::make_unique<Ui>('1')));
-  sides.push_back(world.createSide(resources, std::make_unique<Ui>('2')));
+  sides.push_back(w.createSide(resources, std::make_unique<Ui>('1')));
+  sides.push_back(w.createSide(resources, std::make_unique<Ui>('2')));
   return sides;
 }
 
@@ -47,16 +47,16 @@ rts::BlockerId test::Factory::rock(rts::World& w, rts::Point p) {
   return w.createBlocker(p, rts::Vector{1, 1}, std::make_unique<Ui>('r'));
 }
 
-void test::MapInitializer::operator()(rts::World& world, rts::Point p, char c) const {
+void test::MapInitializer::operator()(rts::World& w, rts::Point p, char c) const {
   switch (c) {
     case 'b':
-      Factory::building(world, p, Side1Id);
+      Factory::building(w, p, Side1Id);
       break;
     case 'g':
-      Factory::geyser(world, p);
+      Factory::geyser(w, p);
       break;
     case 'r':
-      Factory::rock(world, p);
+      Factory::rock(w, p);
       break;
   }
 }

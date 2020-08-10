@@ -3,6 +3,8 @@
 #include "SpriteMatrix.h"
 #include "dim.h"
 #include "rts/Entity.h"
+#include "rts/Selection.h"
+#include "rts/World.h"
 #include "ui/Sprite.h"
 #include "util/geo.h"
 
@@ -22,9 +24,8 @@ namespace ui {
 
     ScreenRect toScreenRect(const Camera& camera, const rts::Rectangle& area) {
       const rts::Vector relativeTopLeft{area.topLeft - camera.topLeft()};
-      return {
-          ScreenPoint{0, 0} + toScreenVector(relativeTopLeft),
-          toScreenVector(area.size) - ScreenVector{1, 1}};
+      return {ScreenPoint{0, 0} + toScreenVector(relativeTopLeft),
+              toScreenVector(area.size) - ScreenVector{1, 1}};
     }
 
     void draw(WINDOW* win, const Camera& camera, const rts::WorldObject& object) {
@@ -110,17 +111,17 @@ void ui::grid(WINDOW* win) {
 }
 
 void ui::render(
-    WINDOW* win, const rts::World& world, const Camera& camera, const rts::Selection& selection) {
+    WINDOW* win, const rts::World& w, const Camera& camera, const rts::Selection& selection) {
   const auto& topLeft = camera.topLeft();
   const auto& bottomRight = camera.bottomRight();
 
-  auto selectedItems{selection.items(world)};
+  auto selectedItems{selection.items(w)};
   const std::set<rts::WorldObjectCPtr> selectedObjects{selectedItems.begin(), selectedItems.end()};
 
   std::set<rts::WorldObjectCPtr> visibleObjects;
   for (rts::Coordinate cellY = topLeft.y; cellY < bottomRight.y; ++cellY) {
     for (rts::Coordinate cellX = topLeft.x; cellX < bottomRight.x; ++cellX) {
-      if (auto obj = world.objectPtrAt({cellX, cellY}))
+      if (auto obj = w.object({cellX, cellY}))
         visibleObjects.insert(obj);
     }
   }
@@ -156,13 +157,13 @@ void ui::drawBoundingBox(WINDOW* win, const Camera& camera, const rts::Rectangle
 }
 
 #ifdef MAP_DEBUG
-void ui::mapDebug(WINDOW* win, const rts::World& world, const Camera& camera) {
+void ui::mapDebug(WINDOW* win, const rts::World& w, const Camera& camera) {
   const auto& topLeft = camera.topLeft();
   const auto& bottomRight = camera.bottomRight();
 
   for (rts::Coordinate cellY = topLeft.y; cellY < bottomRight.y; ++cellY) {
     for (rts::Coordinate cellX = topLeft.x; cellX < bottomRight.x; ++cellX) {
-      if (auto color{world.map.at(cellX, cellY).debug.color}; color)
+      if (auto color{w.map(cellX, cellY).debug.color}; color)
         highlight(win, camera, rts::Point{cellX, cellY}, COLOR_PAIR(color));
     }
   }
