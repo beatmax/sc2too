@@ -13,6 +13,8 @@
 #include "util/Pool.h"
 
 #include <memory>
+#include <set>
+#include <utility>
 
 namespace rts {
 
@@ -102,6 +104,10 @@ namespace rts {
     const WorldObject* object(const Cell& c) const { return const_cast<World&>(*this).object(c); }
     WorldObject* object(Point p) { return object(map[p]); }
     const WorldObject* object(Point p) const { return object(map[p]); }
+
+    std::set<WorldObjectCPtr> objectsInArea(const Rectangle& area) const;
+    EntityIdList entitiesInArea(
+        const Rectangle& area, SideId side = {}, EntityTypeId type = {}) const;
 
   private:
     void update(const action::CommandAction& action);

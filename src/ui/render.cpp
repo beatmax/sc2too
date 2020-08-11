@@ -112,21 +112,10 @@ void ui::grid(WINDOW* win) {
 
 void ui::render(
     WINDOW* win, const rts::World& w, const Camera& camera, const rts::Selection& selection) {
-  const auto& topLeft = camera.topLeft();
-  const auto& bottomRight = camera.bottomRight();
-
   auto selectedItems{selection.items(w)};
   const std::set<rts::WorldObjectCPtr> selectedObjects{selectedItems.begin(), selectedItems.end()};
 
-  std::set<rts::WorldObjectCPtr> visibleObjects;
-  for (rts::Coordinate cellY = topLeft.y; cellY < bottomRight.y; ++cellY) {
-    for (rts::Coordinate cellX = topLeft.x; cellX < bottomRight.x; ++cellX) {
-      if (auto obj = w.object({cellX, cellY}))
-        visibleObjects.insert(obj);
-    }
-  }
-
-  for (rts::WorldObjectCPtr obj : visibleObjects) {
+  for (rts::WorldObjectCPtr obj : w.objectsInArea(camera.area())) {
     draw(win, camera, *obj);
     if (selectedObjects.find(obj) != selectedObjects.end())
       drawBoundingBox(win, camera, obj->area, graph::green());

@@ -50,6 +50,28 @@ rts::WorldObject* rts::World::object(const Cell& c) {
   return std::visit([this](auto id) { return objectPtr(*this, id); }, c.content);
 }
 
+std::set<rts::WorldObjectCPtr> rts::World::objectsInArea(const Rectangle& area) const {
+  std::set<WorldObjectCPtr> result;
+  forEachPoint(area, [&](Point p) {
+    if (auto obj{object(p)})
+      result.insert(obj);
+  });
+  return result;
+}
+
+rts::EntityIdList rts::World::entitiesInArea(
+    const Rectangle& area, SideId side, EntityTypeId type) const {
+  EntityIdList result;
+  forEachPoint(area, [&](Point p) {
+    if (auto eId{entityId(p)}) {
+      const auto& e{entities[eId]};
+      if ((!side || e.side == side) && (!type || e.type == type))
+        result.push_back(eId);
+    }
+  });
+  return result;
+}
+
 void rts::World::update(const action::CommandAction& action) {
   sides[action.sideId].exec(*this, action.command);
 }

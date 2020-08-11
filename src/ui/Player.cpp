@@ -5,6 +5,8 @@
 #include "rts/World.h"
 #include "util/geo.h"
 
+#include <utility>
+
 namespace ui {
   namespace {
     int scrollKeyCnt{0};
@@ -45,72 +47,75 @@ namespace ui {
 }
 
 std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const InputEvent& event) {
-  if (event.type == InputType::KeyPress || event.type == InputType::KeyRelease) {
-    if (auto scrollDirection{keyScrollDirection(event.symbol)})
-      processKeyScrollEvent(event.type, scrollDirection, camera);
-  }
-  else if (event.type == InputType::EdgeScroll && !scrollKeyCnt) {
-    camera.setMoveDirection(scrollDirectionVector(event.scrollDirection));
-  }
-  else if (event.type == InputType::MousePress && event.mouseCell) {
-    auto mouseCell{*event.mouseCell};
+  using RC = rts::RelativeContent;
+  using SelectionCmd = rts::command::Selection;
 
-    if (event.mouseButton == InputButton::Button1) {
-      using RC = rts::RelativeContent;
-      using SelectionCmd = rts::command::Selection;
+  switch (event.type) {
+    case InputType::Unknown:
+      break;
+    case InputType::KeyPress:
+    case InputType::KeyRelease:
+      if (auto scrollDirection{keyScrollDirection(event.symbol)})
+        processKeyScrollEvent(event.type, scrollDirection, camera);
+      break;
+    case InputType::MousePress:
+      if (event.mouseCell) {
+        auto mouseCell{*event.mouseCell};
 
-      auto rc{w.relativeContent(side, mouseCell)};
-      if (rc == RC::Friend) {
-        auto entity{w.entityId(mouseCell)};
-        auto entities{(event.state & ControlPressed) ? visibleSameType(w, entity)
-                                                     : rts::EntityIdList{entity}};
-        if (event.state & ShiftPressed) {
-          bool alreadySelected{w[side].selection().contains(entity)};
-          return SelectionCmd{alreadySelected ? SelectionCmd::Remove : SelectionCmd::Add, entities};
+        if (event.mouseButton == InputButton::Button1) {
+          auto rc{w.relativeContent(side, mouseCell)};
+          if (rc == RC::Friend) {
+            auto entity{w.entityId(mouseCell)};
+            auto entities{
+                (event.state & ControlPressed) ? visibleSameType(w, entity)
+                                               : rts::EntityIdList{entity}};
+            if (event.state & ShiftPressed) {
+              bool alreadySelected{w[side].selection().contains(entity)};
+              return SelectionCmd{
+                  alreadySelected ? SelectionCmd::Remove : SelectionCmd::Add, entities};
+            }
+            else {
+              return SelectionCmd{SelectionCmd::Set, std::move(entities)};
+            }
+          }
+          else if (rc == RC::Ground) {
+            selectionBox = {mouseCell, {1, 1}};
+            selectionBoxStart_ = mouseCell;
+          }
+          else if (!(event.state & ShiftPressed)) {
+            return SelectionCmd{SelectionCmd::Set, {}};
+          }
         }
-        else {
-          return SelectionCmd{SelectionCmd::Set, entities};
+        else if (event.mouseButton == InputButton::Button3) {
+          return rts::command::TriggerDefaultAbility{mouseCell};
         }
       }
-      else if (rc == RC::Ground) {
-        selectionBox = {mouseCell, {1, 1}};
-        selectionBoxStart_ = mouseCell;
+      break;
+    case InputType::MouseRelease:
+      if (selectionBox && event.mouseButton == InputButton::Button1) {
+        auto entities{w.entitiesInArea(*selectionBox, side)};
+        selectionBox.reset();
+        return SelectionCmd{
+            (event.state & ShiftPressed) ? SelectionCmd::Add : SelectionCmd::Set,
+            std::move(entities)};
       }
-      else if (!(event.state & ShiftPressed)) {
-        return SelectionCmd{SelectionCmd::Set, {}};
+      break;
+    case InputType::MousePosition:
+      if (selectionBox && event.mouseCell) {
+        selectionBox = util::geo::fixNegativeSize(
+            {selectionBoxStart_, *event.mouseCell - selectionBoxStart_ + rts::Vector{1, 1}});
       }
-    }
-    else if (event.mouseButton == InputButton::Button3) {
-      return rts::command::TriggerDefaultAbility{mouseCell};
-    }
-  }
-  else if (event.type == InputType::MouseRelease && event.mouseButton == InputButton::Button1) {
-    selectionBox.reset();
-  }
-  else if (event.type == InputType::MousePosition && selectionBox && event.mouseCell) {
-    auto mouseCell{*event.mouseCell};
-    selectionBox = util::geo::fixNegativeSize(
-        {selectionBoxStart_, mouseCell - selectionBoxStart_ + rts::Vector{1, 1}});
+      break;
+    case InputType::EdgeScroll:
+      if (!scrollKeyCnt)
+        camera.setMoveDirection(scrollDirectionVector(event.scrollDirection));
+      break;
   }
 
   return std::nullopt;
 }
 
 rts::EntityIdList ui::Player::visibleSameType(const rts::World& w, rts::EntityId entity) {
-  rts::EntityIdList result;
   const auto type{w[entity].type};
-  const auto& topLeft = camera.topLeft();
-  const auto& bottomRight = camera.bottomRight();
-
-  for (rts::Coordinate cellY = topLeft.y; cellY < bottomRight.y; ++cellY) {
-    for (rts::Coordinate cellX = topLeft.x; cellX < bottomRight.x; ++cellX) {
-      if (auto eId{w.entityId({cellX, cellY})}) {
-        const auto& e{w[eId]};
-        if (e.type == type && e.side == side)
-          result.push_back(eId);
-      }
-    }
-  }
-
-  return result;
+  return w.entitiesInArea(camera.area(), side, type);
 }
