@@ -46,6 +46,10 @@ namespace ui {
   constexpr InputState ShiftPressed{0b0001};
   constexpr InputState ControlPressed{0b0100};
   constexpr InputState AltPressed{0b1000};
+  constexpr InputState Button1Pressed{0b0000100000000};
+  constexpr InputState Button2Pressed{0b0001000000000};
+  constexpr InputState Button3Pressed{0b0010000000000};
+  constexpr InputState ButtonMask{0b0011100000000};
 
   enum class InputButton { Unknown, Button1, Button2, Button3 };
 
@@ -62,5 +66,7 @@ namespace ui {
     InputButton mouseButton;
     std::optional<rts::Point> mouseCell;
     ScrollDirection scrollDirection;
+
+    operator bool() const { return type != InputType::Unknown; }
   };
 }

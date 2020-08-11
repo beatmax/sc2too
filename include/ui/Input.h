@@ -20,6 +20,8 @@ namespace ui {
     bool processKbInput(rts::Engine& engine, const InputEvent& event);
     bool processMouseInput(const InputEvent& event);
     InputEvent nextMouseEvent(const Camera& camera);
+    InputEvent xMouseEvent();
+    InputEvent edgeScrollEvent();
 
     IOState& ios_;
   };

@@ -2,15 +2,16 @@
 
 #include "ui/InputEvent.h"
 
-#include <optional>
-
 namespace ui::X {
   void init();
   void finish();
-  void captureInput();
+  void grabInput();
+  void releaseInput();
   bool pendingEvent();
   InputEvent nextEvent();
-  std::optional<InputEvent> pointerEvent();
+  void updatePointerState();
 
+  extern unsigned int displayWidth, displayHeight;
+  extern int pointerX, pointerY;
   extern InputState inputState;
 }

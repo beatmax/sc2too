@@ -133,7 +133,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
 
   highlight(
       ios_.renderWin, camera, ios_.clickedTarget,
-      ios_.clickedButton ? graph::red() : graph::yellow());
+      ios_.mouseButtons ? graph::red() : graph::yellow());
   render(ios_.renderWin, w, camera, side.selection());
   if (player.selectionBox)
     drawBoundingBox(ios_.renderWin, camera, *player.selectionBox, graph::green());
@@ -163,7 +163,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
     mvwprintw(
         ios_.headerWin, 0, 32, "(%d, %d) - (%d, %d) : (%d, %d) : %d", camera.topLeft().x,
         camera.topLeft().y, camera.bottomRight().x, camera.bottomRight().y, ios_.mousePosition.x,
-        ios_.mousePosition.y, ios_.clickedButton);
+        ios_.mousePosition.y, ios_.mouseButtons);
   }
 
   for (auto* win : allWins)

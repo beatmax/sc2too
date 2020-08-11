@@ -20,6 +20,6 @@ namespace ui {
     bool quit{false};
     rts::Point clickedTarget{-1, -1};
     rts::Point mousePosition{-1, -1};
-    int clickedButton{0};
+    unsigned mouseButtons{0};
   };
 }
