@@ -104,6 +104,23 @@ namespace ui {
       mvwprintw(win.w, 7, 0, "%u FPS", engine.fps());
     }
 
+    void drawControlGroups(const IOState& ios, const rts::World& w, const rts::Side& side) {
+      const auto& win{ios.controlWin};
+      for (rts::ControlGroupId g{0}; g < rts::MaxControlGroups; ++g) {
+        if (auto n{side.group(g).ids(w).size()}) {
+          auto col{g ? g : 10};
+          wattrset(win.w, graph::blue());
+          mvwaddch(win.w, 0, 20 + 6 * col, '[');
+          wattrset(win.w, graph::white());
+          wprintw(win.w, "%d", g);
+          wattrset(win.w, graph::green());
+          wprintw(win.w, "%3d", n);
+          wattrset(win.w, graph::blue());
+          waddch(win.w, ']');
+        }
+      }
+    }
+
     void drawSelection(const IOState& ios, const rts::World& w, const rts::Selection& selection) {
       const auto& win{ios.controlWin};
       wattrset(win.w, graph::green());
@@ -173,6 +190,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   drawGameTime(ios_, engine, w);
   drawGameSpeed(ios_, engine);
   drawFps(ios_, engine);
+  drawControlGroups(ios_, w, side);
   drawSelection(ios_, w, side.selection());
 
   if (termTooSmall) {
