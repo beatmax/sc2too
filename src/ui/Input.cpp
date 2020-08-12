@@ -141,14 +141,10 @@ bool ui::Input::processMouseInput(const InputEvent& event) {
   if (event.mouseCell)
     ios_.mousePosition = *event.mouseCell;
 
-  if (event.mouseButton == InputButton::Button1) {
-    if (event.type == InputType::MousePress) {
-      // on some terminals ncurses gets stuck if motion reporting is enabled before a click
-      initMouseMotionReporting();
-    }
-    else if (event.type == InputType::MouseRelease) {
-      finishMouseMotionReporting();
-    }
+  if (event.type == InputType::MousePress) {
+    // on some terminals ncurses gets stuck if motion reporting is enabled before a click;
+    // do not disable it on MouseRelease (has strange effects on some other terminals)
+    initMouseMotionReporting();
   }
 
   return false;
