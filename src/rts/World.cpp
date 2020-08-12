@@ -64,9 +64,11 @@ rts::EntityIdList rts::World::entitiesInArea(
   EntityIdList result;
   forEachPoint(area, [&](Point p) {
     if (auto eId{entityId(p)}) {
-      const auto& e{entities[eId]};
-      if ((!side || e.side == side) && (!type || e.type == type))
-        result.push_back(eId);
+      if (std::find(result.begin(), result.end(), eId) == result.end()) {
+        const auto& e{entities[eId]};
+        if ((!side || e.side == side) && (!type || e.type == type))
+          result.push_back(eId);
+      }
     }
   });
   return result;
