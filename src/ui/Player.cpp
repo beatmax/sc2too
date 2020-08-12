@@ -47,13 +47,23 @@ namespace ui {
 }
 
 std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const InputEvent& event) {
-  using RC = rts::RelativeContent;
+  using ControlGroupCmd = rts::command::ControlGroup;
   using SelectionCmd = rts::command::Selection;
+  using RC = rts::RelativeContent;
 
   switch (event.type) {
     case InputType::Unknown:
       break;
     case InputType::KeyPress:
+      if (int digit{getDigit(event.symbol)}; digit >= 0) {
+        return ControlGroupCmd{(event.state & ShiftPressed)
+                                   ? ControlGroupCmd::Add
+                                   : (event.state & (ControlPressed | AltPressed))
+                                       ? ControlGroupCmd::Set
+                                       : ControlGroupCmd::Select,
+                               bool(event.state & AltPressed), rts::ControlGroupId(digit)};
+      }
+      // pass-through
     case InputType::KeyRelease:
       if (auto scrollDirection{keyScrollDirection(event.symbol)})
         processKeyScrollEvent(event.type, scrollDirection, camera);
@@ -66,13 +76,12 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
           auto rc{w.relativeContent(side, mouseCell)};
           if (rc == RC::Friend) {
             auto entity{w.entityId(mouseCell)};
-            auto entities{
-                (event.state & ControlPressed) ? visibleSameType(w, entity)
-                                               : rts::EntityIdList{entity}};
+            auto entities{(event.state & ControlPressed) ? visibleSameType(w, entity)
+                                                         : rts::EntityIdList{entity}};
             if (event.state & ShiftPressed) {
               bool alreadySelected{w[side].selection().contains(entity)};
-              return SelectionCmd{
-                  alreadySelected ? SelectionCmd::Remove : SelectionCmd::Add, entities};
+              return SelectionCmd{alreadySelected ? SelectionCmd::Remove : SelectionCmd::Add,
+                                  entities};
             }
             else {
               return SelectionCmd{SelectionCmd::Set, std::move(entities)};
@@ -95,9 +104,8 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
       if (selectionBox && event.mouseButton == InputButton::Button1) {
         auto entities{w.entitiesInArea(*selectionBox, side)};
         selectionBox.reset();
-        return SelectionCmd{
-            (event.state & ShiftPressed) ? SelectionCmd::Add : SelectionCmd::Set,
-            std::move(entities)};
+        return SelectionCmd{(event.state & ShiftPressed) ? SelectionCmd::Add : SelectionCmd::Set,
+                            std::move(entities)};
       }
       break;
     case InputType::MousePosition:

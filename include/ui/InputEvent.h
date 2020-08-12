@@ -39,8 +39,24 @@ namespace ui {
     Control_L,
     Control_R,
     Alt_L,
-    Alt_R
+    Alt_R,
+    Digit_0,
+    Digit_1,
+    Digit_2,
+    Digit_3,
+    Digit_4,
+    Digit_5,
+    Digit_6,
+    Digit_7,
+    Digit_8,
+    Digit_9
   };
+
+  inline int getDigit(InputKeySym symbol) {
+    return (symbol >= InputKeySym::Digit_0 && symbol <= InputKeySym::Digit_9)
+        ? int(symbol) - int(InputKeySym::Digit_0)
+        : -1;
+  }
 
   using InputState = unsigned int;
   constexpr InputState ShiftPressed{0b0001};

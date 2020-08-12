@@ -7,6 +7,17 @@
 namespace rts {
 
   namespace command {
+    struct ControlGroup {
+      enum { Select, Set, Add } action;
+      bool exclusive;
+      ControlGroupId group;
+    };
+
+    struct Selection {
+      enum { Set, Add, Remove } action;
+      EntityIdList entities;
+    };
+
     struct TriggerAbility {
       AbilityId ability;
       Point target;
@@ -15,13 +26,11 @@ namespace rts {
     struct TriggerDefaultAbility {
       Point target;
     };
-
-    struct Selection {
-      enum { Set, Add, Remove } action;
-      EntityIdList entities;
-    };
   }
 
-  using Command =
-      std::variant<command::TriggerAbility, command::TriggerDefaultAbility, command::Selection>;
+  using Command = std::variant<
+      command::ControlGroup,
+      command::Selection,
+      command::TriggerAbility,
+      command::TriggerDefaultAbility>;
 }

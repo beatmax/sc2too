@@ -472,4 +472,52 @@ TEST_CASE("Hello world!", "[rts]") {
           test::MoveStepList{{{21, 5}, 750}, {{22, 5}, 900}, {{23, 5}, 1000}});
     }
   }
+
+  SECTION("Control groups") {
+    using ControlGroupCmd = command::ControlGroup;
+    constexpr bool NonExclusive{false};
+    constexpr bool Exclusive{true};
+    auto groupEntities = [&](ControlGroupId g) { return side1.group(g).ids(world); };
+    auto selectedEntities = [&]() { return side1.selection().ids(world); };
+
+    EntityId e1{test::Factory::simpleton(world, Point{21, 5}, test::Side1Id)};
+    EntityId e2{test::Factory::simpleton(world, Point{22, 5}, test::Side1Id)};
+    EntityId e3{test::Factory::simpleton(world, Point{23, 5}, test::Side1Id)};
+
+    test::select(world, test::Side1Id, {e1, e2, e3});
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Set, NonExclusive, 1});
+    REQUIRE(groupEntities(1) == EntityIdList{e1, e2, e3});
+    REQUIRE(groupEntities(2) == EntityIdList{});
+
+    test::select(world, test::Side1Id, {e2, e3});
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Set, NonExclusive, 2});
+    REQUIRE(groupEntities(1) == EntityIdList{e1, e2, e3});
+    REQUIRE(groupEntities(2) == EntityIdList{e2, e3});
+
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Set, Exclusive, 3});
+    REQUIRE(groupEntities(1) == EntityIdList{e1});
+    REQUIRE(groupEntities(2) == EntityIdList{});
+    REQUIRE(groupEntities(3) == EntityIdList{e2, e3});
+
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Add, NonExclusive, 1});
+    REQUIRE(groupEntities(1) == EntityIdList{e1, e2, e3});
+    REQUIRE(groupEntities(2) == EntityIdList{});
+    REQUIRE(groupEntities(3) == EntityIdList{e2, e3});
+
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Add, Exclusive, 2});
+    REQUIRE(groupEntities(1) == EntityIdList{e1});
+    REQUIRE(groupEntities(2) == EntityIdList{e2, e3});
+    REQUIRE(groupEntities(3) == EntityIdList{});
+
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 1});
+    REQUIRE(selectedEntities() == EntityIdList{e1});
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 2});
+    REQUIRE(selectedEntities() == EntityIdList{e2, e3});
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 3});
+    REQUIRE(selectedEntities() == EntityIdList{});
+
+    REQUIRE(groupEntities(1) == EntityIdList{e1});
+    REQUIRE(groupEntities(2) == EntityIdList{e2, e3});
+    REQUIRE(groupEntities(3) == EntityIdList{});
+  }
 }

@@ -14,6 +14,10 @@ void rts::Selection::remove(const EntityIdList& ids) {
   list_.remove(ids);
 }
 
+rts::EntityIdList rts::Selection::ids(const World& w) const {
+  return list_.lock(w.entities);
+}
+
 rts::EntityCPtrList rts::Selection::items(const World& w) const {
   return list_.items(w.entities);
 }

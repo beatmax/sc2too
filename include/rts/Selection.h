@@ -13,6 +13,7 @@ namespace rts {
     void set(const World& w, EntityIdList ids);
     void add(const World& w, EntityIdList ids);
     void remove(const EntityIdList& ids);
+    EntityIdList ids(const World& w) const;
     EntityCPtrList items(const World& w) const;
     bool contains(EntityId id) const { return list_.contains(id); }
 

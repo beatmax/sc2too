@@ -37,6 +37,7 @@ namespace rts {
   using AbilityId = util::PoolObjectId<Ability>;
   using BlockerId = util::PoolObjectId<Blocker>;
   using BlockerWId = util::PoolObjectWeakId<Blocker>;
+  using ControlGroupId = uint8_t;
   using EntityId = util::PoolObjectId<Entity>;
   using EntityWId = util::PoolObjectWeakId<Entity>;
   using EntityCPtr = const Entity*;

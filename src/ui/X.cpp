@@ -44,7 +44,17 @@ namespace {
                                                     {XK_Control_R, ui::InputKeySym::Control_R},
                                                     {XK_Alt_L, ui::InputKeySym::Alt_L},
                                                     {XK_Alt_R, ui::InputKeySym::Alt_R},
-                                                    {XK_ISO_Level3_Shift, ui::InputKeySym::Alt_R}};
+                                                    {XK_ISO_Level3_Shift, ui::InputKeySym::Alt_R},
+                                                    {XK_0, ui::InputKeySym::Digit_0},
+                                                    {XK_1, ui::InputKeySym::Digit_1},
+                                                    {XK_2, ui::InputKeySym::Digit_2},
+                                                    {XK_3, ui::InputKeySym::Digit_3},
+                                                    {XK_4, ui::InputKeySym::Digit_4},
+                                                    {XK_5, ui::InputKeySym::Digit_5},
+                                                    {XK_6, ui::InputKeySym::Digit_6},
+                                                    {XK_7, ui::InputKeySym::Digit_7},
+                                                    {XK_8, ui::InputKeySym::Digit_8},
+                                                    {XK_9, ui::InputKeySym::Digit_9}};
 
   const std::map<KeySym, ui::InputState> keysymMod{
       {XK_Shift_L, ui::ShiftPressed},       {XK_Shift_R, ui::ShiftPressed},
