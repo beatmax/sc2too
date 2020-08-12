@@ -9,6 +9,8 @@
 #include "util/geo.h"
 
 namespace ui {
+  class Sprite;
+
   using ScreenPoint = util::geo::Point;
   using ScreenVector = util::geo::Vector;
   using ScreenRect = util::geo::Rectangle;

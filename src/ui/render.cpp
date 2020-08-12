@@ -1,6 +1,5 @@
 #include "render.h"
 
-#include "SpriteMatrix.h"
 #include "dim.h"
 #include "graph.h"
 #include "rts/Entity.h"
@@ -36,14 +35,7 @@ namespace ui {
       const ScreenRect drawRect{toScreenRect(camera, visibleArea)};
       const ScreenVector topLeftInSprite{toScreenVector(visibleArea.topLeft - object.area.topLeft)};
 
-      const SpriteMatrix& matrix{sprite.matrix()};
-      ScreenVector v{0, 0};
-      for (; v.y < drawRect.size.y; ++v.y) {
-        const auto sp{topLeftInSprite + v};
-        mvwadd_wchnstr(
-            win.w, drawRect.topLeft.y + v.y, drawRect.topLeft.x, &matrix(sp.y, sp.x),
-            drawRect.size.x);
-      }
+      graph::drawSprite(win, sprite, drawRect, topLeftInSprite);
     }
   }
 }

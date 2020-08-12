@@ -36,7 +36,7 @@ int main() try {
   world.map.load(world, sc2::Assets::mapInitializer(), std::ifstream{"data/maps/ascii_jungle.txt"});
   ui::Player player{sides[0], ui::Camera{{0, 0}, {world.map.maxX(), world.map.maxY()}}};
 
-  forEachPoint(rts::Rectangle{{20, 11}, {2, 3}}, [&](rts::Point p) {
+  forEachPoint(rts::Rectangle{{20, 11}, {6, 6}}, [&](rts::Point p) {
     auto probe{sc2::Factory::probe(world, p, sides[0])};
     world.sides[sides[0]].selection().add(world, {probe});
   });

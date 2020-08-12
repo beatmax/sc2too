@@ -21,9 +21,13 @@ namespace sc2::ui {
     const ::ui::Sprite& sprite(const rts::ResourceField&) const final;
   };
 
-  struct NexusType : rts::Ui {};
+  struct NexusType : ::ui::IconUi<rts::EntityType> {
+    const ::ui::Icon& icon() const final;
+  };
 
-  struct ProbeType : rts::Ui {};
+  struct ProbeType : ::ui::IconUi<rts::EntityType> {
+    const ::ui::Icon& icon() const final;
+  };
 
   struct Nexus : Entity {
     using Entity::Entity;

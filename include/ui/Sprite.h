@@ -29,6 +29,10 @@ namespace ui {
     std::unique_ptr<SpriteMatrix> matrix_;
   };
 
+  class Icon : public Sprite {
+    using Sprite::Sprite;
+  };
+
   template<typename T>
   class SpriteUi : public rts::Ui {
   public:
@@ -37,8 +41,19 @@ namespace ui {
   };
 
   template<typename T>
+  class IconUi : public rts::Ui {
+  public:
+    virtual const Icon& icon() const = 0;
+  };
+
+  template<typename T>
   inline const Sprite& getSprite(const T& object) {
     return static_cast<const SpriteUi<T>&>(*object.ui).sprite(object);
+  }
+
+  template<typename T>
+  inline const Icon& getIcon(const T& object) {
+    return static_cast<const IconUi<T>&>(*object.ui).icon();
   }
 
   template<typename T>

@@ -1,5 +1,8 @@
 #include "graph.h"
 
+#include "SpriteMatrix.h"
+#include "ui/Sprite.h"
+
 #include <cassert>
 
 namespace ui::graph {
@@ -157,4 +160,18 @@ void ui::graph::drawRect(const Window& win, const ScreenRect& rect) {
   drawHLine(win, {xLeft + 1, yBottom}, rect.size.x - 2);
   drawVLine(win, {xLeft, yTop + 1}, rect.size.y - 2);
   drawVLine(win, {xRight, yTop + 1}, rect.size.y - 2);
+}
+
+void ui::graph::drawSprite(
+    const Window& win,
+    const Sprite& sprite,
+    const ScreenRect& drawRect,
+    const ScreenVector& topLeftInSprite) {
+  const SpriteMatrix& matrix{sprite.matrix()};
+  ScreenVector v{0, 0};
+  for (; v.y < drawRect.size.y; ++v.y) {
+    const auto sp{topLeftInSprite + v};
+    mvwadd_wchnstr(
+        win.w, drawRect.topLeft.y + v.y, drawRect.topLeft.x, &matrix(sp.y, sp.x), drawRect.size.x);
+  }
 }

@@ -37,4 +37,9 @@ namespace ui::graph {
   void drawHLine(const Window& win, ScreenPoint p, int width);
   void drawVLine(const Window& win, ScreenPoint p, int height);
   void drawRect(const Window& win, const ScreenRect& rect);
+  void drawSprite(
+      const Window& win,
+      const Sprite& sprite,
+      const ScreenRect& drawRect,
+      const ScreenVector& topLeftInSprite);
 }

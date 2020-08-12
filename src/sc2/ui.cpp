@@ -16,6 +16,16 @@ const ::ui::Sprite& sc2::ui::MineralPatch::sprite(const rts::ResourceField&) con
   return sprite;
 }
 
+const ::ui::Icon& sc2::ui::NexusType::icon() const {
+  static const auto& icon{Assets::getIcon("nexus")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::ProbeType::icon() const {
+  static const auto& icon{Assets::getIcon("probe")};
+  return icon;
+}
+
 const ::ui::Sprite& sc2::ui::Nexus::sprite(const rts::Entity&) const {
   static const auto& sprite{Assets::getSprite("nexus")};
   return sprite;

@@ -9,6 +9,7 @@
 #include "rts/Engine.h"
 #include "rts/World.h"
 #include "ui/ResourceUi.h"
+#include "ui/Sprite.h"
 
 #include <signal.h>
 #include <sstream>
@@ -85,16 +86,47 @@ namespace ui {
     }
 
     void drawGameTime(const IOState& ios, const rts::Engine& engine, const rts::World& w) {
+      const auto& win{ios.controlWin};
       auto tsec = w.time / engine.initialGameSpeed();
-      mvwprintw(ios.controlWin.w, 0, 0, "%02d:%02d:%02d", tsec / 3600, (tsec / 60) % 60, tsec % 60);
+      wattrset(win.w, graph::green());
+      mvwprintw(win.w, 0, 0, "%02d:%02d:%02d", tsec / 3600, (tsec / 60) % 60, tsec % 60);
     }
 
     void drawGameSpeed(const IOState& ios, const rts::Engine& engine) {
-      mvwprintw(ios.controlWin.w, 1, 0, "Speed: %d (F11/F12)", engine.gameSpeed());
+      const auto& win{ios.controlWin};
+      wattrset(win.w, graph::magenta());
+      mvwprintw(ios.controlWin.w, 8, 0, "Speed: %d (F11/F12)", engine.gameSpeed());
     }
 
     void drawFps(const IOState& ios, const rts::Engine& engine) {
-      mvwprintw(ios.controlWin.w, 8, 0, "%u FPS", engine.fps());
+      const auto& win{ios.controlWin};
+      wattrset(win.w, graph::magenta());
+      mvwprintw(win.w, 7, 0, "%u FPS", engine.fps());
+    }
+
+    void drawSelection(const IOState& ios, const rts::World& w, const rts::Selection& selection) {
+      const auto& win{ios.controlWin};
+      wattrset(win.w, graph::green());
+
+      int row{0}, col{0};
+      const auto left{40};
+      ScreenRect rect{{left, 2}, {dim::cellWidth, dim::cellHeight}};
+
+      for (auto* e : selection.items(w)) {
+        if (col == 8) {
+          col = 0;
+          rect.topLeft.x = left;
+          rect.topLeft.y += dim::cellHeight + 1;
+          if (++row == 3)
+            break;
+        }
+        graph::drawRect(win, boundingBox(rect));
+        graph::drawSprite(win, getIcon(w[e->type]), rect, {0, 0});
+        rect.topLeft.x += dim::cellWidth + 1;
+        ++col;
+      }
+      if (row == 3)
+        mvwprintw(win.w, rect.topLeft.y, rect.topLeft.x, "...");
     }
   }
 }
@@ -141,6 +173,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   drawGameTime(ios_, engine, w);
   drawGameSpeed(ios_, engine);
   drawFps(ios_, engine);
+  drawSelection(ios_, w, side.selection());
 
   if (termTooSmall) {
     werase(ios_.headerWin.w);
