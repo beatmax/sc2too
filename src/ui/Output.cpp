@@ -11,6 +11,7 @@
 #include "ui/ResourceUi.h"
 #include "ui/Sprite.h"
 
+#include <cassert>
 #include <signal.h>
 #include <sstream>
 #include <stdexcept>
@@ -145,6 +146,29 @@ namespace ui {
       if (row == 3)
         mvwprintw(win.w, rect.topLeft.y, rect.topLeft.x, "...");
     }
+
+    void drawAbilities(const IOState& ios, const rts::World& w, const rts::Selection& selection) {
+      const auto& win{ios.controlWin};
+      wattrset(win.w, graph::lightGreen());
+
+      const auto& entities{selection.items(w)};
+      if (entities.empty())
+        return;
+      const auto& abilities{w[entities.front()->type].abilities};
+
+      for (int row{0}; row < 3; ++row) {
+        for (int col{0}; col < 5; ++col) {
+          rts::EntityAbilityIndex ea(row * 3 + col);
+          assert(ea < rts::MaxEntityAbilities);
+          if (auto a{abilities[ea].abilityId}) {
+            ScreenRect rect{{84 + col * (dim::cellWidth + 1), 2 + row * (dim::cellHeight + 1)},
+                            {dim::cellWidth, dim::cellHeight}};
+            graph::drawRect(win, boundingBox(rect));
+            graph::drawSprite(win, getIcon(w[a]), rect, {0, 0});
+          }
+        }
+      }
+    }
   }
 }
 
@@ -192,6 +216,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   drawFps(ios_, engine);
   drawControlGroups(ios_, w, side);
   drawSelection(ios_, w, side.selection());
+  drawAbilities(ios_, w, side.selection());
 
   if (termTooSmall) {
     werase(ios_.headerWin.w);

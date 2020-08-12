@@ -5,7 +5,17 @@
 #include <vector>
 
 namespace ui::graph {
-  enum class ColorPair : int { Red = 1, Green, Yellow, Blue, Magenta, Cyan, White, DarkGrey = 237 };
+  enum class ColorPair : int {
+    Red = 1,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    LightGreen = 10,
+    DarkGrey = 237
+  };
 
   inline int red() { return COLOR_PAIR(ColorPair::Red); }
   inline int green() { return COLOR_PAIR(ColorPair::Green); }
@@ -14,6 +24,7 @@ namespace ui::graph {
   inline int magenta() { return COLOR_PAIR(ColorPair::Magenta); }
   inline int cyan() { return COLOR_PAIR(ColorPair::Cyan); }
   inline int white() { return COLOR_PAIR(ColorPair::White); }
+  inline int lightGreen() { return COLOR_PAIR(ColorPair::LightGreen); }
   inline int darkGrey() { return COLOR_PAIR(ColorPair::DarkGrey); }
 
   enum class BoxSegment : int {

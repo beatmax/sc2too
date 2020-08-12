@@ -20,7 +20,7 @@ TEST_CASE("Hello world!", "[rts]") {
   const World& cworld{world};
 
   REQUIRE(world.abilities.emplace(std::make_unique<test::Ui>('m')) == test::MoveAbilityId);
-  REQUIRE(test::repr(world.abilities[test::MoveAbilityId].ui()) == 'm');
+  REQUIRE(test::repr(world.abilities[test::MoveAbilityId].ui) == 'm');
 
   REQUIRE(world.entityTypes.emplace(std::make_unique<test::Ui>('S')) == test::SimpletonTypeId);
   REQUIRE(world.entityTypes.emplace(std::make_unique<test::Ui>('B')) == test::BuildingTypeId);

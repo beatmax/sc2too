@@ -12,11 +12,9 @@ namespace rts {
 
   class Ability {
   public:
-    explicit Ability(UiUPtr ui) : ui_{std::move(ui)} {}
-    const Ui& ui() const { return *ui_; }
+    UiUPtr ui;
 
-  private:
-    UiUPtr ui_;
+    explicit Ability(UiUPtr ui) : ui{std::move(ui)} {}
   };
 
   struct AbilityInstance {

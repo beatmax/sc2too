@@ -40,3 +40,8 @@ const ::ui::Sprite& sc2::ui::Rock::sprite(const rts::Blocker&) const {
   static const auto& sprite{Assets::getSprite("rock")};
   return sprite;
 }
+
+const ::ui::Icon& sc2::ui::MoveAbility::icon() const {
+  static const auto& icon{Assets::getIcon("move")};
+  return icon;
+}
