@@ -2,20 +2,15 @@
 
 #include "Menu.h"
 #include "rts/types.h"
-
-#ifdef HAS_NCURSESW_NCURSES_H
-#include <ncursesw/ncurses.h>
-#else
-#include <ncurses.h>
-#endif
+#include "types.h"
 
 namespace ui {
   struct IOState {
     Menu menu;
 
-    WINDOW* headerWin{nullptr};
-    WINDOW* renderWin{nullptr};
-    WINDOW* controlWin{nullptr};
+    Window headerWin;
+    Window renderWin;
+    Window controlWin;
 
     bool quit{false};
     rts::Point clickedTarget{-1, -1};

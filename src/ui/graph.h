@@ -1,10 +1,6 @@
 #pragma once
 
-#ifdef HAS_NCURSESW_NCURSES_H
-#include <ncursesw/ncurses.h>
-#else
-#include <ncurses.h>
-#endif
+#include "types.h"
 
 #include <vector>
 
@@ -36,6 +32,9 @@ namespace ui::graph {
   };
 
   void init();
-  void drawBorders(const std::vector<WINDOW*>& windows);
-  void drawBoxSegment(WINDOW* win, int y, int x, BoxSegment segment);
+  void drawBorders(const std::vector<const Window*>& windows);
+  void drawBoxSegment(const Window& win, int y, int x, BoxSegment segment);
+  void drawHLine(const Window& win, ScreenPoint p, int width);
+  void drawVLine(const Window& win, ScreenPoint p, int height);
+  void drawRect(const Window& win, const ScreenRect& rect);
 }

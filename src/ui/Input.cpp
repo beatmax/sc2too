@@ -159,8 +159,8 @@ ui::InputEvent ui::Input::nextMouseEvent(const Camera& camera) {
     return ievent;
   }
 
-  if (wenclose(ios_.renderWin, event.y, event.x) &&
-      wmouse_trafo(ios_.renderWin, &event.y, &event.x, false)) {
+  if (wenclose(ios_.renderWin.w, event.y, event.x) &&
+      wmouse_trafo(ios_.renderWin.w, &event.y, &event.x, false)) {
     mouseCell = camera.area().topLeft +
         rts::Vector{event.x / (dim::cellWidth + 1), event.y / (dim::cellHeight + 1)};
   }

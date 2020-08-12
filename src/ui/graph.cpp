@@ -16,26 +16,18 @@ namespace ui::graph {
       }
     }
 
-    void drawBordersNoBottom(WINDOW* win, int ulChar, int urChar) {
-      int begY, begX, maxY, maxX;
-      getbegyx(win, begY, begX);
-      getmaxyx(win, maxY, maxX);
-
-      mvaddch(begY - 1, begX - 1, ulChar);
-      hline(0, maxX);
-      mvaddch(begY - 1, begX + maxX, urChar);
-      mvvline(begY, begX - 1, 0, maxY);
-      mvvline(begY, begX + maxX, 0, maxY);
+    void drawBordersNoBottom(const Window& win, int ulChar, int urChar) {
+      mvaddch(win.beginY - 1, win.beginX - 1, ulChar);
+      hline(0, win.maxX);
+      mvaddch(win.beginY - 1, win.beginX + win.maxX, urChar);
+      mvvline(win.beginY, win.beginX - 1, 0, win.maxY);
+      mvvline(win.beginY, win.beginX + win.maxX, 0, win.maxY);
     }
 
-    void drawBottomBorder(WINDOW* win) {
-      int begY, begX, maxY, maxX;
-      getbegyx(win, begY, begX);
-      getmaxyx(win, maxY, maxX);
-
-      mvaddch(begY + maxY, begX - 1, ACS_LLCORNER);
-      hline(0, maxX);
-      mvaddch(begY + maxY, begX + maxX, ACS_LRCORNER);
+    void drawBottomBorder(const Window& win) {
+      mvaddch(win.beginY + win.maxY, win.beginX - 1, ACS_LLCORNER);
+      hline(0, win.maxX);
+      mvaddch(win.beginY + win.maxY, win.beginX + win.maxX, ACS_LRCORNER);
     }
 
     BoxSegment wcharToSegment(wchar_t wch) {
@@ -108,21 +100,61 @@ void ui::graph::init() {
   initColors();
 }
 
-void ui::graph::drawBorders(const std::vector<WINDOW*>& windows) {
+void ui::graph::drawBorders(const std::vector<const Window*>& windows) {
   attrset(white() | A_BOLD);
   auto it = windows.begin();
   if (it == windows.end())
     return;
-  drawBordersNoBottom(*it++, ACS_ULCORNER, ACS_URCORNER);
+  drawBordersNoBottom(**it++, ACS_ULCORNER, ACS_URCORNER);
   while (it != windows.end())
-    drawBordersNoBottom(*it++, ACS_LTEE, ACS_RTEE);
-  drawBottomBorder(windows.back());
+    drawBordersNoBottom(**it++, ACS_LTEE, ACS_RTEE);
+  drawBottomBorder(*windows.back());
 }
 
-void ui::graph::drawBoxSegment(WINDOW* win, int y, int x, BoxSegment segment) {
+void ui::graph::drawBoxSegment(const Window& win, int y, int x, BoxSegment segment) {
   wchar_t wch[2];
-  if (mvwinnwstr(win, y, x, wch, 1) != ERR)
+  if (mvwinnwstr(win.w, y, x, wch, 1) != ERR)
     segment = BoxSegment(int(segment) | int(wcharToSegment(wch[0])));
   wch[0] = segmentToWchar(segment);
-  waddnwstr(win, wch, 1);
+  waddnwstr(win.w, wch, 1);
+}
+
+void ui::graph::drawHLine(const Window& win, ScreenPoint p, int width) {
+  if (p.y >= 0 && p.y < win.maxY) {
+    auto begin{std::max(0, int(p.x))};
+    auto end{std::min(int(p.x + width), win.maxX)};
+    for (auto x{begin}; x < end; ++x)
+      graph::drawBoxSegment(win, p.y, x, graph::BoxSegment::HLine);
+  }
+}
+
+void ui::graph::drawVLine(const Window& win, ScreenPoint p, int height) {
+  if (p.x >= 0 && p.x < win.maxX) {
+    auto begin{std::max(0, int(p.y))};
+    auto end{std::min(int(p.y + height), win.maxY)};
+    for (auto y{begin}; y < end; ++y)
+      graph::drawBoxSegment(win, y, p.x, graph::BoxSegment::VLine);
+  }
+}
+
+void ui::graph::drawRect(const Window& win, const ScreenRect& rect) {
+  const ScreenPoint bottomRight{rect.topLeft + rect.size - ScreenVector{1, 1}};
+  const auto& [xLeft, yTop] = rect.topLeft;
+  const auto& [xRight, yBottom] = bottomRight;
+  if (yTop >= 0) {
+    if (xLeft >= 0)
+      graph::drawBoxSegment(win, yTop, xLeft, graph::BoxSegment::ULCorner);
+    if (xRight < win.maxX)
+      graph::drawBoxSegment(win, yTop, xRight, graph::BoxSegment::URCorner);
+  }
+  if (yBottom < win.maxY) {
+    if (xLeft >= 0)
+      graph::drawBoxSegment(win, yBottom, xLeft, graph::BoxSegment::LLCorner);
+    if (xRight < win.maxX)
+      graph::drawBoxSegment(win, yBottom, xRight, graph::BoxSegment::LRCorner);
+  }
+  drawHLine(win, {xLeft + 1, yTop}, rect.size.x - 2);
+  drawHLine(win, {xLeft + 1, yBottom}, rect.size.x - 2);
+  drawVLine(win, {xLeft, yTop + 1}, rect.size.y - 2);
+  drawVLine(win, {xRight, yTop + 1}, rect.size.y - 2);
 }
