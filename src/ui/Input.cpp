@@ -20,12 +20,11 @@ namespace {
   void initMouse() {
     mouseinterval(0);
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
-
-    // mouse motion reporting
-    printf("\033[?1003h\n");
   }
 
-  void finishMouse() { printf("\033[?1003l\n"); }
+  void initMouseMotionReporting() { printf("\033[?1003h\n"); };
+  void finishMouseMotionReporting() { printf("\033[?1003l\n"); }
+  void finishMouse() { finishMouseMotionReporting(); }
 
   rts::Point getTarget(const std::optional<rts::Command>& cmd) {
     if (cmd) {
@@ -48,6 +47,7 @@ ui::Input::Input(IOState& ios) : ios_{ios} {
 void ui::Input::init() {
   X::grabInput();
 
+  raw();
   keypad(stdscr, true);
   nodelay(stdscr, true);
   initMouse();
@@ -140,6 +140,17 @@ bool ui::Input::processMouseInput(const InputEvent& event) {
   ios_.mouseButtons = buttons >> 8;
   if (event.mouseCell)
     ios_.mousePosition = *event.mouseCell;
+
+  if (event.mouseButton == InputButton::Button1) {
+    if (event.type == InputType::MousePress) {
+      // on some terminals ncurses gets stuck if motion reporting is enabled before a click
+      initMouseMotionReporting();
+    }
+    else if (event.type == InputType::MouseRelease) {
+      finishMouseMotionReporting();
+    }
+  }
+
   return false;
 }
 

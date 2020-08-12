@@ -102,7 +102,6 @@ namespace ui::graph {
 void ui::graph::init() {
   initscr();
 
-  raw();
   noecho();
   curs_set(0);
 
