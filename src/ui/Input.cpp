@@ -27,13 +27,19 @@ namespace {
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
   }
 
-  void initMouseMotionReporting() { printf("\033[?1003h\n"); }
-  void finishMouseMotionReporting() { printf("\033[?1003l\n"); }
-
-  void finishMouse() {
-    if (motionReportingEnabled)
-      finishMouseMotionReporting();
+  void initMouseMotionReporting() {
+    printf("\033[?1003h\n");
+    motionReportingEnabled = true;
   }
+
+  void finishMouseMotionReporting() {
+    if (motionReportingEnabled) {
+      printf("\033[?1003l\n");
+      motionReportingEnabled = false;
+    }
+  }
+
+  void finishMouse() { finishMouseMotionReporting(); }
 
   rts::Point getTarget(const std::optional<rts::Command>& cmd) {
     if (cmd) {

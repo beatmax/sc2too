@@ -158,7 +158,7 @@ namespace ui {
 
       for (int row{0}; row < 3; ++row) {
         for (int col{0}; col < 5; ++col) {
-          rts::EntityAbilityIndex ea(row * 3 + col);
+          rts::EntityAbilityIndex ea(row * 5 + col);
           assert(ea < rts::MaxEntityAbilities);
           if (auto a{type.abilities[ea].abilityId}) {
             ScreenRect rect{{84 + col * (dim::cellWidth + 1), 2 + row * (dim::cellHeight + 1)},
