@@ -17,8 +17,12 @@ void test::execCommand(rts::World& w, rts::SideId side, rts::Command command) {
   w.update(actions);
 }
 
-void test::select(rts::World& w, rts::SideId side, rts::EntityIdList entities) {
-  execCommand(w, side, rts::command::Selection{rts::command::Selection::Set, std::move(entities)});
+void test::select(
+    rts::World& w,
+    rts::SideId side,
+    rts::EntityIdList entities,
+    rts::command::Selection::Action action) {
+  execCommand(w, side, rts::command::Selection{action, std::move(entities)});
 }
 
 test::MoveStepList test::runMove(World& w, Entity& entity, Point target, GameTime timeout) {

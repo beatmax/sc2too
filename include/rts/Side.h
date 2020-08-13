@@ -19,7 +19,7 @@ namespace rts {
     void exec(const World& w, const Command& cmd);
     Selection& selection() { return selection_; }
     const Selection& selection() const { return selection_; }
-    const Selection& group(ControlGroupId group) const { return groups_[group]; }
+    const Group& group(ControlGroupId group) const { return groups_[group]; }
     const ResourceMap& resources() const { return resources_; }
     Quantity quantity(ResourceCPtr r) const {
       auto it = resources_.find(r);
@@ -33,6 +33,7 @@ namespace rts {
 
     void exec(const World& w, const command::ControlGroup& cmd);
     void exec(const World& w, const command::Selection& cmd);
+    void exec(const World& w, const command::SelectionSubgroup& cmd);
     void exec(const World& w, const command::TriggerAbility& cmd);
     void exec(const World& w, const command::TriggerDefaultAbility& cmd);
 

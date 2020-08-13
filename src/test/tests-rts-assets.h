@@ -13,8 +13,9 @@
 
 namespace test {
   constexpr rts::AbilityId MoveAbilityId{1};
-  constexpr rts::EntityTypeId SimpletonTypeId{1};
-  constexpr rts::EntityTypeId BuildingTypeId{2};
+  constexpr rts::EntityTypeId BuildingTypeId{1};
+  constexpr rts::EntityTypeId SimpletonTypeId{2};
+  constexpr rts::EntityTypeId ThirdyTypeId{3};
   constexpr rts::SideId Side1Id{1};
   constexpr rts::SideId Side2Id{2};
 
@@ -36,8 +37,9 @@ namespace test {
   extern const rts::Resource gas;
 
   struct Factory {
-    static rts::EntityId simpleton(rts::World& w, rts::Point p, rts::SideId sd);
     static rts::EntityId building(rts::World& w, rts::Point p, rts::SideId sd);
+    static rts::EntityId simpleton(rts::World& w, rts::Point p, rts::SideId sd);
+    static rts::EntityId thirdy(rts::World& w, rts::Point p, rts::SideId sd);
     static rts::ResourceFieldId geyser(rts::World& w, rts::Point p);
     static rts::BlockerId rock(rts::World& w, rts::Point p);
   };

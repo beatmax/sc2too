@@ -49,13 +49,18 @@ namespace ui {
 std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const InputEvent& event) {
   using ControlGroupCmd = rts::command::ControlGroup;
   using SelectionCmd = rts::command::Selection;
+  using SelectionSubgroupCmd = rts::command::SelectionSubgroup;
   using RC = rts::RelativeContent;
 
   switch (event.type) {
     case InputType::Unknown:
       break;
     case InputType::KeyPress:
-      if (int digit{getDigit(event.symbol)}; digit >= 0) {
+      if (event.symbol == InputKeySym::Tab) {
+        return SelectionSubgroupCmd{(event.state & ShiftPressed) ? SelectionSubgroupCmd::Previous
+                                                                 : SelectionSubgroupCmd::Next};
+      }
+      else if (int digit{getDigit(event.symbol)}; digit >= 0) {
         return ControlGroupCmd{(event.state & ShiftPressed)
                                    ? ControlGroupCmd::Add
                                    : (event.state & (ControlPressed | AltPressed))

@@ -14,7 +14,7 @@ void rts::Side::exec(const World& w, const command::ControlGroup& cmd) {
 
   switch (cmd.action) {
     case command::ControlGroup::Select:
-      selection_ = group;
+      selection_.set(w, group.ids(w));
       break;
     case command::ControlGroup::Set:
       group = selection_;
@@ -42,6 +42,17 @@ void rts::Side::exec(const World& w, const command::Selection& cmd) {
       break;
     case command::Selection::Remove:
       selection_.remove(cmd.entities);
+      break;
+  }
+}
+
+void rts::Side::exec(const World& w, const command::SelectionSubgroup& cmd) {
+  switch (cmd.action) {
+    case command::SelectionSubgroup::Next:
+      selection_.subgroupNext(w);
+      break;
+    case command::SelectionSubgroup::Previous:
+      selection_.subgroupPrevious(w);
       break;
   }
 }

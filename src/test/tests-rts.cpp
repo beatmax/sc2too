@@ -22,8 +22,8 @@ TEST_CASE("Hello world!", "[rts]") {
   REQUIRE(world.abilities.emplace(std::make_unique<test::Ui>('m')) == test::MoveAbilityId);
   REQUIRE(test::repr(world.abilities[test::MoveAbilityId].ui) == 'm');
 
-  REQUIRE(world.entityTypes.emplace(std::make_unique<test::Ui>('S')) == test::SimpletonTypeId);
   REQUIRE(world.entityTypes.emplace(std::make_unique<test::Ui>('B')) == test::BuildingTypeId);
+  REQUIRE(world.entityTypes.emplace(std::make_unique<test::Ui>('S')) == test::SimpletonTypeId);
   world.entityTypes[test::SimpletonTypeId].abilities[0] =
       abilities::move(test::MoveAbilityId, CellDistance / GameTimeSecond);
 
@@ -473,18 +473,24 @@ TEST_CASE("Hello world!", "[rts]") {
     }
   }
 
-  SECTION("Control groups") {
+  SECTION("Control groups and selection subgroups") {
     using ControlGroupCmd = command::ControlGroup;
+    using SelectionSubgroupCmd = command::SelectionSubgroup;
     constexpr bool NonExclusive{false};
     constexpr bool Exclusive{true};
     auto groupEntities = [&](ControlGroupId g) { return side1.group(g).ids(world); };
     auto selectedEntities = [&]() { return side1.selection().ids(world); };
+    auto subgroupType = [&]() { return side1.selection().subgroupType(world); };
 
     EntityId e1{test::Factory::simpleton(world, Point{21, 5}, test::Side1Id)};
     EntityId e2{test::Factory::simpleton(world, Point{22, 5}, test::Side1Id)};
     EntityId e3{test::Factory::simpleton(world, Point{23, 5}, test::Side1Id)};
 
+    REQUIRE(subgroupType() == EntityTypeId{});
+
     test::select(world, test::Side1Id, {e1, e2, e3});
+    REQUIRE(subgroupType() == test::SimpletonTypeId);
+
     test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Set, NonExclusive, 1});
     REQUIRE(groupEntities(1) == EntityIdList{e1, e2, e3});
     REQUIRE(groupEntities(2) == EntityIdList{});
@@ -515,9 +521,48 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(selectedEntities() == EntityIdList{e2, e3});
     test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 3});
     REQUIRE(selectedEntities() == EntityIdList{});
+    REQUIRE(subgroupType() == EntityTypeId{});
 
     REQUIRE(groupEntities(1) == EntityIdList{e1});
     REQUIRE(groupEntities(2) == EntityIdList{e2, e3});
     REQUIRE(groupEntities(3) == EntityIdList{});
+
+    test::select(world, test::Side1Id, {e1}, command::Selection::Add);
+    REQUIRE(selectedEntities() == EntityIdList{e1});
+    REQUIRE(subgroupType() == test::SimpletonTypeId);
+
+    EntityId b1{world.entities.id(*building)};
+    EntityId t1{test::Factory::thirdy(world, Point{24, 5}, test::Side1Id)};
+    EntityId t2{test::Factory::thirdy(world, Point{25, 5}, test::Side1Id)};
+
+    test::select(world, test::Side1Id, {e2, b1, t2, e1, t1});
+    REQUIRE(selectedEntities() == EntityIdList{b1, e1, e2, t1, t2});
+    REQUIRE(subgroupType() == test::BuildingTypeId);
+
+    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
+    REQUIRE(subgroupType() == test::SimpletonTypeId);
+    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
+    REQUIRE(subgroupType() == test::ThirdyTypeId);
+    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
+    REQUIRE(subgroupType() == test::BuildingTypeId);
+    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Previous});
+    REQUIRE(subgroupType() == test::ThirdyTypeId);
+    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Previous});
+    REQUIRE(subgroupType() == test::SimpletonTypeId);
+
+    world.destroy(e1);
+    REQUIRE(selectedEntities() == EntityIdList{b1, e2, t1, t2});
+    REQUIRE(subgroupType() == test::SimpletonTypeId);
+
+    world.destroy(e2);
+    REQUIRE(selectedEntities() == EntityIdList{b1, t1, t2});
+    REQUIRE(subgroupType() == EntityTypeId{});
+
+    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
+    REQUIRE(subgroupType() == test::BuildingTypeId);
+
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 2});
+    REQUIRE(selectedEntities() == EntityIdList{e3});
+    REQUIRE(subgroupType() == test::SimpletonTypeId);
   }
 }

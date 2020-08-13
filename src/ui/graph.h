@@ -14,6 +14,7 @@ namespace ui::graph {
     Cyan,
     White,
     LightGreen = 10,
+    DarkGreen = 22,
     DarkGrey = 237
   };
 
@@ -25,6 +26,7 @@ namespace ui::graph {
   inline int cyan() { return COLOR_PAIR(ColorPair::Cyan); }
   inline int white() { return COLOR_PAIR(ColorPair::White); }
   inline int lightGreen() { return COLOR_PAIR(ColorPair::LightGreen); }
+  inline int darkGreen() { return COLOR_PAIR(ColorPair::DarkGreen); }
   inline int darkGrey() { return COLOR_PAIR(ColorPair::DarkGrey); }
 
   enum class BoxSegment : int {

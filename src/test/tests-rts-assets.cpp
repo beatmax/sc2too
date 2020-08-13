@@ -31,12 +31,16 @@ std::map<char, int> test::Ui::count;
 
 const rts::Resource test::gas{std::make_unique<Ui>('g')};
 
+rts::EntityId test::Factory::building(rts::World& w, rts::Point p, rts::SideId sd) {
+  return w.createEntity(p, rts::Vector{2, 3}, BuildingTypeId, sd, std::make_unique<Ui>('b'));
+}
+
 rts::EntityId test::Factory::simpleton(rts::World& w, rts::Point p, rts::SideId sd) {
   return w.createEntity(p, rts::Vector{1, 1}, SimpletonTypeId, sd, std::make_unique<Ui>('s'));
 }
 
-rts::EntityId test::Factory::building(rts::World& w, rts::Point p, rts::SideId sd) {
-  return w.createEntity(p, rts::Vector{2, 3}, BuildingTypeId, sd, std::make_unique<Ui>('b'));
+rts::EntityId test::Factory::thirdy(rts::World& w, rts::Point p, rts::SideId sd) {
+  return w.createEntity(p, rts::Vector{1, 1}, ThirdyTypeId, sd, std::make_unique<Ui>('t'));
 }
 
 rts::ResourceFieldId test::Factory::geyser(rts::World& w, rts::Point p) {

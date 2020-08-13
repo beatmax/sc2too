@@ -8,14 +8,18 @@ namespace rts {
 
   namespace command {
     struct ControlGroup {
-      enum { Select, Set, Add } action;
+      enum Action { Select, Set, Add } action;
       bool exclusive;
       ControlGroupId group;
     };
 
     struct Selection {
-      enum { Set, Add, Remove } action;
+      enum Action { Set, Add, Remove } action;
       EntityIdList entities;
+    };
+
+    struct SelectionSubgroup {
+      enum Action { Next, Previous } action;
     };
 
     struct TriggerAbility {
@@ -31,6 +35,7 @@ namespace rts {
   using Command = std::variant<
       command::ControlGroup,
       command::Selection,
+      command::SelectionSubgroup,
       command::TriggerAbility,
       command::TriggerDefaultAbility>;
 }

@@ -43,7 +43,7 @@ namespace util {
       Iterator(AIt end) : it_{end}, end_{end} {}
 
       auto& operator*() { return it_->value; }
-      auto* operator->() { return &it_->value; }
+      auto* operator-> () { return &it_->value; }
       Iterator& operator++() {
         advance();
         return *this;
@@ -69,6 +69,8 @@ namespace util {
     explicit operator bool() const { return idx != 0; }
     bool operator==(PoolObjectId other) const { return idx == other.idx; }
     bool operator!=(PoolObjectId other) const { return idx != other.idx; }
+    bool operator<(PoolObjectId other) const { return idx < other.idx; }
+    bool operator<=(PoolObjectId other) const { return idx <= other.idx; }
   };
 
   template<typename T>

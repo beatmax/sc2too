@@ -21,7 +21,8 @@ namespace {
   ui::InputKeySym uiKeymap[256];
   ui::InputState uiModmap[256]{};
 
-  const std::map<KeySym, ui::InputKeySym> keysymMap{{XK_Escape, ui::InputKeySym::Escape},
+  const std::map<KeySym, ui::InputKeySym> keysymMap{{XK_Tab, ui::InputKeySym::Tab},
+                                                    {XK_Escape, ui::InputKeySym::Escape},
                                                     {XK_Left, ui::InputKeySym::Left},
                                                     {XK_Right, ui::InputKeySym::Right},
                                                     {XK_Up, ui::InputKeySym::Up},

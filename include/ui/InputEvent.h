@@ -17,6 +17,7 @@ namespace ui {
 
   enum class InputKeySym {
     Unknown,
+    Tab,
     Escape,
     Left,
     Right,

@@ -122,9 +122,12 @@ namespace ui {
       }
     }
 
-    void drawSelection(const IOState& ios, const rts::World& w, const rts::Selection& selection) {
+    void drawSelection(
+        const IOState& ios,
+        const rts::World& w,
+        const rts::Selection& selection,
+        rts::EntityTypeId subgroupType) {
       const auto& win{ios.controlWin};
-      wattrset(win.w, graph::green());
 
       int row{0}, col{0};
       const auto left{40};
@@ -138,7 +141,10 @@ namespace ui {
           if (++row == 3)
             break;
         }
+        wattrset(win.w, graph::green());
         graph::drawRect(win, boundingBox(rect));
+        (e->type == subgroupType) ? wattrset(win.w, graph::lightGreen())
+                                  : wattrset(win.w, graph::darkGreen());
         graph::drawSprite(win, getIcon(w[e->type]), rect, {0, 0});
         rect.topLeft.x += dim::cellWidth + 1;
         ++col;
@@ -147,23 +153,19 @@ namespace ui {
         mvwprintw(win.w, rect.topLeft.y, rect.topLeft.x, "...");
     }
 
-    void drawAbilities(const IOState& ios, const rts::World& w, const rts::Selection& selection) {
+    void drawAbilities(const IOState& ios, const rts::World& w, const rts::EntityType& type) {
       const auto& win{ios.controlWin};
-      wattrset(win.w, graph::lightGreen());
-
-      const auto& entities{selection.items(w)};
-      if (entities.empty())
-        return;
-      const auto& abilities{w[entities.front()->type].abilities};
 
       for (int row{0}; row < 3; ++row) {
         for (int col{0}; col < 5; ++col) {
           rts::EntityAbilityIndex ea(row * 3 + col);
           assert(ea < rts::MaxEntityAbilities);
-          if (auto a{abilities[ea].abilityId}) {
+          if (auto a{type.abilities[ea].abilityId}) {
             ScreenRect rect{{84 + col * (dim::cellWidth + 1), 2 + row * (dim::cellHeight + 1)},
                             {dim::cellWidth, dim::cellHeight}};
+            wattrset(win.w, graph::lightGreen());
             graph::drawRect(win, boundingBox(rect));
+            wattrset(win.w, graph::green());
             graph::drawSprite(win, getIcon(w[a]), rect, {0, 0});
           }
         }
@@ -215,8 +217,11 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   drawGameSpeed(ios_, engine);
   drawFps(ios_, engine);
   drawControlGroups(ios_, w, side);
-  drawSelection(ios_, w, side.selection());
-  drawAbilities(ios_, w, side.selection());
+
+  auto subgroupType{side.selection().subgroupType(w)};
+  drawSelection(ios_, w, side.selection(), subgroupType);
+  if (subgroupType)
+    drawAbilities(ios_, w, w[subgroupType]);
 
   if (termTooSmall) {
     werase(ios_.headerWin.w);

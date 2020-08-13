@@ -45,7 +45,7 @@ namespace {
       ++it;
 
     std::map<wchar_t, int> colorMap;
-    for (int n = 1; n <= 9; ++n)
+    for (int n = 0; n <= 9; ++n)
       colorMap[L'0' + n] = n;
     for (; it < lines.end(); ++it) {
       const std::wstring& mapLine{*it};

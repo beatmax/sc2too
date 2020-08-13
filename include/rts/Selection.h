@@ -1,27 +1,20 @@
 #pragma once
 
-#include "constants.h"
-#include "types.h"
-#include "util/WeakList.h"
-
-#include <utility>
-#include <vector>
+#include "Group.h"
 
 namespace rts {
-  class Selection {
+  class Selection : public Group {
   public:
     void set(const World& w, EntityIdList ids);
     void add(const World& w, EntityIdList ids);
-    void remove(const EntityIdList& ids);
-    EntityIdList ids(const World& w) const;
-    EntityCPtrList items(const World& w) const;
-    bool contains(EntityId id) const { return list_.contains(id); }
+
+    EntityTypeId subgroupType(const World& w) const;
+    void subgroupNext(const World& w);
+    void subgroupPrevious(const World& w);
 
   private:
-    struct Compare {
-      bool operator()(const Entity& e1, const Entity& e2) const { return &e1 < &e2; }
-    };
+    void subgroupReset(const World& w);
 
-    util::WeakList<Entity, MaxSideEntities, Compare> list_;
+    mutable EntityTypeId subgroupType_;
   };
 }
