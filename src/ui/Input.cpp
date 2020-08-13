@@ -17,14 +17,23 @@
 #endif
 
 namespace {
+  ui::InputState buttons{};
+  std::optional<rts::Point> mouseCell;
+  ui::ScrollDirection edgeScrollDirection{};
+  bool motionReportingEnabled{false};
+
   void initMouse() {
     mouseinterval(0);
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
   }
 
-  void initMouseMotionReporting() { printf("\033[?1003h\n"); };
+  void initMouseMotionReporting() { printf("\033[?1003h\n"); }
   void finishMouseMotionReporting() { printf("\033[?1003l\n"); }
-  void finishMouse() { finishMouseMotionReporting(); }
+
+  void finishMouse() {
+    if (motionReportingEnabled)
+      finishMouseMotionReporting();
+  }
 
   rts::Point getTarget(const std::optional<rts::Command>& cmd) {
     if (cmd) {
@@ -35,10 +44,6 @@ namespace {
     }
     return {-1, -1};
   }
-
-  ui::InputState buttons{};
-  std::optional<rts::Point> mouseCell;
-  ui::ScrollDirection edgeScrollDirection{};
 }
 
 ui::Input::Input(IOState& ios) : ios_{ios} {
@@ -141,7 +146,7 @@ bool ui::Input::processMouseInput(const InputEvent& event) {
   if (event.mouseCell)
     ios_.mousePosition = *event.mouseCell;
 
-  if (event.type == InputType::MousePress) {
+  if (!motionReportingEnabled && event.type == InputType::MousePress) {
     // on some terminals ncurses gets stuck if motion reporting is enabled before a click;
     // do not disable it on MouseRelease (has strange effects on some other terminals)
     initMouseMotionReporting();
