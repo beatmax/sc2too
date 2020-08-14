@@ -48,6 +48,7 @@ namespace rts {
   using ResourceCPtr = const Resource*;
   using ResourceFieldId = util::PoolObjectId<ResourceField>;
   using ResourceFieldWId = util::PoolObjectWeakId<ResourceField>;
+  using ResourceGroupId = uint32_t;
   using SideId = util::PoolObjectId<Side>;
   using WorldObjectCPtr = const WorldObject*;
 

@@ -1,85 +1,16 @@
 #include "rts/abilities.h"
 
-#include "rts/AbilityState.h"
-#include "rts/Entity.h"
-#include "rts/Path.h"
-#include "rts/World.h"
-#include "rts/dimensions.h"
-#include "rts/types.h"
+#include "Gather.h"
+#include "Move.h"
 
-#include <cassert>
-#include <tuple>
-
-namespace rts {
-  namespace {
-    constexpr GameTime MoveRetryTime{100};
-
-    void addStepAction(
-        const World& w,
-        const Entity& entity,
-        EntityAbilityIndex abilityIndex,
-        WorldActionList& actions) {
-      addAction(actions, action::AbilityStepAction{w.entities.weakId(entity), abilityIndex});
-    }
-  }
-}
-
-namespace rts::abilities::state {
-
-  class Move : public ActiveAbilityStateTpl<Move> {
-  public:
-    explicit Move(Point target, Speed speed) : target_{target}, speed_{speed} {}
-    GameTime step(
-        const World& w,
-        const Entity& entity,
-        EntityAbilityIndex abilityIndex,
-        WorldActionList& actions) final;
-    GameTime stepAction(World& w, Entity& entity) final;
-
-  private:
-    const Point target_;
-    Speed speed_;
-    Path path_;
-    bool completePath_{false};
-  };
-}
-
-rts::GameTime rts::abilities::state::Move::step(
-    const World& w,
-    const Entity& entity,
-    EntityAbilityIndex abilityIndex,
-    WorldActionList& actions) {
-  const Point& pos{entity.area.topLeft};
-
-  if (!path_.empty() && w[path_.front()].empty()) {
-    addStepAction(w, entity, abilityIndex, actions);
-    return GameTimeInf;
-  }
-
-  if (path_.empty() && completePath_)
-    return 0;
-
-  const bool wasEmpty{path_.empty()};
-  std::tie(path_, completePath_) = findPath(w, pos, target_);
-
-  return (wasEmpty && !path_.empty()) ? adjacentDistance(pos, path_.front()) / speed_
-                                      : (path_.empty() && !completePath_) ? MoveRetryTime : 1;
-}
-
-rts::GameTime rts::abilities::state::Move::stepAction(World& w, Entity& entity) {
-  assert(!path_.empty());
-  Point newPos{path_.front()};
-  if (w[newPos].empty()) {
-    path_.pop_front();
-    w.move(entity, newPos);
-    if (path_.empty())
-      return completePath_ ? 0 : 1;
-    else
-      return adjacentDistance(newPos, path_.front()) / speed_;
-  }
-  else {
-    return 1;
-  }
+rts::AbilityInstance rts::abilities::gather(
+    AbilityId ability,
+    AbilityId moveAbility,
+    EntityTypeId baseType,
+    GameTime gatherTime,
+    GameTime deliverTime) {
+  return AbilityInstance{ability,
+                         state::Gather::creator(moveAbility, baseType, gatherTime, deliverTime)};
 }
 
 rts::AbilityInstance rts::abilities::move(AbilityId ability, Speed speed) {

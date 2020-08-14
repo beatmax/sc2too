@@ -42,7 +42,7 @@ int main() try {
   });
 
   rts::Engine engine{world};
-  engine.gameSpeed(rts::GameSpeedNormal);
+  engine.gameSpeed(4 * rts::GameSpeedNormal);
   engine.targetFps(100);
 
   auto processInput = [&](const rts::World& w) { return io.input.process(engine, w, player); };

@@ -14,7 +14,8 @@ namespace ui {
 
     void init();
     void finish();
-    rts::WorldActionList process(rts::Engine& engine, const rts::World& w, Player& player);
+    rts::WorldActionList process(rts::Engine& engine, const rts::World& w, Player& player)
+        __attribute__((warn_unused_result));
 
   private:
     bool processKbInput(rts::Engine& engine, const InputEvent& event);

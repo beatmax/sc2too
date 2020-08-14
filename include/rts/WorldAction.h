@@ -10,7 +10,6 @@
 #include <vector>
 
 namespace rts {
-
   namespace action {
     struct CommandAction {
       SideId sideId;
@@ -21,9 +20,14 @@ namespace rts {
       EntityWId entityWId;
       EntityAbilityIndex abilityIndex;
     };
+
+    struct ResourceFieldReleaseAction {
+      ResourceFieldWId wid;
+    };
   }
 
-  using WorldAction = std::variant<action::CommandAction, action::AbilityStepAction>;
+  using WorldAction = std::
+      variant<action::CommandAction, action::AbilityStepAction, action::ResourceFieldReleaseAction>;
   using WorldActionList = std::vector<WorldAction>;
 
   template<typename T>
@@ -42,4 +46,13 @@ namespace rts {
       actions.push_back(action::CommandAction{side, std::move(*cmd)});
   }
 
+  void addStepAction(
+      const World& w,
+      const Entity& entity,
+      EntityAbilityIndex abilityIndex,
+      WorldActionList& actions);
+
+  inline void addReleaseAction(WorldActionList& actions, ResourceFieldWId wid) {
+    actions.push_back(action::ResourceFieldReleaseAction{wid});
+  }
 }

@@ -1,10 +1,12 @@
 #include "rts/World.h"
 
 #include "rts/Entity.h"
+#include "rts/SemaphoreLock.h"
 #include "rts/WorldAction.h"
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 
 namespace rts {
   namespace {
@@ -15,6 +17,13 @@ namespace rts {
 
     WorldObject* objectPtr(World&, Cell::Empty) { return nullptr; }
   }
+}
+
+rts::World::~World() {
+  for (const auto& e : entities)
+    destroy(e);
+  for (const auto& rf : resourceFields)
+    destroy(rf);
 }
 
 void rts::World::update(const WorldActionList& actions) {
@@ -33,8 +42,15 @@ void rts::World::move(Entity& e, Point p) {
 
 void rts::World::destroy(const Entity& e) {
   assert(map[e.area.topLeft].contains(Cell::Entity));
+  update(e.onDestroy(*this));
   map.setContent(e.area, Cell::Empty{});
   entities.erase(entities.id(e));
+}
+
+void rts::World::destroy(const ResourceField& rf) {
+  assert(map[rf.area.topLeft].contains(Cell::ResourceField));
+  map.setContent(rf.area, Cell::Empty{});
+  resourceFields.erase(resourceFields.id(rf));
 }
 
 rts::RelativeContent rts::World::relativeContent(SideId side, Point p) const {
@@ -74,12 +90,46 @@ rts::EntityIdList rts::World::entitiesInArea(
   return result;
 }
 
+const rts::Entity* rts::World::closestEntity(Point p, SideId side, EntityTypeId type) const {
+  const Entity* closest{nullptr};
+  float closestDistance{std::numeric_limits<float>::infinity()};
+  for (const auto& e : entities) {
+    if (e.side == side && e.type == type) {
+      if (float d{diagonalDistance(p, e.area.center())}; d < closestDistance) {
+        closestDistance = d;
+        closest = &e;
+      }
+    }
+  }
+  return closest;
+}
+
+const rts::ResourceField* rts::World::closestResourceField(
+    Point p, ResourceGroupId group, bool blockedOk) const {
+  const ResourceField* closest{nullptr};
+  float closestDistance{std::numeric_limits<float>::infinity()};
+  for (const auto& rf : resourceFields) {
+    if (rf.group == group && (blockedOk || !rf.sem.blocked())) {
+      if (float d{diagonalDistance(p, rf.area.center())}; d < closestDistance) {
+        closestDistance = d;
+        closest = &rf;
+      }
+    }
+  }
+  return closest;
+}
+
 void rts::World::update(const action::CommandAction& action) {
-  sides[action.sideId].exec(*this, action.command);
+  update(sides[action.sideId].exec(*this, action.command));
 }
 
 void rts::World::update(const action::AbilityStepAction& action) {
   if (auto entity = entities[action.entityWId]) {
     entity->stepAction(*this, action.abilityIndex);
   }
+}
+
+void rts::World::update(const action::ResourceFieldReleaseAction& action) {
+  SemaphoreLock<ResourceField> lock{action.wid, detail::AlreadyLockedT{}};
+  lock.release(*this);
 }

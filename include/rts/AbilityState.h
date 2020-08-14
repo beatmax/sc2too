@@ -2,10 +2,11 @@
 
 #include "Ability.h"
 #include "WorldAction.h"
-#include "dimensions.h"
+#include "constants.h"
 #include "types.h"
 
 #include <memory>
+#include <optional>
 
 namespace rts {
   class ActiveAbilityState;
@@ -25,7 +26,10 @@ namespace rts {
         EntityAbilityIndex abilityIndex,
         WorldActionList& actions);
     void stepAction(World& w, Entity& entity);
-    void cancel();
+    void cancel(const World& w, WorldActionList& actions);
+
+    template<typename T>
+    std::optional<T> state() const;
 
   private:
     GameTime nextStepTime_{GameTimeInf};
@@ -41,6 +45,8 @@ namespace rts {
         EntityAbilityIndex abilityIndex,
         WorldActionList& actions) = 0;
     virtual GameTime stepAction(World& w, Entity& entity) = 0;
+    virtual void cancel(const World& w, WorldActionList& actions) = 0;
+    virtual int state() const = 0;
   };
 
   template<typename Derived>
@@ -53,4 +59,11 @@ namespace rts {
       return [=](Point target) { return std::make_unique<Derived>(target, args...); };
     }
   };
+}
+
+template<typename T>
+std::optional<T> rts::AbilityState::state() const {
+  if (activeState_)
+    return T{activeState_->state()};
+  return std::nullopt;
 }

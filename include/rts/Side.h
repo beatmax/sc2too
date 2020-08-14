@@ -3,6 +3,7 @@
 #include "Command.h"
 #include "Resource.h"
 #include "Selection.h"
+#include "WorldAction.h"
 #include "constants.h"
 #include "types.h"
 
@@ -16,26 +17,23 @@ namespace rts {
     explicit Side(ResourceMap resources, UiUPtr ui)
       : resources_{std::move(resources)}, ui_{std::move(ui)} {}
 
-    void exec(const World& w, const Command& cmd);
+    WorldActionList exec(const World& w, const Command& cmd) __attribute__((warn_unused_result));
     Selection& selection() { return selection_; }
     const Selection& selection() const { return selection_; }
     const Group& group(ControlGroupId group) const { return groups_[group]; }
     const ResourceMap& resources() const { return resources_; }
-    Quantity quantity(ResourceCPtr r) const {
-      auto it = resources_.find(r);
-      assert(it != resources_.end());
-      return it->second;
-    }
+    ResourceBag& bag(ResourceCPtr r) { return resources_[r]; }
+    const ResourceBag& bag(ResourceCPtr r) const { return resources_[r]; }
     const Ui& ui() const { return *ui_; }
 
   private:
     using ControlGroupArray = std::array<Selection, MaxControlGroups>;
 
-    void exec(const World& w, const command::ControlGroup& cmd);
-    void exec(const World& w, const command::Selection& cmd);
-    void exec(const World& w, const command::SelectionSubgroup& cmd);
-    void exec(const World& w, const command::TriggerAbility& cmd);
-    void exec(const World& w, const command::TriggerDefaultAbility& cmd);
+    void exec(const World& w, WorldActionList& actions, const command::ControlGroup& cmd);
+    void exec(const World& w, WorldActionList& actions, const command::Selection& cmd);
+    void exec(const World& w, WorldActionList& actions, const command::SelectionSubgroup& cmd);
+    void exec(const World& w, WorldActionList& actions, const command::TriggerAbility& cmd);
+    void exec(const World& w, WorldActionList& actions, const command::TriggerDefaultAbility& cmd);
 
     ResourceMap resources_;
     Selection selection_;

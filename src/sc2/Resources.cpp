@@ -1,5 +1,6 @@
 #include "sc2/Resources.h"
 
+#include "rts/constants.h"
 #include "ui/ResourceUi.h"
 
 #include <array>
@@ -26,5 +27,7 @@ rts::ResourceCPtr sc2::Resources::supply() {
 }
 
 rts::ResourceMap sc2::Resources::initialResources() {
-  return {{mineral(), 0}, {gas(), 0}, {supply(), 0}};
+  return {{mineral(), 0, rts::QuantityInf},
+          {gas(), 0, rts::QuantityInf},
+          {supply(), 0, rts::QuantityInf}};
 }

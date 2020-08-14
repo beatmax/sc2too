@@ -118,6 +118,7 @@ namespace util {
     void erase(Id id);
 
     Value& operator[](Id id) {
+      assert(id.idx);
       Item& item{items_[id.idx]};
       assert(!item.isFree());
       return item.value;
@@ -125,6 +126,7 @@ namespace util {
     const Value& operator[](Id id) const { return const_cast<Pool&>(*this)[id]; }
 
     Value* operator[](WeakId wid) {
+      assert(wid.idx);
       Item& item{items_[wid.idx]};
       return item.gen == wid.gen ? &item.value : nullptr;
     }

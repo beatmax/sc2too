@@ -3,7 +3,7 @@
 #include "rts/Path.h"
 #include "rts/World.h"
 #include "rts/abilities.h"
-#include "rts/dimensions.h"
+#include "rts/constants.h"
 #include "tests-rts-assets.h"
 #include "tests-rts-util.h"
 #include "tests-util.h"
@@ -34,9 +34,9 @@ TEST_CASE("Hello world!", "[rts]") {
 
   const Side& side1{cworld.sides[test::Side1Id]};
   const Side& side2{cworld.sides[test::Side2Id]};
-  REQUIRE(side1.quantity(&test::gas) == 0);
+  REQUIRE(side1.bag(&test::gas).quantity() == 0);
   REQUIRE(test::repr(side1.ui()) == '1');
-  REQUIRE(side2.quantity(&test::gas) == 0);
+  REQUIRE(side2.bag(&test::gas).quantity() == 0);
   REQUIRE(test::repr(side2.ui()) == '2');
 
   world.map.load(world, test::MapInitializer{}, std::istringstream{test::map});

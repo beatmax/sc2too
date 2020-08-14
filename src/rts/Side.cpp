@@ -4,11 +4,13 @@
 
 #include <cassert>
 
-void rts::Side::exec(const World& w, const Command& cmd) {
-  std::visit([&](auto&& c) { exec(w, c); }, cmd);
+rts::WorldActionList rts::Side::exec(const World& w, const Command& cmd) {
+  WorldActionList actions;
+  std::visit([&](auto&& c) { exec(w, actions, c); }, cmd);
+  return actions;
 }
 
-void rts::Side::exec(const World& w, const command::ControlGroup& cmd) {
+void rts::Side::exec(const World& w, WorldActionList& actions, const command::ControlGroup& cmd) {
   assert(cmd.group < MaxControlGroups);
   Selection& group{groups_[cmd.group]};
 
@@ -32,7 +34,7 @@ void rts::Side::exec(const World& w, const command::ControlGroup& cmd) {
   }
 }
 
-void rts::Side::exec(const World& w, const command::Selection& cmd) {
+void rts::Side::exec(const World& w, WorldActionList& actions, const command::Selection& cmd) {
   switch (cmd.action) {
     case command::Selection::Set:
       selection_.set(w, cmd.entities);
@@ -46,7 +48,8 @@ void rts::Side::exec(const World& w, const command::Selection& cmd) {
   }
 }
 
-void rts::Side::exec(const World& w, const command::SelectionSubgroup& cmd) {
+void rts::Side::exec(
+    const World& w, WorldActionList& actions, const command::SelectionSubgroup& cmd) {
   switch (cmd.action) {
     case command::SelectionSubgroup::Next:
       selection_.subgroupNext(w);
@@ -57,16 +60,17 @@ void rts::Side::exec(const World& w, const command::SelectionSubgroup& cmd) {
   }
 }
 
-void rts::Side::exec(const World& w, const command::TriggerAbility& cmd) {
+void rts::Side::exec(const World& w, WorldActionList& actions, const command::TriggerAbility& cmd) {
   for (auto entity : selection_.items(w))
-    entity->trigger(cmd.ability, w, cmd.target);
+    addActions(actions, entity->trigger(cmd.ability, w, cmd.target));
 }
 
-void rts::Side::exec(const World& w, const command::TriggerDefaultAbility& cmd) {
+void rts::Side::exec(
+    const World& w, WorldActionList& actions, const command::TriggerDefaultAbility& cmd) {
   for (auto entity : selection_.items(w)) {
     const auto& entityType{w.entityTypes[entity->type]};
     auto rc{w.relativeContent(w.sides.id(*this), cmd.target)};
     if (auto a{entityType.defaultAbility[size_t(rc)]})
-      entity->trigger(a, w, cmd.target);
+      addActions(actions, entity->trigger(a, w, cmd.target));
   }
 }

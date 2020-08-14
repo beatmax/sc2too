@@ -3,20 +3,14 @@
 #include "rts/World.h"
 #include "util/pathfinding.h"
 
-#include <cstdlib>
 #include <unordered_set>
 #include <utility>
 
 namespace rts {
   namespace {
-    constexpr float DirD{1.0};
-    constexpr float DiagD{1.41};
-
-    float diagonalDistance(Point a, Point b) {
-      auto dx{abs(a.x - b.x)};
-      auto dy{abs(a.y - b.y)};
-      return float(dx + dy) + (DiagD - 2.) * float(std::min(dx, dy));
-    }
+    using util::geo::DirD;
+    using util::geo::DiagD;
+    using util::geo::diagonalDistance;
 
     const std::pair<Vector, float> NeighborVectors[]{
         {{-1, -1}, DiagD}, {{0, -1}, DirD},  {{1, -1}, DiagD}, {{-1, 0}, DirD},

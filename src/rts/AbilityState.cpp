@@ -1,7 +1,7 @@
 #include "rts/AbilityState.h"
 
 #include "rts/World.h"
-#include "rts/dimensions.h"
+#include "rts/constants.h"
 
 #include <cassert>
 
@@ -17,20 +17,27 @@ void rts::AbilityState::step(
   else if (t)
     nextStepTime_ = w.time + t;
   else
-    cancel();
+    cancel(w, actions);
 }
 
 void rts::AbilityState::stepAction(World& w, Entity& entity) {
   assert(activeState_);
   GameTime t = activeState_->stepAction(w, entity);
-  if (t)
+  if (t) {
     nextStepTime_ = w.time + t;
-  else
-    cancel();
+  }
+  else {
+    WorldActionList actions;
+    cancel(w, actions);
+    w.update(actions);
+  }
 }
 
-void rts::AbilityState::cancel() {
-  activeState_.reset();
+void rts::AbilityState::cancel(const World& w, WorldActionList& actions) {
+  if (activeState_) {
+    activeState_->cancel(w, actions);
+    activeState_.reset();
+  }
   nextStepTime_ = GameTimeInf;
 }
 

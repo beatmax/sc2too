@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstdlib>
 #include <functional>
 #include <iosfwd>
+#include <optional>
 #include <sys/types.h>
 
 namespace util::geo {
@@ -23,6 +25,17 @@ namespace util::geo {
     bool operator!=(const Vector& other) const { return !(*this == other); }
   };
 
+  inline Point operator+(const Point& p, const Vector& v) { return {p.x + v.x, p.y + v.y}; }
+  inline Point& operator+=(Point& p, const Vector& v) { return p = p + v; }
+  inline Point operator-(const Point& p, const Vector& v) { return {p.x - v.x, p.y - v.y}; }
+  inline Point& operator-=(Point& p, const Vector& v) { return p = p - v; }
+  inline Vector operator-(const Point& a, const Point& b) { return {a.x - b.x, a.y - b.y}; }
+  inline Vector operator+(const Vector& v1, const Vector& v2) { return {v1.x + v2.x, v1.y + v2.y}; }
+  inline Vector operator-(const Vector& v1, const Vector& v2) { return {v1.x - v2.x, v1.y - v2.y}; }
+  inline Vector operator-(const Vector& v) { return {-v.x, -v.y}; }
+  inline Vector operator*(const Vector& v, Coordinate f) { return {v.x * f, v.y * f}; }
+  inline Vector operator/(const Vector& v, Coordinate d) { return {v.x / d, v.y / d}; }
+
   struct Rectangle {
     Point topLeft;
     Vector size;
@@ -36,16 +49,8 @@ namespace util::geo {
       return p.x >= topLeft.x && p.y >= topLeft.y && p.x < (topLeft.x + size.x) &&
           p.y < (topLeft.y + size.y);
     }
+    Point center() const { return topLeft + size / 2; }
   };
-
-  inline Point operator+(const Point& p, const Vector& v) { return {p.x + v.x, p.y + v.y}; }
-  inline Point& operator+=(Point& p, const Vector& v) { return p = p + v; }
-  inline Point operator-(const Point& p, const Vector& v) { return {p.x - v.x, p.y - v.y}; }
-  inline Point& operator-=(Point& p, const Vector& v) { return p = p - v; }
-  inline Vector operator-(const Point& a, const Point& b) { return {a.x - b.x, a.y - b.y}; }
-  inline Vector operator+(const Vector& v1, const Vector& v2) { return {v1.x + v2.x, v1.y + v2.y}; }
-  inline Vector operator-(const Vector& v1, const Vector& v2) { return {v1.x - v2.x, v1.y - v2.y}; }
-  inline Vector operator-(const Vector& v) { return {-v.x, -v.y}; }
 
   template<typename F>
   void forEachPoint(const Rectangle& rect, F&& f) {
@@ -54,6 +59,16 @@ namespace util::geo {
         f(Point{x, y});
   }
 
+  template<typename F>
+  std::optional<Point> findInPoints(const Rectangle& rect, F&& pred) {
+    for (auto x = rect.topLeft.x; x < rect.topLeft.x + rect.size.x; ++x)
+      for (auto y = rect.topLeft.y; y < rect.topLeft.y + rect.size.y; ++y)
+        if (Point p{x, y}; pred(p))
+          return p;
+    return std::nullopt;
+  }
+
+  bool intersect(const Rectangle& r1, const Rectangle& r2);
   Rectangle intersection(const Rectangle& r1, const Rectangle& r2);
 
   struct AtBorder {
@@ -69,11 +84,26 @@ namespace util::geo {
     bool right;
   };
 
+  inline Rectangle boundingBox(const Point& p) { return {p - Vector{1, 1}, {3, 3}}; }
   inline Rectangle boundingBox(const Rectangle& r) {
     return {r.topLeft - Vector{1, 1}, r.size + Vector{2, 2}};
   }
 
+  inline bool adjacent(const Point& p1, const Point& p2) {
+    auto d{p1 - p2};
+    return abs(d.x) <= 1 && abs(d.y) <= 1;
+  }
+
+  inline bool adjacent(const Rectangle& r1, const Rectangle& r2) {
+    return intersect(r1, boundingBox(r2));
+  }
+
   Rectangle fixNegativeSize(Rectangle r);
+
+  constexpr float DirD{1.0};
+  constexpr float DiagD{1.41};
+
+  float diagonalDistance(Point a, Point b);
 
   std::ostream& operator<<(std::ostream& os, const Point& p);
   std::ostream& operator<<(std::ostream& os, const Vector& v);

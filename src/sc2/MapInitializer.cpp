@@ -13,7 +13,7 @@ void sc2::MapInitializer::operator()(rts::World& w, rts::Point p, char c) const 
       Factory::geyser(w, p);
       break;
     case 'm':
-      Factory::mineralPatch(w, p);
+      Factory::mineralPatch(w, p, mineralGroup(w, p));
       break;
     case 'n':
       Factory::nexus(w, p, w.sides.id(*sideIt));
@@ -24,4 +24,16 @@ void sc2::MapInitializer::operator()(rts::World& w, rts::Point p, char c) const 
       Factory::rock(w, p);
       break;
   }
+}
+
+rts::ResourceGroupId sc2::MapInitializer::mineralGroup(const rts::World& w, rts::Point p) const {
+  auto rp{findInPoints(boundingBox(p), [&w](rts::Point q) {
+    if (auto* rf{w.resourceField(q)})
+      return rf->group != 0;
+    return false;
+  })};
+  if (rp)
+    return w.resourceField(*rp)->group;
+  else
+    return ++mineralGroupId_;
 }

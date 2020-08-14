@@ -82,7 +82,7 @@ namespace ui {
       const rts::ResourceMap& resources{w[player.side].resources()};
       for (auto it = resources.rbegin(); it != resources.rend(); ++it) {
         x -= 10;
-        mvwprintw(ios.headerWin.w, 0, x, "%c: %u", repr(*it->first), it->second);
+        mvwprintw(ios.headerWin.w, 0, x, "%c: %u", repr(*it->resource()), it->quantity());
       }
     }
 

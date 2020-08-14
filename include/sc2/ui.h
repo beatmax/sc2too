@@ -43,6 +43,10 @@ namespace sc2::ui {
     const ::ui::Sprite& sprite(const rts::Blocker&) const final;
   };
 
+  struct GatherAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
   struct MoveAbility : ::ui::IconUi<rts::Ability> {
     const ::ui::Icon& icon() const final;
   };

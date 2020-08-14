@@ -23,10 +23,6 @@ namespace rts {
     // note: do not create a World on the stack
     static std::unique_ptr<World> create() { return std::make_unique<World>(); }
 
-    World() = default;
-    World(const World&) = delete;
-    World& operator=(const World&) = delete;
-
     GameTime time{};
     util::Pool<Side, MaxSides> sides;
     util::Pool<Entity, MaxEntities> entities;
@@ -35,6 +31,12 @@ namespace rts {
     util::Pool<Blocker, MaxBlockers> blockers;
     util::Pool<ResourceField, MaxResourceFields> resourceFields;
     Map map;
+
+    World() = default;
+    ~World();
+
+    World(const World&) = delete;
+    World& operator=(const World&) = delete;
 
     void update(const WorldActionList& actions);
 
@@ -63,6 +65,9 @@ namespace rts {
     void destroy(const Entity& e);
     void destroy(EntityId e) { destroy(entities[e]); }
 
+    void destroy(const ResourceField& rf);
+    void destroy(ResourceFieldId rf) { destroy(resourceFields[rf]); }
+
     Side& operator[](SideId id) { return sides[id]; }
     const Side& operator[](SideId id) const { return sides[id]; }
     Entity& operator[](EntityId id) { return entities[id]; }
@@ -75,6 +80,14 @@ namespace rts {
     const Blocker& operator[](BlockerId id) const { return blockers[id]; }
     ResourceField& operator[](ResourceFieldId id) { return resourceFields[id]; }
     const ResourceField& operator[](ResourceFieldId id) const { return resourceFields[id]; }
+
+    Entity* operator[](EntityWId wid) { return entities[wid]; }
+    const Entity* operator[](EntityWId wid) const { return entities[wid]; }
+    ResourceField* operator[](ResourceFieldWId wid) { return resourceFields[wid]; }
+    const ResourceField* operator[](ResourceFieldWId wid) const { return resourceFields[wid]; }
+
+    EntityWId weakId(const Entity& e) const { return entities.weakId(e); }
+    ResourceFieldWId weakId(const ResourceField& rf) const { return resourceFields.weakId(rf); }
 
     Cell& operator[](Point p) { return map[p]; }
     const Cell& operator[](Point p) const { return map[p]; }
@@ -108,10 +121,13 @@ namespace rts {
     std::set<WorldObjectCPtr> objectsInArea(const Rectangle& area) const;
     EntityIdList entitiesInArea(
         const Rectangle& area, SideId side = {}, EntityTypeId type = {}) const;
+    const Entity* closestEntity(Point p, SideId side, EntityTypeId type) const;
+    const ResourceField* closestResourceField(Point p, ResourceGroupId group, bool blockedOk) const;
 
   private:
     void update(const action::CommandAction& action);
     void update(const action::AbilityStepAction& action);
+    void update(const action::ResourceFieldReleaseAction& action);
 
     template<typename P, typename... Args>
     auto create(P& pool, Args&&... args) {
