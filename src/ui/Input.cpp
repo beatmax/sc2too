@@ -69,9 +69,8 @@ void ui::Input::finish() {
   X::releaseInput();
 }
 
-rts::WorldActionList ui::Input::process(rts::Engine& engine, const rts::World& w, Player& player) {
-  rts::WorldActionList actions;
-
+void ui::Input::process(
+    rts::Engine& engine, const rts::World& w, Player& player, rts::SideCommandList& commands) {
   if (ios_.menu.active()) {
     nodelay(stdscr, false);
     MenuImpl::processInput(ios_.menu, ios_.quit);
@@ -80,12 +79,12 @@ rts::WorldActionList ui::Input::process(rts::Engine& engine, const rts::World& w
       X::grabInput();
       nodelay(stdscr, true);
     }
-    return actions;
+    return;
   }
 
   auto addCommand = [&](std::optional<rts::Command>&& cmd) {
     ios_.clickedTarget = getTarget(cmd);
-    rts::addCommand(actions, player.side, std::move(cmd));
+    rts::addCommand(commands, player.side, std::move(cmd));
   };
 
   int c;
@@ -115,7 +114,7 @@ rts::WorldActionList ui::Input::process(rts::Engine& engine, const rts::World& w
     if (processKbInput(engine, event)) {
       if (ios_.menu.active()) {
         X::finish();
-        return actions;
+        return;
       }
     }
     else {
@@ -124,7 +123,6 @@ rts::WorldActionList ui::Input::process(rts::Engine& engine, const rts::World& w
   }
 
   player.camera.update();
-  return actions;
 }
 
 bool ui::Input::processKbInput(rts::Engine& engine, const InputEvent& event) {

@@ -96,9 +96,13 @@ TEST_CASE("Hello world!", "[rts]") {
       AbilityState& moveAbilityState{e.abilityStates[ai]};
 
       const Point targetPos{20, 3};
-      world.update(ce.trigger(test::MoveAbilityId, cworld, targetPos));
+      e.trigger(test::MoveAbilityId, world, targetPos);
+
+      ++world.time;
+      world.update(ce.step(cworld));
+
       REQUIRE(ce.area.topLeft == pos);
-      REQUIRE(ce.nextStepTime == GameTimeSecond);
+      REQUIRE(ce.nextStepTime == GameTimeSecond + 1);
 
       SECTION("The path is found") {
         auto [path, isComplete] = findPath(world, pos, targetPos);
@@ -168,6 +172,242 @@ TEST_CASE("Hello world!", "[rts]") {
       REQUIRE(test::Ui::count['b'] == 1);
       forEachPoint(area, [&](Point p) { (cworld[p].empty()); });
     }
+  }
+
+  SECTION("Try some moves!") {
+    EntityId eid{test::Factory::simpleton(world, Point{20, 5}, test::Side1Id)};
+    auto& entity{world.entities[eid]};
+
+    test::select(world, test::Side1Id, {eid});
+
+    SECTION("Already there") {
+      REQUIRE(
+          test::runMove(world, entity, Point{20, 5}) ==
+          test::MoveStepList{{{20, 5}, 0}, {{20, 5}, 2}});
+    }
+
+    SECTION("One cell straight") {
+      REQUIRE(
+          test::runMove(world, entity, Point{20, 6}) ==
+          test::MoveStepList{{{20, 5}, 0}, {{20, 6}, 101}});
+    }
+
+    SECTION("One cell diagonal") {
+      REQUIRE(
+          test::runMove(world, entity, Point{21, 6}) ==
+          test::MoveStepList{{{20, 5}, 0}, {{21, 6}, 142}});
+    }
+
+    SECTION("Straight line") {
+      REQUIRE(
+          test::runMove(world, entity, Point{20, 3}) ==
+          test::MoveStepList{{{20, 5}, 0}, {{20, 4}, 101}, {{20, 3}, 201}});
+    }
+
+    SECTION("Straight and diagonal") {
+      REQUIRE(
+          test::runMove(world, entity, Point{21, 3}) ==
+          test::MoveStepList{{{20, 5}, 0}, {{20, 4}, 101}, {{21, 3}, 242}});
+    }
+
+    SECTION("Path around the rocks") {
+      REQUIRE(
+          test::runMove(world, entity, Point{17, 7}) ==
+          test::MoveStepList{{{20, 5}, 0},
+                             {{19, 5}, 101},
+                             {{18, 5}, 201},
+                             {{17, 5}, 301},
+                             {{16, 5}, 401},
+                             {{15, 5}, 501},
+                             {{14, 5}, 601},
+                             {{13, 6}, 742},
+                             {{13, 7}, 842},
+                             {{14, 8}, 983},
+                             {{15, 7}, 1124},
+                             {{16, 7}, 1224},
+                             {{17, 7}, 1324}});
+    }
+
+    SECTION("Path around an entity") {
+      test::Factory::building(world, {24, 4}, test::Side1Id);
+      REQUIRE(
+          test::runMove(world, entity, Point{27, 5}) ==
+          test::MoveStepList{{{20, 5}, 0},
+                             {{21, 5}, 101},
+                             {{22, 5}, 201},
+                             {{23, 5}, 301},
+                             {{23, 4}, 402},  // collision
+                             {{24, 3}, 543},
+                             {{25, 3}, 643},
+                             {{26, 4}, 784},
+                             {{27, 5}, 925}});
+    }
+
+    SECTION("Path around an entity that appears after step calculation") {
+      REQUIRE(
+          test::runMove(world, entity, Point{27, 5}, 400) ==
+          test::MoveStepList{
+              {{20, 5}, 0}, {{21, 5}, 101}, {{22, 5}, 201}, {{23, 5}, 301}, {{23, 5}, 400}});
+      ++world.time;
+      WorldActionList actions{entity.step(cworld)};
+      REQUIRE(!actions.empty());
+      test::Factory::building(world, {24, 4}, test::Side1Id);
+      world.update(actions);
+      REQUIRE(entity.area.topLeft == Point{23, 5});
+      REQUIRE(
+          test::continueMove(world, entity) ==
+          test::MoveStepList{{{23, 5}, 401},
+                             {{23, 4}, 403},  // collision
+                             {{24, 3}, 544},
+                             {{25, 3}, 644},
+                             {{26, 4}, 785},
+                             {{27, 5}, 926}});
+    }
+
+    SECTION("Path around adjacent entity") {
+      test::Factory::simpleton(world, {21, 5}, test::Side1Id);
+      REQUIRE(
+          test::runMove(world, entity, Point{22, 5}) ==
+          test::MoveStepList{{{20, 5}, 0}, {{21, 4}, 142}, {{22, 5}, 283}});
+    }
+
+    SECTION("Move next to target object") {
+      REQUIRE(
+          test::runMove(world, entity, Point{31, 0}) ==
+          test::MoveStepList{{{20, 5}, 0},
+                             {{21, 4}, 142},
+                             {{22, 4}, 242},
+                             {{23, 3}, 383},
+                             {{24, 2}, 524},
+                             {{25, 2}, 624},
+                             {{26, 2}, 724},
+                             {{27, 2}, 824},
+                             {{28, 1}, 965},
+                             {{29, 1}, 1065}});
+    }
+
+    SECTION("Move next to target blocker") {
+      REQUIRE(
+          test::runMove(world, entity, Point{16, 6}) ==
+          test::MoveStepList{{{20, 5}, 0}, {{19, 5}, 101}, {{18, 5}, 201}, {{17, 5}, 301}});
+    }
+
+    SECTION("Blocked and unblocked") {
+      forEachPoint(Rectangle{{19, 4}, {3, 3}}, [&](Point p) {
+        if (p != Point{20, 5})
+          test::Factory::simpleton(world, p, test::Side1Id);
+      });
+      REQUIRE(
+          test::runMove(world, entity, Point{23, 5}, 350) ==
+          test::MoveStepList{{{20, 5}, 0}, {{20, 5}, 350}});
+      world.destroy(world.entityId({21, 5}));
+      REQUIRE(
+          test::continueMove(world, entity, 550) ==
+          test::MoveStepList{{{20, 5}, 350}, {{21, 5}, 501}, {{21, 5}, 550}});
+      for (Coordinate y : {4, 5, 6})
+        test::Factory::simpleton(world, {22, y}, test::Side1Id);
+      test::Factory::simpleton(world, {20, 5}, test::Side1Id);
+      REQUIRE(
+          test::continueMove(world, entity, 750) ==
+          test::MoveStepList{{{21, 5}, 550}, {{21, 5}, 750}});
+      world.destroy(world.entityId({22, 5}));
+      REQUIRE(
+          test::continueMove(world, entity) ==
+          test::MoveStepList{{{21, 5}, 750}, {{22, 5}, 901}, {{23, 5}, 1001}});
+    }
+  }
+
+  SECTION("Control groups and selection subgroups") {
+    using ControlGroupCmd = command::ControlGroup;
+    using SelectionSubgroupCmd = command::SelectionSubgroup;
+    constexpr bool NonExclusive{false};
+    constexpr bool Exclusive{true};
+    auto groupEntities = [&](ControlGroupId g) { return side1.group(g).ids(world); };
+    auto selectedEntities = [&]() { return side1.selection().ids(world); };
+    auto subgroupType = [&]() { return side1.selection().subgroupType(world); };
+
+    EntityId e1{test::Factory::simpleton(world, Point{21, 5}, test::Side1Id)};
+    EntityId e2{test::Factory::simpleton(world, Point{22, 5}, test::Side1Id)};
+    EntityId e3{test::Factory::simpleton(world, Point{23, 5}, test::Side1Id)};
+
+    REQUIRE(subgroupType() == EntityTypeId{});
+
+    test::select(world, test::Side1Id, {e1, e2, e3});
+    REQUIRE(subgroupType() == test::SimpletonTypeId);
+
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Set, NonExclusive, 1});
+    REQUIRE(groupEntities(1) == EntityIdList{e1, e2, e3});
+    REQUIRE(groupEntities(2) == EntityIdList{});
+
+    test::select(world, test::Side1Id, {e2, e3});
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Set, NonExclusive, 2});
+    REQUIRE(groupEntities(1) == EntityIdList{e1, e2, e3});
+    REQUIRE(groupEntities(2) == EntityIdList{e2, e3});
+
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Set, Exclusive, 3});
+    REQUIRE(groupEntities(1) == EntityIdList{e1});
+    REQUIRE(groupEntities(2) == EntityIdList{});
+    REQUIRE(groupEntities(3) == EntityIdList{e2, e3});
+
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Add, NonExclusive, 1});
+    REQUIRE(groupEntities(1) == EntityIdList{e1, e2, e3});
+    REQUIRE(groupEntities(2) == EntityIdList{});
+    REQUIRE(groupEntities(3) == EntityIdList{e2, e3});
+
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Add, Exclusive, 2});
+    REQUIRE(groupEntities(1) == EntityIdList{e1});
+    REQUIRE(groupEntities(2) == EntityIdList{e2, e3});
+    REQUIRE(groupEntities(3) == EntityIdList{});
+
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 1});
+    REQUIRE(selectedEntities() == EntityIdList{e1});
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 2});
+    REQUIRE(selectedEntities() == EntityIdList{e2, e3});
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 3});
+    REQUIRE(selectedEntities() == EntityIdList{});
+    REQUIRE(subgroupType() == EntityTypeId{});
+
+    REQUIRE(groupEntities(1) == EntityIdList{e1});
+    REQUIRE(groupEntities(2) == EntityIdList{e2, e3});
+    REQUIRE(groupEntities(3) == EntityIdList{});
+
+    test::select(world, test::Side1Id, {e1}, command::Selection::Add);
+    REQUIRE(selectedEntities() == EntityIdList{e1});
+    REQUIRE(subgroupType() == test::SimpletonTypeId);
+
+    EntityId b1{world.entities.id(*building)};
+    EntityId t1{test::Factory::thirdy(world, Point{24, 5}, test::Side1Id)};
+    EntityId t2{test::Factory::thirdy(world, Point{25, 5}, test::Side1Id)};
+
+    test::select(world, test::Side1Id, {e2, b1, t2, e1, t1});
+    REQUIRE(selectedEntities() == EntityIdList{b1, e1, e2, t1, t2});
+    REQUIRE(subgroupType() == test::BuildingTypeId);
+
+    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
+    REQUIRE(subgroupType() == test::SimpletonTypeId);
+    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
+    REQUIRE(subgroupType() == test::ThirdyTypeId);
+    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
+    REQUIRE(subgroupType() == test::BuildingTypeId);
+    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Previous});
+    REQUIRE(subgroupType() == test::ThirdyTypeId);
+    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Previous});
+    REQUIRE(subgroupType() == test::SimpletonTypeId);
+
+    world.destroy(e1);
+    REQUIRE(selectedEntities() == EntityIdList{b1, e2, t1, t2});
+    REQUIRE(subgroupType() == test::SimpletonTypeId);
+
+    world.destroy(e2);
+    REQUIRE(selectedEntities() == EntityIdList{b1, t1, t2});
+    REQUIRE(subgroupType() == EntityTypeId{});
+
+    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
+    REQUIRE(subgroupType() == test::BuildingTypeId);
+
+    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 2});
+    REQUIRE(selectedEntities() == EntityIdList{e3});
+    REQUIRE(subgroupType() == test::SimpletonTypeId);
   }
 
   SECTION("Hello engine!") {
@@ -291,8 +531,9 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("The engine runs and updates the world") {
-      auto eid{test::Factory::simpleton(world, Point{20, 5}, test::Side1Id)};
-      auto& entity{world.entities[eid]};
+      const auto side{test::Side1Id};
+      const auto entity{test::Factory::simpleton(world, Point{20, 5}, side)};
+      test::select(world, side, {entity});
 
       const GameTime frameTime{10};
       const GameTime finalGameTime{frameTime + 2 * GameTimeSecond};
@@ -305,264 +546,27 @@ TEST_CASE("Hello world!", "[rts]") {
       test::FakeController controller;
       int inputCalls{0}, outputCalls{0};
 
-      auto processInput = [&](const World& w) -> WorldActionList {
+      auto processInput = [&](const World& w, rts::SideCommandList& cmds) {
         ++inputCalls;
         if (inputCalls == 1)
-          return entity.trigger(test::MoveAbilityId, w, targetPos);
+          addCommand(cmds, side, rts::command::TriggerAbility{test::MoveAbilityId, targetPos});
         else if (inputCalls == 100)
           controller.paused_ = true;
         else if (inputCalls == 100 + pausedFrames)
           controller.paused_ = false;
-        else if (w.time >= finalGameTime)
+        else if (w.time >= finalGameTime - 1)
           controller.quit_ = true;
-        return {};
       };
 
       auto updateOutput = [&](const World&) { ++outputCalls; };
 
       engine.run(controller, processInput, updateOutput);
 
-      REQUIRE(entity.area.topLeft == targetPos);
+      REQUIRE(cworld[entity].area.topLeft == targetPos);
       REQUIRE(cworld.time == finalGameTime);
       REQUIRE(elapsed() == finalElapsed);
       REQUIRE(inputCalls == totalFrames);
       REQUIRE(outputCalls == totalFrames);
     }
-  }
-
-  SECTION("Try some moves!") {
-    EntityId eid{test::Factory::simpleton(world, Point{20, 5}, test::Side1Id)};
-    auto& entity{world.entities[eid]};
-
-    test::select(world, test::Side1Id, {eid});
-
-    SECTION("Already there") {
-      REQUIRE(
-          test::runMove(world, entity, Point{20, 5}) ==
-          test::MoveStepList{{{20, 5}, 0}, {{20, 5}, 1}});
-    }
-
-    SECTION("One cell straight") {
-      REQUIRE(
-          test::runMove(world, entity, Point{20, 6}) ==
-          test::MoveStepList{{{20, 5}, 0}, {{20, 6}, 100}});
-    }
-
-    SECTION("One cell diagonal") {
-      REQUIRE(
-          test::runMove(world, entity, Point{21, 6}) ==
-          test::MoveStepList{{{20, 5}, 0}, {{21, 6}, 141}});
-    }
-
-    SECTION("Straight line") {
-      REQUIRE(
-          test::runMove(world, entity, Point{20, 3}) ==
-          test::MoveStepList{{{20, 5}, 0}, {{20, 4}, 100}, {{20, 3}, 200}});
-    }
-
-    SECTION("Straight and diagonal") {
-      REQUIRE(
-          test::runMove(world, entity, Point{21, 3}) ==
-          test::MoveStepList{{{20, 5}, 0}, {{20, 4}, 100}, {{21, 3}, 241}});
-    }
-
-    SECTION("Path around the rocks") {
-      REQUIRE(
-          test::runMove(world, entity, Point{17, 7}) ==
-          test::MoveStepList{{{20, 5}, 0},
-                             {{19, 5}, 100},
-                             {{18, 5}, 200},
-                             {{17, 5}, 300},
-                             {{16, 5}, 400},
-                             {{15, 5}, 500},
-                             {{14, 5}, 600},
-                             {{13, 6}, 741},
-                             {{13, 7}, 841},
-                             {{14, 8}, 982},
-                             {{15, 7}, 1123},
-                             {{16, 7}, 1223},
-                             {{17, 7}, 1323}});
-    }
-
-    SECTION("Path around an entity") {
-      test::Factory::building(world, {24, 4}, test::Side1Id);
-      REQUIRE(
-          test::runMove(world, entity, Point{27, 5}) ==
-          test::MoveStepList{{{20, 5}, 0},
-                             {{21, 5}, 100},
-                             {{22, 5}, 200},
-                             {{23, 5}, 300},
-                             {{23, 4}, 401},  // collision
-                             {{24, 3}, 542},
-                             {{25, 3}, 642},
-                             {{26, 4}, 783},
-                             {{27, 5}, 924}});
-    }
-
-    SECTION("Path around an entity that appears after step calculation") {
-      REQUIRE(
-          test::runMove(world, entity, Point{27, 5}, 399) ==
-          test::MoveStepList{
-              {{20, 5}, 0}, {{21, 5}, 100}, {{22, 5}, 200}, {{23, 5}, 300}, {{23, 5}, 399}});
-      ++world.time;
-      WorldActionList actions{entity.step(cworld)};
-      REQUIRE(!actions.empty());
-      test::Factory::building(world, {24, 4}, test::Side1Id);
-      world.update(actions);
-      REQUIRE(entity.area.topLeft == Point{23, 5});
-      REQUIRE(
-          test::continueMove(world, entity) ==
-          test::MoveStepList{{{23, 5}, 400},
-                             {{23, 4}, 402},  // collision
-                             {{24, 3}, 543},
-                             {{25, 3}, 643},
-                             {{26, 4}, 784},
-                             {{27, 5}, 925}});
-    }
-
-    SECTION("Path around adjacent entity") {
-      test::Factory::simpleton(world, {21, 5}, test::Side1Id);
-      REQUIRE(
-          test::runMove(world, entity, Point{22, 5}) ==
-          test::MoveStepList{{{20, 5}, 0}, {{21, 4}, 141}, {{22, 5}, 282}});
-    }
-
-    SECTION("Move next to target object") {
-      REQUIRE(
-          test::runMove(world, entity, Point{31, 0}) ==
-          test::MoveStepList{{{20, 5}, 0},
-                             {{21, 4}, 141},
-                             {{22, 4}, 241},
-                             {{23, 3}, 382},
-                             {{24, 2}, 523},
-                             {{25, 2}, 623},
-                             {{26, 2}, 723},
-                             {{27, 2}, 823},
-                             {{28, 1}, 964},
-                             {{29, 1}, 1064}});
-    }
-
-    SECTION("Move next to target blocker") {
-      REQUIRE(
-          test::runMove(world, entity, Point{16, 6}) ==
-          test::MoveStepList{{{20, 5}, 0}, {{19, 5}, 100}, {{18, 5}, 200}, {{17, 5}, 300}});
-    }
-
-    SECTION("Blocked and unblocked") {
-      forEachPoint(Rectangle{{19, 4}, {3, 3}}, [&](Point p) {
-        if (p != Point{20, 5})
-          test::Factory::simpleton(world, p, test::Side1Id);
-      });
-      REQUIRE(
-          test::runMove(world, entity, Point{23, 5}, 350) ==
-          test::MoveStepList{{{20, 5}, 0}, {{20, 5}, 350}});
-      world.destroy(world.entityId({21, 5}));
-      REQUIRE(
-          test::continueMove(world, entity, 550) ==
-          test::MoveStepList{{{20, 5}, 350}, {{21, 5}, 500}, {{21, 5}, 550}});
-      for (Coordinate y : {4, 5, 6})
-        test::Factory::simpleton(world, {22, y}, test::Side1Id);
-      test::Factory::simpleton(world, {20, 5}, test::Side1Id);
-      REQUIRE(
-          test::continueMove(world, entity, 750) ==
-          test::MoveStepList{{{21, 5}, 550}, {{21, 5}, 750}});
-      world.destroy(world.entityId({22, 5}));
-      REQUIRE(
-          test::continueMove(world, entity) ==
-          test::MoveStepList{{{21, 5}, 750}, {{22, 5}, 900}, {{23, 5}, 1000}});
-    }
-  }
-
-  SECTION("Control groups and selection subgroups") {
-    using ControlGroupCmd = command::ControlGroup;
-    using SelectionSubgroupCmd = command::SelectionSubgroup;
-    constexpr bool NonExclusive{false};
-    constexpr bool Exclusive{true};
-    auto groupEntities = [&](ControlGroupId g) { return side1.group(g).ids(world); };
-    auto selectedEntities = [&]() { return side1.selection().ids(world); };
-    auto subgroupType = [&]() { return side1.selection().subgroupType(world); };
-
-    EntityId e1{test::Factory::simpleton(world, Point{21, 5}, test::Side1Id)};
-    EntityId e2{test::Factory::simpleton(world, Point{22, 5}, test::Side1Id)};
-    EntityId e3{test::Factory::simpleton(world, Point{23, 5}, test::Side1Id)};
-
-    REQUIRE(subgroupType() == EntityTypeId{});
-
-    test::select(world, test::Side1Id, {e1, e2, e3});
-    REQUIRE(subgroupType() == test::SimpletonTypeId);
-
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Set, NonExclusive, 1});
-    REQUIRE(groupEntities(1) == EntityIdList{e1, e2, e3});
-    REQUIRE(groupEntities(2) == EntityIdList{});
-
-    test::select(world, test::Side1Id, {e2, e3});
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Set, NonExclusive, 2});
-    REQUIRE(groupEntities(1) == EntityIdList{e1, e2, e3});
-    REQUIRE(groupEntities(2) == EntityIdList{e2, e3});
-
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Set, Exclusive, 3});
-    REQUIRE(groupEntities(1) == EntityIdList{e1});
-    REQUIRE(groupEntities(2) == EntityIdList{});
-    REQUIRE(groupEntities(3) == EntityIdList{e2, e3});
-
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Add, NonExclusive, 1});
-    REQUIRE(groupEntities(1) == EntityIdList{e1, e2, e3});
-    REQUIRE(groupEntities(2) == EntityIdList{});
-    REQUIRE(groupEntities(3) == EntityIdList{e2, e3});
-
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Add, Exclusive, 2});
-    REQUIRE(groupEntities(1) == EntityIdList{e1});
-    REQUIRE(groupEntities(2) == EntityIdList{e2, e3});
-    REQUIRE(groupEntities(3) == EntityIdList{});
-
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 1});
-    REQUIRE(selectedEntities() == EntityIdList{e1});
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 2});
-    REQUIRE(selectedEntities() == EntityIdList{e2, e3});
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 3});
-    REQUIRE(selectedEntities() == EntityIdList{});
-    REQUIRE(subgroupType() == EntityTypeId{});
-
-    REQUIRE(groupEntities(1) == EntityIdList{e1});
-    REQUIRE(groupEntities(2) == EntityIdList{e2, e3});
-    REQUIRE(groupEntities(3) == EntityIdList{});
-
-    test::select(world, test::Side1Id, {e1}, command::Selection::Add);
-    REQUIRE(selectedEntities() == EntityIdList{e1});
-    REQUIRE(subgroupType() == test::SimpletonTypeId);
-
-    EntityId b1{world.entities.id(*building)};
-    EntityId t1{test::Factory::thirdy(world, Point{24, 5}, test::Side1Id)};
-    EntityId t2{test::Factory::thirdy(world, Point{25, 5}, test::Side1Id)};
-
-    test::select(world, test::Side1Id, {e2, b1, t2, e1, t1});
-    REQUIRE(selectedEntities() == EntityIdList{b1, e1, e2, t1, t2});
-    REQUIRE(subgroupType() == test::BuildingTypeId);
-
-    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
-    REQUIRE(subgroupType() == test::SimpletonTypeId);
-    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
-    REQUIRE(subgroupType() == test::ThirdyTypeId);
-    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
-    REQUIRE(subgroupType() == test::BuildingTypeId);
-    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Previous});
-    REQUIRE(subgroupType() == test::ThirdyTypeId);
-    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Previous});
-    REQUIRE(subgroupType() == test::SimpletonTypeId);
-
-    world.destroy(e1);
-    REQUIRE(selectedEntities() == EntityIdList{b1, e2, t1, t2});
-    REQUIRE(subgroupType() == test::SimpletonTypeId);
-
-    world.destroy(e2);
-    REQUIRE(selectedEntities() == EntityIdList{b1, t1, t2});
-    REQUIRE(subgroupType() == EntityTypeId{});
-
-    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
-    REQUIRE(subgroupType() == test::BuildingTypeId);
-
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 2});
-    REQUIRE(selectedEntities() == EntityIdList{e3});
-    REQUIRE(subgroupType() == test::SimpletonTypeId);
   }
 }

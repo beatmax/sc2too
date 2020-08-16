@@ -61,16 +61,21 @@ void rts::Side::exec(
 }
 
 void rts::Side::exec(const World& w, WorldActionList& actions, const command::TriggerAbility& cmd) {
-  for (auto entity : selection_.items(w))
-    addActions(actions, entity->trigger(cmd.ability, w, cmd.target));
+  actions += [ids{selection_.ids(w)}, ability{cmd.ability}, target{cmd.target}](World& w) {
+    for (auto e : ids)
+      w[e].trigger(ability, w, target);
+  };
 }
 
 void rts::Side::exec(
     const World& w, WorldActionList& actions, const command::TriggerDefaultAbility& cmd) {
-  for (auto entity : selection_.items(w)) {
-    const auto& entityType{w.entityTypes[entity->type]};
-    auto rc{w.relativeContent(w.sides.id(*this), cmd.target)};
-    if (auto a{entityType.defaultAbility[size_t(rc)]})
-      addActions(actions, entity->trigger(a, w, cmd.target));
-  }
+  actions += [side{w.id(*this)}, ids{selection_.ids(w)}, target{cmd.target}](World& w) {
+    for (auto e : ids) {
+      auto& entity{w[e]};
+      const auto& entityType{w.entityTypes[entity.type]};
+      auto rc{w.relativeContent(side, target)};
+      if (auto a{entityType.defaultAbility[size_t(rc)]})
+        entity.trigger(a, w, target);
+    }
+  };
 }

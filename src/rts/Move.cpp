@@ -18,17 +18,12 @@ namespace rts {
   }
 }
 
-rts::GameTime rts::abilities::state::Move::step(
-    const World& w,
-    const Entity& entity,
-    EntityAbilityIndex abilityIndex,
-    WorldActionList& actions) {
+rts::AbilityStepResult rts::abilities::state::Move::step(
+    const World& w, const Entity& entity, EntityAbilityIndex abilityIndex) {
   const Point& pos{entity.area.topLeft};
 
-  if (!path_.empty() && w[path_.front()].empty()) {
-    addStepAction(w, entity, abilityIndex, actions);
-    return GameTimeInf;
-  }
+  if (!path_.empty() && w[path_.front()].empty())
+    return stepAction(w);
 
   if (path_.empty() && completePath_)
     return 0;
@@ -40,18 +35,20 @@ rts::GameTime rts::abilities::state::Move::step(
                                       : (path_.empty() && !completePath_) ? MoveRetryTime : 1;
 }
 
-rts::GameTime rts::abilities::state::Move::stepAction(World& w, Entity& entity) {
-  assert(!path_.empty());
-  Point newPos{path_.front()};
-  if (w[newPos].empty()) {
-    path_.pop_front();
-    w.move(entity, newPos);
-    if (path_.empty())
-      return completePath_ ? 0 : 1;
-    else
-      return adjacentDistance(newPos, path_.front()) / speed_;
-  }
-  else {
-    return 1;
-  }
+rts::AbilityStepAction rts::abilities::state::Move::stepAction(const World& w) {
+  return [this](World& w, Entity& e) -> GameTime {
+    assert(!path_.empty());
+    Point newPos{path_.front()};
+    if (w[newPos].empty()) {
+      path_.pop_front();
+      w.move(e, newPos);
+      if (path_.empty())
+        return completePath_ ? 0 : 1;
+      else
+        return adjacentDistance(newPos, path_.front()) / speed_;
+    }
+    else {
+      return 1;
+    }
+  };
 }

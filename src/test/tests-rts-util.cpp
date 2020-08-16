@@ -4,7 +4,6 @@
 #include "rts/Command.h"
 #include "rts/Entity.h"
 #include "rts/World.h"
-#include "rts/WorldAction.h"
 #include "tests-rts-assets.h"
 
 #include <utility>
@@ -12,9 +11,7 @@
 using namespace rts;
 
 void test::execCommand(rts::World& w, rts::SideId side, rts::Command command) {
-  WorldActionList actions;
-  addCommand(actions, side, std::move(command));
-  w.update(actions);
+  w.exec({{side, std::move(command)}});
 }
 
 void test::select(

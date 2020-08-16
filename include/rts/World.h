@@ -2,6 +2,7 @@
 
 #include "Ability.h"
 #include "Blocker.h"
+#include "Command.h"
 #include "Entity.h"
 #include "EntityType.h"
 #include "Map.h"
@@ -38,6 +39,7 @@ namespace rts {
     World(const World&) = delete;
     World& operator=(const World&) = delete;
 
+    void exec(const SideCommandList& commands);
     void update(const WorldActionList& actions);
 
     template<typename... Args>
@@ -62,10 +64,10 @@ namespace rts {
 
     void move(Entity& e, Point p);
 
-    void destroy(const Entity& e);
+    void destroy(Entity& e);
     void destroy(EntityId e) { destroy(entities[e]); }
 
-    void destroy(const ResourceField& rf);
+    void destroy(ResourceField& rf);
     void destroy(ResourceFieldId rf) { destroy(resourceFields[rf]); }
 
     Side& operator[](SideId id) { return sides[id]; }
@@ -85,6 +87,12 @@ namespace rts {
     const Entity* operator[](EntityWId wid) const { return entities[wid]; }
     ResourceField* operator[](ResourceFieldWId wid) { return resourceFields[wid]; }
     const ResourceField* operator[](ResourceFieldWId wid) const { return resourceFields[wid]; }
+
+    SideId id(const Side& s) const { return sides.id(s); }
+    EntityId id(const Entity& e) const { return entities.id(e); }
+    AbilityId id(const Ability& a) const { return abilities.id(a); }
+    BlockerId id(const Blocker& b) const { return blockers.id(b); }
+    ResourceFieldId id(const ResourceField& rf) const { return resourceFields.id(rf); }
 
     EntityWId weakId(const Entity& e) const { return entities.weakId(e); }
     ResourceFieldWId weakId(const ResourceField& rf) const { return resourceFields.weakId(rf); }
@@ -125,10 +133,6 @@ namespace rts {
     const ResourceField* closestResourceField(Point p, ResourceGroupId group, bool blockedOk) const;
 
   private:
-    void update(const action::CommandAction& action);
-    void update(const action::AbilityStepAction& action);
-    void update(const action::ResourceFieldReleaseAction& action);
-
     template<typename P, typename... Args>
     auto create(P& pool, Args&&... args) {
       auto id{pool.emplace(std::forward<Args>(args)...)};

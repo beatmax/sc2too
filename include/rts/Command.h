@@ -2,7 +2,9 @@
 
 #include "types.h"
 
+#include <optional>
 #include <variant>
+#include <vector>
 
 namespace rts {
 
@@ -38,4 +40,16 @@ namespace rts {
       command::SelectionSubgroup,
       command::TriggerAbility,
       command::TriggerDefaultAbility>;
+
+  struct SideCommand {
+    SideId side;
+    Command command;
+  };
+
+  using SideCommandList = std::vector<SideCommand>;
+
+  inline void addCommand(SideCommandList& commands, SideId side, std::optional<Command>&& cmd) {
+    if (cmd)
+      commands.push_back(SideCommand{side, std::move(*cmd)});
+  }
 }

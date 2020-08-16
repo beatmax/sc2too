@@ -1,3 +1,4 @@
+#include "rts/Command.h"
 #include "rts/Engine.h"
 #include "rts/World.h"
 #include "sc2/Abilities.h"
@@ -45,7 +46,9 @@ int main() try {
   engine.gameSpeed(4 * rts::GameSpeedNormal);
   engine.targetFps(100);
 
-  auto processInput = [&](const rts::World& w) { return io.input.process(engine, w, player); };
+  auto processInput = [&](const rts::World& w, rts::SideCommandList& cmds) {
+    io.input.process(engine, w, player, cmds);
+  };
   auto updateOutput = [&](const rts::World& w) { io.output.update(engine, w, player); };
 
   engine.run(io, processInput, updateOutput);

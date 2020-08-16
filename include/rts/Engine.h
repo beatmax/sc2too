@@ -1,6 +1,7 @@
 #pragma once
 
 #include "World.h"
+#include "rts/Command.h"
 #include "rts/types.h"
 #include "util/Clock.h"
 #include "util/Timer.h"
@@ -57,6 +58,7 @@ namespace rts {
   void EngineBase<Clock>::run(const C& controller, FI processInput, FO updateOutput) {
     resetTimer();
     bool paused{false};
+    SideCommandList commands;
 
     while (!controller.quit()) {
       if (paused != controller.paused()) {
@@ -65,10 +67,13 @@ namespace rts {
           resetTimer();
       }
 
+      processInput(world_, commands);
+      world_.exec(commands);
+      commands.clear();
+
       if (!paused)
         advanceFrame();
 
-      world_.update(processInput(world_));
       updateOutput(world_);
     }
   }

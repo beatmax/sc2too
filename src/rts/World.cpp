@@ -20,15 +20,20 @@ namespace rts {
 }
 
 rts::World::~World() {
-  for (const auto& e : entities)
+  for (auto& e : entities)
     destroy(e);
-  for (const auto& rf : resourceFields)
+  for (auto& rf : resourceFields)
     destroy(rf);
+}
+
+void rts::World::exec(const SideCommandList& commands) {
+  for (const auto& cmd : commands)
+    update(sides[cmd.side].exec(*this, cmd.command));
 }
 
 void rts::World::update(const WorldActionList& actions) {
   for (const auto& action : actions)
-    std::visit([this](const auto& a) { update(a); }, action);
+    action(*this);
 }
 
 void rts::World::move(Entity& e, Point p) {
@@ -40,14 +45,14 @@ void rts::World::move(Entity& e, Point p) {
   epos = p;
 }
 
-void rts::World::destroy(const Entity& e) {
+void rts::World::destroy(Entity& e) {
   assert(map[e.area.topLeft].contains(Cell::Entity));
-  update(e.onDestroy(*this));
+  e.onDestroy(*this);
   map.setContent(e.area, Cell::Empty{});
   entities.erase(entities.id(e));
 }
 
-void rts::World::destroy(const ResourceField& rf) {
+void rts::World::destroy(ResourceField& rf) {
   assert(map[rf.area.topLeft].contains(Cell::ResourceField));
   map.setContent(rf.area, Cell::Empty{});
   resourceFields.erase(resourceFields.id(rf));
@@ -117,19 +122,4 @@ const rts::ResourceField* rts::World::closestResourceField(
     }
   }
   return closest;
-}
-
-void rts::World::update(const action::CommandAction& action) {
-  update(sides[action.sideId].exec(*this, action.command));
-}
-
-void rts::World::update(const action::AbilityStepAction& action) {
-  if (auto entity = entities[action.entityWId]) {
-    entity->stepAction(*this, action.abilityIndex);
-  }
-}
-
-void rts::World::update(const action::ResourceFieldReleaseAction& action) {
-  SemaphoreLock<ResourceField> lock{action.wid, detail::AlreadyLockedT{}};
-  lock.release(*this);
 }

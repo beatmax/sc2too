@@ -9,16 +9,14 @@ namespace rts::abilities::state {
   class Move : public ActiveAbilityStateTpl<Move> {
   public:
     explicit Move(Point target, Speed speed) : target_{target}, speed_{speed} {}
-    GameTime step(
-        const World& w,
-        const Entity& entity,
-        EntityAbilityIndex abilityIndex,
-        WorldActionList& actions) final;
-    GameTime stepAction(World& w, Entity& entity) final;
-    void cancel(const World& w, WorldActionList& actions) final {}
+    AbilityStepResult step(
+        const World& w, const Entity& entity, EntityAbilityIndex abilityIndex) final;
+    void cancel(World& w) final {}
     int state() const final { return int(abilities::MoveState::Moving); }
 
   private:
+    AbilityStepAction stepAction(const World& w);
+
     const Point target_;
     Speed speed_;
     Path path_;

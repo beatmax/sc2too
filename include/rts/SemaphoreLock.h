@@ -17,8 +17,6 @@ namespace rts {
         return b;
       }
     };
-
-    struct AlreadyLockedT {};
   }
 
   template<typename T>
@@ -28,7 +26,6 @@ namespace rts {
 
     SemaphoreLock() = default;
     SemaphoreLock(World& w, WeakId wid);
-    SemaphoreLock(WeakId wid, detail::AlreadyLockedT) : wid_{wid} {}
     ~SemaphoreLock();
 
     SemaphoreLock(const SemaphoreLock&) = delete;

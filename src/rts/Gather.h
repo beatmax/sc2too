@@ -19,21 +19,19 @@ namespace rts::abilities::state {
         baseType_{baseType},
         gatherTime_{gatherTime},
         deliverTime_{deliverTime} {}
-    GameTime step(
-        const World& w,
-        const Entity& entity,
-        EntityAbilityIndex abilityIndex,
-        WorldActionList& actions) final;
-    GameTime stepAction(World& w, Entity& entity) final;
-    void cancel(const World& w, WorldActionList& actions) final;
+    AbilityStepResult step(
+        const World& w, const Entity& entity, EntityAbilityIndex abilityIndex) final;
+    void cancel(World& w) final;
     int state() const final { return int(state_); }
 
   private:
     using State = abilities::GatherState;
 
-    GameTime init(const World& w, const Entity& entity, WorldActionList& actions);
-    GameTime moveTo(
-        Point p, State s, const World& w, const Entity& entity, WorldActionList& actions);
+    AbilityStepResult init(const World& w, const Entity& entity);
+    AbilityStepAction moveTo(Point p, const World& w, const Entity& entity);
+    AbilityStepAction tryOccupy(const World& w);
+    AbilityStepAction finishGathering(const World& w);
+    AbilityStepAction finishDelivering(const World& w);
 
     State state_{State::Init};
     Point target_;

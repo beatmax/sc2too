@@ -5,10 +5,15 @@
 #include "constants.h"
 #include "types.h"
 
+#include <functional>
 #include <memory>
 #include <optional>
+#include <variant>
 
 namespace rts {
+  using AbilityStepAction = std::function<GameTime(World& w, Entity& e)>;
+  using AbilityStepResult = std::variant<GameTime, AbilityStepAction>;
+
   class ActiveAbilityState;
   using ActiveAbilityStateUPtr = std::unique_ptr<ActiveAbilityState>;
 
@@ -17,16 +22,14 @@ namespace rts {
     bool active() const { return bool(activeState_); }
     GameTime nextStepTime() const { return nextStepTime_; }
 
-    void trigger(const AbilityInstance& ability, Point target) {
-      activeState_ = ability.createActiveState(target);
-    }
+    void trigger(World& w, const AbilityInstance& ability, Point target);
     void step(
         const World& w,
         const Entity& entity,
         EntityAbilityIndex abilityIndex,
         WorldActionList& actions);
-    void stepAction(World& w, Entity& entity);
-    void cancel(const World& w, WorldActionList& actions);
+    void stepAction(World& w, Entity& e, const AbilityStepAction& f);
+    void cancel(World& w);
 
     template<typename T>
     std::optional<T> state() const;
@@ -39,13 +42,9 @@ namespace rts {
   class ActiveAbilityState {
   public:
     virtual ~ActiveAbilityState() = 0;
-    virtual GameTime step(
-        const World& w,
-        const Entity& entity,
-        EntityAbilityIndex abilityIndex,
-        WorldActionList& actions) = 0;
-    virtual GameTime stepAction(World& w, Entity& entity) = 0;
-    virtual void cancel(const World& w, WorldActionList& actions) = 0;
+    virtual AbilityStepResult step(
+        const World& w, const Entity& entity, EntityAbilityIndex abilityIndex) = 0;
+    virtual void cancel(World& w) = 0;
     virtual int state() const = 0;
   };
 

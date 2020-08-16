@@ -2,7 +2,7 @@
 
 #include "InputEvent.h"
 #include "Player.h"
-#include "rts/WorldAction.h"
+#include "rts/Command.h"
 #include "rts/types.h"
 
 namespace ui {
@@ -14,8 +14,8 @@ namespace ui {
 
     void init();
     void finish();
-    rts::WorldActionList process(rts::Engine& engine, const rts::World& w, Player& player)
-        __attribute__((warn_unused_result));
+    void process(
+        rts::Engine& engine, const rts::World& w, Player& player, rts::SideCommandList& commands);
 
   private:
     bool processKbInput(rts::Engine& engine, const InputEvent& event);
