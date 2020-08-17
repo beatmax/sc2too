@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <limits>
 #include <memory>
+#include <variant>
 #include <vector>
 
 namespace rts {
@@ -15,7 +16,9 @@ namespace rts {
   class Engine;
   class Entity;
   class EntityType;
+  class Factory;
   class Map;
+  class ProductionQueue;
   class Resource;
   class ResourceField;
   class Selection;
@@ -35,6 +38,8 @@ namespace rts {
   };
 
   using AbilityId = util::PoolObjectId<Ability>;
+  using AbilityInstanceIndex = NamedIndex<struct AbilityInstanceIndexTag>;
+  using AbilityStateIndex = NamedIndex<struct AbilityStateIndexTag>;
   using BlockerId = util::PoolObjectId<Blocker>;
   using BlockerWId = util::PoolObjectWeakId<Blocker>;
   using ControlGroupId = uint8_t;
@@ -44,7 +49,8 @@ namespace rts {
   using EntityIdList = std::vector<EntityId>;
   using EntityCPtrList = std::vector<EntityCPtr>;
   using EntityTypeId = util::PoolObjectId<EntityType>;
-  using EntityAbilityIndex = NamedIndex<struct EntityAbilityIndexTag>;
+  using ProductionQueueId = util::PoolObjectId<ProductionQueue>;
+  using ProductionQueueWId = util::PoolObjectWeakId<ProductionQueue>;
   using ResourceCPtr = const Resource*;
   using ResourceFieldId = util::PoolObjectId<ResourceField>;
   using ResourceFieldWId = util::PoolObjectWeakId<ResourceField>;
@@ -52,12 +58,16 @@ namespace rts {
   using SideId = util::PoolObjectId<Side>;
   using WorldObjectCPtr = const WorldObject*;
 
+  using AnyWeakId = std::variant<EntityWId, ProductionQueueWId>;
+
   using Distance = uint32_t;   // = 1/100 cell width/height
   using GameTime = uint32_t;   // = centiseconds at normal speed (100 Hz)
   using GameSpeed = uint32_t;  // game units per second
   using Speed = uint32_t;      // distance per game unit = cells per second
   using Fps = uint32_t;
   using Quantity = uint32_t;
+
+  using ResourceQuantityList = std::vector<std::pair<ResourceCPtr, Quantity>>;
 
   using util::geo::Coordinate;
   using util::geo::Point;
@@ -71,5 +81,6 @@ namespace rts {
     virtual ~Ui() = default;
   };
 
+  using FactoryUPtr = std::unique_ptr<Factory>;
   using UiUPtr = std::unique_ptr<Ui>;
 }

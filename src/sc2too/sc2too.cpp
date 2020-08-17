@@ -12,6 +12,7 @@
 #include <exception>
 #include <fstream>
 #include <iostream>
+#include <memory>
 
 namespace {
   std::vector<rts::SideId> makeSides(rts::World& w) {
@@ -27,7 +28,7 @@ int main() try {
   ui::IO io;
 
   sc2::Assets::init();
-  auto worldPtr{rts::World::create()};
+  auto worldPtr{rts::World::create(std::make_unique<sc2::Factory>())};
   rts::World& world{*worldPtr};
 
   sc2::Abilities::init(world);

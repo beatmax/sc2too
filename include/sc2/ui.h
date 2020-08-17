@@ -50,4 +50,8 @@ namespace sc2::ui {
   struct MoveAbility : ::ui::IconUi<rts::Ability> {
     const ::ui::Icon& icon() const final;
   };
+
+  struct WarpInProbeAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
 }

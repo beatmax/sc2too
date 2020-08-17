@@ -3,6 +3,7 @@
 #include "rts/Entity.h"
 #include "rts/SemaphoreLock.h"
 #include "rts/WorldAction.h"
+#include "util/geo.h"
 
 #include <algorithm>
 #include <cassert>
@@ -122,4 +123,8 @@ const rts::ResourceField* rts::World::closestResourceField(
     }
   }
   return closest;
+}
+
+std::optional<rts::Point> rts::World::emptyCellAround(const Rectangle& area) const {
+  return findInOuterPoints(util::geo::boundingBox(area), [&](Point p) { return map[p].empty(); });
 }

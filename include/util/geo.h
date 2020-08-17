@@ -68,6 +68,17 @@ namespace util::geo {
     return std::nullopt;
   }
 
+  template<typename F>
+  std::optional<Point> findInOuterPoints(const Rectangle& rect, F&& pred) {
+    Coordinate mx{rect.size.x - 1}, my{rect.size.y - 1};
+    for (Coordinate x{0}; x <= mx; ++x)
+      for (Coordinate y{0}; y <= my; ++y)
+        if (x == 0 || x == mx || y == 0 || y == my)
+          if (Point p{x, y}; pred(p))
+            return p;
+    return std::nullopt;
+  }
+
   bool intersect(const Rectangle& r1, const Rectangle& r2);
   Rectangle intersection(const Rectangle& r1, const Rectangle& r2);
 

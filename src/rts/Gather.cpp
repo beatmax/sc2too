@@ -12,18 +12,24 @@ namespace rts {
   }
 }
 
-rts::AbilityStepResult rts::abilities::state::Gather::step(
-    const World& w, const Entity& entity, EntityAbilityIndex abilityIndex) {
+void rts::abilities::state::Gather::trigger(
+    World& w, Entity& e, ActiveAbilityStateUPtr& as, const Desc& desc, Point target) {
+  if (as)
+    as->cancel(w);
+  as = std::make_unique<Gather>(desc, target);
+}
+
+rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, const Entity& e) {
   switch (state_) {
     case State::Init:
-      return init(w, entity);
+      return init(w, e);
 
     case State::MovingToTarget:
       if (moveAbilityState_->active())
         return MonitorTime;
       if (auto rf{w[targetField_]}) {
-        if (adjacent(entity.area, rf->area))
-          return tryOccupy(w);
+        if (adjacent(e.area, rf->area))
+          return tryOccupy();
       }
       state_ = State::Occupying;
       return MonitorTime;
@@ -32,28 +38,28 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(
       bool findBlockedOk;
       if (auto* rf{w[targetField_]}) {
         if (!rf->sem.blocked())
-          return tryOccupy(w);
+          return tryOccupy();
         findBlockedOk = false;
       }
       else {
         findBlockedOk = true;
       }
-      if (auto* rf{w.closestResourceField(entity.area.topLeft, targetGroup_, findBlockedOk)}) {
+      if (auto* rf{w.closestResourceField(e.area.topLeft, targetGroup_, findBlockedOk)}) {
         targetField_ = w.weakId(*rf);
         target_ = rf->area.topLeft;
         state_ = State::MovingToTarget;
-        return moveTo(target_, w, entity);
+        return moveTo(target_);
       }
       return findBlockedOk ? 0 : MonitorTime;
 
     case State::Gathering:
-      return finishGathering(w);
+      return finishGathering();
 
     case State::GatheringDone: {
-      if (auto* b{w.closestEntity(entity.area.topLeft, entity.side, baseType_)}) {
+      if (auto* b{w.closestEntity(e.area.topLeft, e.side, desc_.baseType)}) {
         base_ = w.weakId(*b);
         state_ = State::MovingToBase;
-        return moveTo(b->area.topLeft, w, entity);
+        return moveTo(b->area.topLeft);
       }
       return 0;
     }
@@ -62,19 +68,19 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(
       if (moveAbilityState_->active())
         return MonitorTime;
       if (auto b{w[base_]}) {
-        if (adjacent(entity.area, b->area)) {
+        if (adjacent(e.area, b->area)) {
           state_ = State::Delivering;
-          return deliverTime_;
+          return desc_.deliverTime;
         }
       }
       return 0;
 
     case State::Delivering:
-      return finishDelivering(w);
+      return finishDelivering();
 
     case State::DeliveringDone:
       state_ = State::MovingToTarget;
-      return moveTo(target_, w, entity);
+      return moveTo(target_);
   }
   return 0;
 }
@@ -92,35 +98,32 @@ rts::AbilityStepResult rts::abilities::state::Gather::init(const World& w, const
   resource_ = rf->bag.resource();
   targetGroup_ = rf->group;
 
-  auto ai{w[entity.type].abilityIndex(moveAbility_)};
-  assert(ai != EntityAbilityIndex::None);
-  moveAbilityState_ = &entity.abilityStates[ai];
+  moveAbilityState_ = &entity.abilityState(w, abilities::Kind::Move);
 
   state_ = State::MovingToTarget;
-  return moveTo(target_, w, entity);
+  return moveTo(target_);
 }
 
-rts::AbilityStepAction rts::abilities::state::Gather::moveTo(
-    Point p, const World& w, const Entity& entity) {
+rts::AbilityStepAction rts::abilities::state::Gather::moveTo(Point p) {
   return [this, p](World& w, Entity& e) {
-    e.trigger(moveAbility_, w, p, Entity::CancelOthers::No);
+    e.trigger(desc_.moveAbility, w, p, Entity::CancelOthers::No);
     return MonitorTime;
   };
 }
 
-rts::AbilityStepAction rts::abilities::state::Gather::tryOccupy(const World& w) {
+rts::AbilityStepAction rts::abilities::state::Gather::tryOccupy() {
   return [this](World& w, Entity&) {
     targetFieldLock_ = SemaphoreLock{w, targetField_};
     if (targetFieldLock_) {
       state_ = State::Gathering;
-      return gatherTime_;
+      return desc_.gatherTime;
     }
     state_ = State::Occupying;
     return MonitorTime;
   };
 }
 
-rts::AbilityStepAction rts::abilities::state::Gather::finishGathering(const World& w) {
+rts::AbilityStepAction rts::abilities::state::Gather::finishGathering() {
   return [this](World& w, Entity& e) {
     if (auto rf{w[targetField_]}) {
       rf->bag.transferAllTo(e.bag);
@@ -136,7 +139,7 @@ rts::AbilityStepAction rts::abilities::state::Gather::finishGathering(const Worl
   };
 }
 
-rts::AbilityStepAction rts::abilities::state::Gather::finishDelivering(const World& w) {
+rts::AbilityStepAction rts::abilities::state::Gather::finishDelivering() {
   return [this](World& w, Entity& e) {
     e.bag.transferAllTo(w[e.side].bag(resource_));
     state_ = State::DeliveringDone;

@@ -40,8 +40,9 @@ const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::Entity& e) const {
   static const auto& spriteMineral{Assets::getSprite("probe_mineral")};
   return (!e.bag.empty())
       ? spriteMineral
-      : (e.state<GatherState>(Abilities::GatherIndex) == GatherState::Gathering) ? spriteGather
-                                                                                 : sprite;
+      : (e.state<GatherState>(rts::abilities::Kind::Gather) == GatherState::Gathering)
+          ? spriteGather
+          : sprite;
 }
 
 const ::ui::Sprite& sc2::ui::Rock::sprite(const rts::Blocker&) const {
@@ -56,5 +57,10 @@ const ::ui::Icon& sc2::ui::GatherAbility::icon() const {
 
 const ::ui::Icon& sc2::ui::MoveAbility::icon() const {
   static const auto& icon{Assets::getIcon("move")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::WarpInProbeAbility::icon() const {
+  static const auto& icon{Assets::getIcon("probe")};
   return icon;
 }

@@ -9,23 +9,48 @@
 #include "tests-util.h"
 #include "util/Timer.h"
 
+#include <memory>
 #include <sstream>
 
 using namespace Catch::Matchers;
 using namespace rts;
 
 TEST_CASE("Hello world!", "[rts]") {
-  auto worldPtr{World::create()};
+  auto worldPtr{World::create(std::make_unique<test::Factory>())};
   World& world{*worldPtr};
   const World& cworld{world};
 
-  REQUIRE(world.abilities.emplace(std::make_unique<test::Ui>('m')) == test::MoveAbilityId);
+  REQUIRE(
+      world.abilities.emplace(rts::Ability::TargetType::Any, std::make_unique<test::Ui>('m')) ==
+      test::MoveAbilityId);
   REQUIRE(test::repr(world.abilities[test::MoveAbilityId].ui) == 'm');
+  REQUIRE(
+      world.abilities.emplace(rts::Ability::TargetType::None, std::make_unique<test::Ui>('0')) ==
+      test::ProduceSimpletonAbilityId);
+  REQUIRE(
+      world.abilities.emplace(rts::Ability::TargetType::None, std::make_unique<test::Ui>('1')) ==
+      test::ProduceThirdyAbilityId);
 
-  REQUIRE(world.entityTypes.emplace(std::make_unique<test::Ui>('B')) == test::BuildingTypeId);
-  REQUIRE(world.entityTypes.emplace(std::make_unique<test::Ui>('S')) == test::SimpletonTypeId);
-  world.entityTypes[test::SimpletonTypeId].abilities[0] =
-      abilities::move(test::MoveAbilityId, CellDistance / GameTimeSecond);
+  REQUIRE(
+      world.entityTypes.emplace(
+          rts::ResourceQuantityList{}, GameTimeSecond, std::make_unique<test::Ui>('B')) ==
+      test::BuildingTypeId);
+  REQUIRE(
+      world.entityTypes.emplace(
+          rts::ResourceQuantityList{{&test::gas, test::SimpletonCost}}, test::SimpletonBuildTime,
+          std::make_unique<test::Ui>('S')) == test::SimpletonTypeId);
+  REQUIRE(
+      world.entityTypes.emplace(
+          rts::ResourceQuantityList{{&test::gas, test::ThirdyCost}}, test::ThirdyBuildTime,
+          std::make_unique<test::Ui>('S')) == test::ThirdyTypeId);
+  world.entityTypes[test::BuildingTypeId].addAbility(
+      test::ProduceSimpletonAbilityIndex,
+      abilities::Produce{test::ProduceSimpletonAbilityId, test::SimpletonTypeId});
+  world.entityTypes[test::BuildingTypeId].addAbility(
+      test::ProduceThirdyAbilityIndex,
+      abilities::Produce{test::ProduceThirdyAbilityId, test::ThirdyTypeId});
+  world.entityTypes[test::SimpletonTypeId].addAbility(
+      test::MoveAbilityIndex, abilities::Move{test::MoveAbilityId, CellDistance / GameTimeSecond});
 
   auto sides{test::makeSides(world)};
   REQUIRE(sides.size() == 2);
@@ -34,9 +59,9 @@ TEST_CASE("Hello world!", "[rts]") {
 
   const Side& side1{cworld.sides[test::Side1Id]};
   const Side& side2{cworld.sides[test::Side2Id]};
-  REQUIRE(side1.bag(&test::gas).quantity() == 0);
+  REQUIRE(side1.bag(&test::gas).quantity() == 1000);
   REQUIRE(test::repr(side1.ui()) == '1');
-  REQUIRE(side2.bag(&test::gas).quantity() == 0);
+  REQUIRE(side2.bag(&test::gas).quantity() == 1000);
   REQUIRE(test::repr(side2.ui()) == '2');
 
   world.map.load(world, test::MapInitializer{}, std::istringstream{test::map});
@@ -91,9 +116,7 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("The 'move' ability is triggered") {
-      auto ai{world.entityTypes[e.type].abilityIndex(test::MoveAbilityId)};
-      REQUIRE(ai != EntityAbilityIndex::None);
-      AbilityState& moveAbilityState{e.abilityStates[ai]};
+      const AbilityState& moveAbilityState{e.abilityState(cworld, abilities::Kind::Move)};
 
       const Point targetPos{20, 3};
       e.trigger(test::MoveAbilityId, world, targetPos);
@@ -568,5 +591,126 @@ TEST_CASE("Hello world!", "[rts]") {
       REQUIRE(inputCalls == totalFrames);
       REQUIRE(outputCalls == totalFrames);
     }
+  }
+
+  SECTION("Production queue") {
+    auto triggerSimpletonProduction = [&]() {
+      test::execCommand(
+          world, test::Side1Id, rts::command::TriggerAbility{test::ProduceSimpletonAbilityId, {}});
+    };
+
+    auto triggerThirdyProduction = [&]() {
+      test::execCommand(
+          world, test::Side1Id, rts::command::TriggerAbility{test::ProduceThirdyAbilityId, {}});
+    };
+
+    const Rectangle buildingArea{Point{1, 1}, rts::Vector{2, 3}};
+    EntityId building{test::Factory::building(world, buildingArea.topLeft, test::Side1Id)};
+    const Entity& cb{cworld[building]};
+    test::select(world, test::Side1Id, {building});
+
+    const ProductionQueue& queue{world[world[building].productionQueue]};
+    auto queueWId{world.weakId(queue)};
+    REQUIRE(queue.size() == 0);
+    REQUIRE(test::Ui::count['s'] == 0);
+    REQUIRE(test::Ui::count['t'] == 0);
+
+    Quantity expectedGasLeft{1000};
+    REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+
+    SECTION("A unit is enqueued for production") {
+      triggerSimpletonProduction();
+      REQUIRE(cb.nextStepTime == world.time + 1);
+      ++world.time;
+      world.update(cb.step(cworld));
+      expectedGasLeft -= test::SimpletonCost;
+
+      REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+      REQUIRE(queue.size() == 1);
+      REQUIRE(test::Ui::count['s'] == 0);
+
+      REQUIRE(cb.nextStepTime == world.time + test::SimpletonBuildTime);
+      world.time += test::SimpletonBuildTime;
+      world.update(cb.step(cworld));
+      REQUIRE(queue.size() == 0);
+      REQUIRE(test::Ui::count['s'] == 1);
+
+      SECTION("Two units are enqueued for production") {
+        triggerSimpletonProduction();
+        triggerThirdyProduction();
+        REQUIRE(cb.nextStepTime == world.time + 1);
+        ++world.time;
+        world.update(cb.step(cworld));
+        expectedGasLeft -= test::SimpletonCost + test::ThirdyCost;
+
+        REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+        REQUIRE(queue.size() == 2);
+        REQUIRE(test::Ui::count['s'] == 1);
+        REQUIRE(test::Ui::count['t'] == 0);
+
+        REQUIRE(cb.nextStepTime == world.time + test::SimpletonBuildTime);
+        world.time += test::SimpletonBuildTime;
+        world.update(cb.step(cworld));
+        REQUIRE(queue.size() == 1);
+        REQUIRE(test::Ui::count['s'] == 2);
+        REQUIRE(test::Ui::count['t'] == 0);
+
+        ++world.time;
+        REQUIRE(cb.nextStepTime == world.time);
+        world.update(cb.step(cworld));
+
+        REQUIRE(cb.nextStepTime == world.time + test::ThirdyBuildTime);
+        world.time += test::ThirdyBuildTime;
+        world.update(cb.step(cworld));
+        REQUIRE(queue.size() == 0);
+        REQUIRE(test::Ui::count['s'] == 2);
+        REQUIRE(test::Ui::count['t'] == 1);
+      }
+
+      SECTION("Units are enqueued during production") {
+        triggerThirdyProduction();
+        REQUIRE(cb.nextStepTime == world.time + 1);
+        ++world.time;
+        world.update(cb.step(cworld));
+        expectedGasLeft -= test::ThirdyCost;
+
+        REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+        REQUIRE(queue.size() == 1);
+        REQUIRE(test::Ui::count['s'] == 1);
+        REQUIRE(test::Ui::count['t'] == 0);
+
+        REQUIRE(cb.nextStepTime == world.time + test::ThirdyBuildTime);
+
+        world.time += 5;
+        triggerSimpletonProduction();
+        expectedGasLeft -= test::SimpletonCost;
+
+        REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+        REQUIRE(queue.size() == 2);
+        REQUIRE(test::Ui::count['s'] == 1);
+        REQUIRE(test::Ui::count['t'] == 0);
+
+        REQUIRE(cb.nextStepTime == world.time + (test::ThirdyBuildTime - 5));
+        world.time += test::ThirdyBuildTime - 5;
+        world.update(cb.step(cworld));
+        REQUIRE(queue.size() == 1);
+        REQUIRE(test::Ui::count['s'] == 1);
+        REQUIRE(test::Ui::count['t'] == 1);
+
+        REQUIRE(cb.nextStepTime == world.time + 1);
+        ++world.time;
+        world.update(cb.step(cworld));
+
+        REQUIRE(cb.nextStepTime == world.time + test::SimpletonBuildTime);
+        world.time += test::SimpletonBuildTime;
+        world.update(cb.step(cworld));
+        REQUIRE(queue.size() == 0);
+        REQUIRE(test::Ui::count['s'] == 2);
+        REQUIRE(test::Ui::count['t'] == 1);
+      }
+    }
+
+    world.destroy(building);
+    REQUIRE(!world[queueWId]);
   }
 }

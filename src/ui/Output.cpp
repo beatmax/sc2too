@@ -8,7 +8,9 @@
 #include "render.h"
 #include "rts/Engine.h"
 #include "rts/World.h"
+#include "rts/constants.h"
 #include "ui/ResourceUi.h"
+#include "ui/SideUi.h"
 #include "ui/Sprite.h"
 
 #include <cassert>
@@ -21,6 +23,8 @@
 
 namespace ui {
   namespace {
+    constexpr rts::GameTime MessageShowTime{4 * rts::GameTimeSecond};
+
     std::vector<const Window*> allWins;
     bool termResized{false};
     bool termTooSmall{false};
@@ -79,7 +83,7 @@ namespace ui {
 
     void drawResourceQuantities(const IOState& ios, const rts::World& w, const Player& player) {
       int x = dim::defaultWinWidth;
-      const rts::ResourceMap& resources{w[player.side].resources()};
+      const rts::ResourceBank& resources{w[player.side].resources()};
       for (auto it = resources.rbegin(); it != resources.rend(); ++it) {
         x -= 10;
         mvwprintw(ios.headerWin.w, 0, x, "%c: %u", repr(*it->resource()), it->quantity());
@@ -122,6 +126,33 @@ namespace ui {
       }
     }
 
+    void drawProductionQueue(
+        const IOState& ios, const rts::World& w, const rts::ProductionQueue& pq) {
+      const auto& win{ios.controlWin};
+
+      const auto left{40};
+      const auto right{left + (rts::MaxProductionQueueSize - 2) * (dim::cellWidth + 1)};
+      const auto sideColor{getColor(w[pq.side()])};
+      ScreenRect rect{{right, 4}, {dim::cellWidth, dim::cellHeight}};
+
+      for (size_t i{0}; i < rts::MaxProductionQueueSize; ++i) {
+        wattrset(win.w, graph::darkGreen());
+        graph::drawRect(win, boundingBox(rect));
+        if (i < pq.size()) {
+          wattrset(win.w, sideColor);
+          graph::drawSprite(win, getIcon(w[pq.type(i)]), rect, {0, 0});
+        }
+
+        if (i == 0) {
+          rect.topLeft.x = left;
+          rect.topLeft.y += dim::cellHeight + 1;
+        }
+        else {
+          rect.topLeft.x += dim::cellWidth + 1;
+        }
+      }
+    }
+
     void drawSelection(
         const IOState& ios,
         const rts::World& w,
@@ -129,11 +160,15 @@ namespace ui {
         rts::EntityTypeId subgroupType) {
       const auto& win{ios.controlWin};
 
-      int row{0}, col{0};
+      int row{0}, col{0}, cnt{0};
       const auto left{40};
       ScreenRect rect{{left, 2}, {dim::cellWidth, dim::cellHeight}};
 
+      const rts::Entity* last;
       for (auto* e : selection.items(w)) {
+        ++cnt;
+        last = e;
+
         if (col == 8) {
           col = 0;
           rect.topLeft.x = left;
@@ -151,6 +186,8 @@ namespace ui {
       }
       if (row == 3)
         mvwprintw(win.w, rect.topLeft.y, rect.topLeft.x, "...");
+      if (cnt == 1 && last->productionQueue)
+        drawProductionQueue(ios, w, w[last->productionQueue]);
     }
 
     void drawAbilities(const IOState& ios, const rts::World& w, const rts::EntityType& type) {
@@ -158,9 +195,9 @@ namespace ui {
 
       for (int row{0}; row < 3; ++row) {
         for (int col{0}; col < 5; ++col) {
-          rts::EntityAbilityIndex ea(row * 5 + col);
-          assert(ea < rts::MaxEntityAbilities);
-          if (auto a{type.abilities[ea].abilityId}) {
+          rts::AbilityInstanceIndex ai(row * 5 + col);
+          assert(ai < rts::MaxEntityAbilities);
+          if (auto a{type.abilities[ai].abilityId}) {
             ScreenRect rect{{84 + col * (dim::cellWidth + 1), 2 + row * (dim::cellHeight + 1)},
                             {dim::cellWidth, dim::cellHeight}};
             wattrset(win.w, graph::lightGreen());
@@ -169,6 +206,22 @@ namespace ui {
             graph::drawSprite(win, getIcon(w[a]), rect, {0, 0});
           }
         }
+      }
+    }
+
+    void drawMessages(const IOState& ios, const rts::World& w, const rts::MessageList& messages) {
+      const auto& win{ios.renderWin};
+
+      constexpr int x{40};
+      int y{win.maxY - 2};
+
+      for (size_t i{0}; i < messages.size(); ++i) {
+        auto& msg{messages[i]};
+        if ((w.time - msg.time) >= MessageShowTime)
+          break;
+        wattrset(win.w, graph::red());
+        mvwaddstr(win.w, y, x, msg.text);
+        --y;
       }
     }
   }
@@ -222,6 +275,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   drawSelection(ios_, w, side.selection(), subgroupType);
   if (subgroupType)
     drawAbilities(ios_, w, w[subgroupType]);
+  drawMessages(ios_, w, side.messages());
 
   if (termTooSmall) {
     werase(ios_.headerWin.w);

@@ -18,12 +18,18 @@ namespace rts {
   }
 }
 
-rts::AbilityStepResult rts::abilities::state::Move::step(
-    const World& w, const Entity& entity, EntityAbilityIndex abilityIndex) {
-  const Point& pos{entity.area.topLeft};
+void rts::abilities::state::Move::trigger(
+    World& w, Entity& e, ActiveAbilityStateUPtr& as, const Desc& desc, Point target) {
+  if (as)
+    as->cancel(w);
+  as = std::make_unique<Move>(desc, target);
+}
+
+rts::AbilityStepResult rts::abilities::state::Move::step(const World& w, const Entity& e) {
+  const Point& pos{e.area.topLeft};
 
   if (!path_.empty() && w[path_.front()].empty())
-    return stepAction(w);
+    return stepAction();
 
   if (path_.empty() && completePath_)
     return 0;
@@ -31,11 +37,11 @@ rts::AbilityStepResult rts::abilities::state::Move::step(
   const bool wasEmpty{path_.empty()};
   std::tie(path_, completePath_) = findPath(w, pos, target_);
 
-  return (wasEmpty && !path_.empty()) ? adjacentDistance(pos, path_.front()) / speed_
+  return (wasEmpty && !path_.empty()) ? adjacentDistance(pos, path_.front()) / desc_.speed
                                       : (path_.empty() && !completePath_) ? MoveRetryTime : 1;
 }
 
-rts::AbilityStepAction rts::abilities::state::Move::stepAction(const World& w) {
+rts::AbilityStepAction rts::abilities::state::Move::stepAction() {
   return [this](World& w, Entity& e) -> GameTime {
     assert(!path_.empty());
     Point newPos{path_.front()};
@@ -45,7 +51,7 @@ rts::AbilityStepAction rts::abilities::state::Move::stepAction(const World& w) {
       if (path_.empty())
         return completePath_ ? 0 : 1;
       else
-        return adjacentDistance(newPos, path_.front()) / speed_;
+        return adjacentDistance(newPos, path_.front()) / desc_.speed;
     }
     else {
       return 1;

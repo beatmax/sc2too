@@ -8,6 +8,6 @@ namespace sc2 {
     static rts::ResourceCPtr gas();
     static rts::ResourceCPtr supply();
 
-    static rts::ResourceMap initialResources();
+    static rts::ResourceBank initialResources();
   };
 }

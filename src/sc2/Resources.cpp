@@ -26,7 +26,7 @@ rts::ResourceCPtr sc2::Resources::supply() {
   return &resources[2];
 }
 
-rts::ResourceMap sc2::Resources::initialResources() {
+rts::ResourceBank sc2::Resources::initialResources() {
   return {{mineral(), 0, rts::QuantityInf},
           {gas(), 0, rts::QuantityInf},
           {supply(), 0, rts::QuantityInf}};

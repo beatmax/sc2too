@@ -19,6 +19,10 @@ namespace rts {
   constexpr static size_t MaxEntityAbilities{15};
   constexpr static size_t MaxBlockers{10000};
   constexpr static size_t MaxResourceFields{10000};
+  constexpr static size_t MaxProductionQueues{MaxEntities};
+  constexpr static size_t MaxProductionQueueSize{5};
+  constexpr static size_t MaxMessageSize{79};
+  constexpr static size_t MaxMessages{4};
 
   constexpr Distance CellDistance{100};
   constexpr Distance DiagonalDistance{141};

@@ -8,37 +8,28 @@
 namespace rts::abilities::state {
   class Gather : public ActiveAbilityStateTpl<Gather> {
   public:
-    explicit Gather(
-        Point target,
-        AbilityId moveAbility,
-        EntityTypeId baseType,
-        GameTime gatherTime,
-        GameTime deliverTime)
-      : target_{target},
-        moveAbility_{moveAbility},
-        baseType_{baseType},
-        gatherTime_{gatherTime},
-        deliverTime_{deliverTime} {}
-    AbilityStepResult step(
-        const World& w, const Entity& entity, EntityAbilityIndex abilityIndex) final;
+    using Desc = abilities::Gather;
+    using State = abilities::GatherState;
+
+    static void trigger(
+        World& w, Entity& e, ActiveAbilityStateUPtr& as, const Desc& desc, Point target);
+
+    explicit Gather(const Desc& desc, Point target) : desc_{desc}, target_{target} {}
+
+    AbilityStepResult step(const World& w, const Entity& e) final;
     void cancel(World& w) final;
     int state() const final { return int(state_); }
 
   private:
-    using State = abilities::GatherState;
-
     AbilityStepResult init(const World& w, const Entity& entity);
-    AbilityStepAction moveTo(Point p, const World& w, const Entity& entity);
-    AbilityStepAction tryOccupy(const World& w);
-    AbilityStepAction finishGathering(const World& w);
-    AbilityStepAction finishDelivering(const World& w);
+    AbilityStepAction moveTo(Point p);
+    AbilityStepAction tryOccupy();
+    AbilityStepAction finishGathering();
+    AbilityStepAction finishDelivering();
 
+    const Desc desc_;
     State state_{State::Init};
     Point target_;
-    const AbilityId moveAbility_;
-    const EntityTypeId baseType_;
-    const GameTime gatherTime_;
-    const GameTime deliverTime_;
     const AbilityState* moveAbilityState_{};
     EntityWId base_;
     ResourceFieldWId targetField_;

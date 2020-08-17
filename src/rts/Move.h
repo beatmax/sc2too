@@ -8,17 +8,22 @@
 namespace rts::abilities::state {
   class Move : public ActiveAbilityStateTpl<Move> {
   public:
-    explicit Move(Point target, Speed speed) : target_{target}, speed_{speed} {}
-    AbilityStepResult step(
-        const World& w, const Entity& entity, EntityAbilityIndex abilityIndex) final;
+    using Desc = abilities::Move;
+    using State = abilities::MoveState;
+
+    static void trigger(
+        World& w, Entity& e, ActiveAbilityStateUPtr& as, const Desc& desc, Point target);
+
+    explicit Move(const Desc& desc, Point target) : desc_{desc}, target_{target} {}
+    AbilityStepResult step(const World& w, const Entity& e);
     void cancel(World& w) final {}
-    int state() const final { return int(abilities::MoveState::Moving); }
+    int state() const final { return int(State::Moving); }
 
   private:
-    AbilityStepAction stepAction(const World& w);
+    AbilityStepAction stepAction();
 
+    const Desc desc_;
     const Point target_;
-    Speed speed_;
     Path path_;
     bool completePath_{false};
   };

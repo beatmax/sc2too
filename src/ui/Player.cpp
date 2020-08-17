@@ -5,6 +5,7 @@
 #include "rts/World.h"
 #include "util/geo.h"
 
+#include <cassert>
 #include <utility>
 
 namespace ui {
@@ -43,6 +44,43 @@ namespace ui {
       }
       camera.setMoveDirection(camera.moveDirection() + delta);
     }
+
+    rts::AbilityInstanceIndex getAbilityIndex(InputKeySym symbol) {
+      switch (symbol) {
+        case InputKeySym::Q:
+          return rts::AbilityInstanceIndex{0};
+        case InputKeySym::W:
+          return rts::AbilityInstanceIndex{1};
+        case InputKeySym::E:
+          return rts::AbilityInstanceIndex{2};
+        case InputKeySym::R:
+          return rts::AbilityInstanceIndex{3};
+        case InputKeySym::T:
+          return rts::AbilityInstanceIndex{4};
+        case InputKeySym::A:
+          return rts::AbilityInstanceIndex{5};
+        case InputKeySym::S:
+          return rts::AbilityInstanceIndex{6};
+        case InputKeySym::D:
+          return rts::AbilityInstanceIndex{7};
+        case InputKeySym::F:
+          return rts::AbilityInstanceIndex{8};
+        case InputKeySym::G:
+          return rts::AbilityInstanceIndex{9};
+        case InputKeySym::Z:
+          return rts::AbilityInstanceIndex{10};
+        case InputKeySym::X:
+          return rts::AbilityInstanceIndex{11};
+        case InputKeySym::C:
+          return rts::AbilityInstanceIndex{12};
+        case InputKeySym::V:
+          return rts::AbilityInstanceIndex{13};
+        case InputKeySym::B:
+          return rts::AbilityInstanceIndex{14};
+        default:
+          return rts::AbilityInstanceIndex::None;
+      }
+    }
   }
 }
 
@@ -67,6 +105,19 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
                                        ? ControlGroupCmd::Set
                                        : ControlGroupCmd::Select,
                                bool(event.state & AltPressed), rts::ControlGroupId(digit)};
+      }
+      else if (auto abilityIndex{getAbilityIndex(event.symbol)};
+               abilityIndex != rts::AbilityInstanceIndex::None) {
+        assert(abilityIndex < rts::MaxEntityAbilities);
+        auto subgroupType{w[side].selection().subgroupType(w)};
+        if (subgroupType) {
+          const auto& type{w[subgroupType]};
+          if (auto a{type.abilities[abilityIndex].abilityId}) {
+            if (w[a].targetType == rts::Ability::TargetType::None)
+              return rts::command::TriggerAbility{a, {-1, -1}};
+          }
+        }
+        break;
       }
       // pass-through
     case InputType::KeyRelease:

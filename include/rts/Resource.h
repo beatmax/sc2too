@@ -1,5 +1,6 @@
 #pragma once
 
+#include "constants.h"
 #include "types.h"
 
 #include <algorithm>
@@ -34,10 +35,10 @@ namespace rts {
   private:
     ResourceCPtr resource_;
     Quantity quantity_;
-    const Quantity capacity_;
+    Quantity capacity_;
   };
 
-  struct ResourceMap : std::vector<ResourceBag> {
+  struct ResourceBank : std::vector<ResourceBag> {
     using Inherited = std::vector<ResourceBag>;
 
     using Inherited::Inherited;
@@ -48,7 +49,21 @@ namespace rts {
       return *it;
     }
     const ResourceBag& operator[](ResourceCPtr r) const {
-      return const_cast<ResourceMap&>(*this)[r];
+      return const_cast<ResourceBank&>(*this)[r];
+    }
+
+    bool depleted() const {
+      return std::all_of(begin(), end(), [](const auto& b) { return b.empty(); });
+    }
+
+    bool tryTransferTo(ResourceBank& other, const ResourceQuantityList& quantities);
+
+  private:
+    ResourceBag& getOrCreate(ResourceCPtr r) {
+      auto it = std::find_if(begin(), end(), [r](const auto& b) { return b.resource() == r; });
+      if (it == end())
+        it = insert(end(), {r, 0, QuantityInf});
+      return *it;
     }
   };
 }

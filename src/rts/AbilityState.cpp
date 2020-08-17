@@ -5,18 +5,16 @@
 
 #include <cassert>
 
-void rts::AbilityState::trigger(World& w, const AbilityInstance& ability, Point target) {
-  activeState_ = ability.createActiveState(target);
-  nextStepTime_ = w.time + 1;
+void rts::AbilityState::trigger(World& w, Entity& e, const abilities::Instance& ai, Point target) {
+  ai.trigger(w, e, activeState_, target);
+  if (nextStepTime_ == GameTimeInf && activeState_)
+    nextStepTime_ = w.time + 1;
 }
 
 void rts::AbilityState::step(
-    const World& w,
-    const Entity& entity,
-    EntityAbilityIndex abilityIndex,
-    WorldActionList& actions) {
+    const World& w, const Entity& e, AbilityStateIndex as, WorldActionList& actions) {
   assert(activeState_);
-  AbilityStepResult sr{activeState_->step(w, entity, abilityIndex)};
+  AbilityStepResult sr{activeState_->step(w, e)};
   if (auto* t{std::get_if<GameTime>(&sr)}) {
     if (*t == GameTimeInf)
       nextStepTime_ = *t;
@@ -28,10 +26,9 @@ void rts::AbilityState::step(
     }
   }
   else {
-    actions += [abilityIndex, wid{w.weakId(entity)},
-                f{std::move(std::get<AbilityStepAction>(sr))}](World& w) {
+    actions += [as, wid{w.weakId(e)}, f{std::move(std::get<AbilityStepAction>(sr))}](World& w) {
       if (auto* e{w[wid]})
-        e->stepAction(w, abilityIndex, f);
+        e->abilityStepAction(w, as, f);
     };
     nextStepTime_ = GameTimeInf;
   }
@@ -57,6 +54,10 @@ void rts::AbilityState::cancel(World& w) {
     activeState_.reset();
   }
   nextStepTime_ = GameTimeInf;
+}
+
+rts::abilities::Kind rts::AbilityState::kind() const {
+  return activeState_ ? activeState_->kind() : abilities::Kind::None;
 }
 
 rts::ActiveAbilityState::~ActiveAbilityState() = default;

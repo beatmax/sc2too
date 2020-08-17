@@ -9,3 +9,13 @@ rts::Quantity rts::ResourceBag::transferTo(ResourceBag& other, Quantity q) {
   other.quantity_ += q;
   return q;
 }
+
+bool rts::ResourceBank::tryTransferTo(ResourceBank& other, const ResourceQuantityList& quantities) {
+  for (auto& [r, q] : quantities) {
+    if ((*this)[r].quantity() < q)
+      return false;
+  }
+  for (auto& [r, q] : quantities)
+    (*this)[r].transferTo(other.getOrCreate(r), q);
+  return true;
+}

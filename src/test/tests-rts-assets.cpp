@@ -22,7 +22,7 @@ const std::string test::map{
 
 std::vector<rts::SideId> test::makeSides(rts::World& w) {
   std::vector<rts::SideId> sides;
-  const rts::ResourceMap resources{{&gas, 0, rts::QuantityInf}};
+  const rts::ResourceBank resources{{&gas, 1000, rts::QuantityInf}};
   sides.push_back(w.createSide(resources, std::make_unique<Ui>('1')));
   sides.push_back(w.createSide(resources, std::make_unique<Ui>('2')));
   return sides;
@@ -32,20 +32,33 @@ std::map<char, int> test::Ui::count;
 
 const rts::Resource test::gas{std::make_unique<Ui>('g')};
 
+rts::EntityId test::Factory::create(
+    rts::World& w, rts::EntityTypeId t, rts::Point p, rts::SideId sd) {
+  if (t == BuildingTypeId)
+    return building(w, p, sd);
+  if (t == SimpletonTypeId)
+    return simpleton(w, p, sd);
+  if (t == ThirdyTypeId)
+    return thirdy(w, p, sd);
+  return {};
+}
+
 rts::EntityId test::Factory::building(rts::World& w, rts::Point p, rts::SideId sd) {
-  return w.createEntity(p, rts::Vector{2, 3}, BuildingTypeId, sd, 0, std::make_unique<Ui>('b'));
+  return w.createEntity(
+      p, rts::Vector{2, 3}, BuildingTypeId, sd, std::make_unique<Ui>('b'), 0,
+      w.createProductionQueue(sd));
 }
 
 rts::EntityId test::Factory::simpleton(rts::World& w, rts::Point p, rts::SideId sd) {
-  return w.createEntity(p, rts::Vector{1, 1}, SimpletonTypeId, sd, 0, std::make_unique<Ui>('s'));
+  return w.createEntity(p, rts::Vector{1, 1}, SimpletonTypeId, sd, std::make_unique<Ui>('s'));
 }
 
 rts::EntityId test::Factory::thirdy(rts::World& w, rts::Point p, rts::SideId sd) {
-  return w.createEntity(p, rts::Vector{1, 1}, ThirdyTypeId, sd, 0, std::make_unique<Ui>('t'));
+  return w.createEntity(p, rts::Vector{1, 1}, ThirdyTypeId, sd, std::make_unique<Ui>('t'));
 }
 
 rts::ResourceFieldId test::Factory::geyser(rts::World& w, rts::Point p) {
-  return w.createResourceField(p, rts::Vector{2, 2}, &gas, 100, 0, std::make_unique<Ui>('g'));
+  return w.createResourceField(p, rts::Vector{2, 2}, &gas, 100, std::make_unique<Ui>('g'));
 }
 
 rts::BlockerId test::Factory::rock(rts::World& w, rts::Point p) {

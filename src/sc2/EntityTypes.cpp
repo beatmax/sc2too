@@ -4,18 +4,30 @@
 #include "rts/World.h"
 #include "rts/abilities.h"
 #include "sc2/Abilities.h"
+#include "sc2/Resources.h"
 #include "sc2/constants.h"
 #include "sc2/ui.h"
 
 void sc2::EntityTypes::init(rts::World& w) {
-  nexus = w.entityTypes.emplace(std::make_unique<ui::NexusType>());
-  probe = w.entityTypes.emplace(std::make_unique<ui::ProbeType>());
+  nexus = w.entityTypes.emplace(
+      rts::ResourceQuantityList{{Resources::mineral(), NexusMineralCost}}, NexusBuildTime,
+      std::make_unique<ui::NexusType>());
+  probe = w.entityTypes.emplace(
+      rts::ResourceQuantityList{{Resources::mineral(), ProbeMineralCost}}, ProbeBuildTime,
+      std::make_unique<ui::ProbeType>());
+  {
+    auto& nexusType{w.entityTypes[nexus]};
+    nexusType.addAbility(
+        Abilities::WarpInProbeIndex, rts::abilities::Produce{Abilities::warpInProbe, probe});
+  }
   {
     auto& probeType{w.entityTypes[probe]};
-    probeType.abilities[Abilities::GatherIndex] =
-        rts::abilities::gather(Abilities::gather, Abilities::move, nexus, GatherTime, DeliveryTime);
-    probeType.abilities[Abilities::MoveIndex] =
-        rts::abilities::move(Abilities::move, rts::Speed{4});
+    probeType.addAbility(
+        Abilities::GatherIndex,
+        rts::abilities::Gather{Abilities::gather, Abilities::move, nexus, GatherTime,
+                               DeliveryTime});
+    probeType.addAbility(
+        Abilities::MoveIndex, rts::abilities::Move{Abilities::move, rts::Speed{4}});
 
     using RC = rts::RelativeContent;
     for (auto rc : {RC::Friend, RC::Foe, RC::Ground})

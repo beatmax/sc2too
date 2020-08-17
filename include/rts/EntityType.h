@@ -1,28 +1,33 @@
 #pragma once
 
-#include "Ability.h"
+#include "abilities.h"
 #include "constants.h"
 #include "types.h"
 
-#include <algorithm>
 #include <array>
 #include <utility>
 
 namespace rts {
   class EntityType {
   public:
-    std::array<AbilityInstance, MaxEntityAbilities> abilities{};
+    std::array<abilities::Instance, MaxEntityAbilities> abilities{};
     std::array<AbilityId, size_t(RelativeContent::Count)> defaultAbility{};
+    ResourceQuantityList cost;
+    GameTime buildTime;
     UiUPtr ui;
 
-    explicit EntityType(UiUPtr ui) : ui{std::move(ui)} {}
+    EntityType(ResourceQuantityList c, GameTime bt, UiUPtr ui)
+      : cost{std::move(c)}, buildTime{bt}, ui{std::move(ui)} {}
 
-    EntityAbilityIndex abilityIndex(AbilityId ability) const {
-      auto it = std::find_if(abilities.begin(), abilities.end(), [ability](const auto& ai) {
-        return ai.abilityId == ability;
-      });
-      return (it != abilities.end()) ? EntityAbilityIndex(it - abilities.begin())
-                                     : EntityAbilityIndex::None;
+    template<typename D>
+    void addAbility(AbilityInstanceIndex index, const D& desc) {
+      abilities[index] = abilities::instance(desc, abilityStateIndexFor(D::kind));
     }
+
+    AbilityInstanceIndex abilityIndex(AbilityId ability) const;
+    AbilityStateIndex abilityStateIndex(abilities::Kind kind) const;
+
+  private:
+    AbilityStateIndex abilityStateIndexFor(abilities::Kind kind) const;
   };
 }

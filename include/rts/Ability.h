@@ -2,7 +2,6 @@
 
 #include "types.h"
 
-#include <functional>
 #include <memory>
 #include <utility>
 
@@ -12,15 +11,11 @@ namespace rts {
 
   class Ability {
   public:
+    enum class TargetType { None, Any, Resource };
+
+    const TargetType targetType;
     UiUPtr ui;
 
-    explicit Ability(UiUPtr ui) : ui{std::move(ui)} {}
-  };
-
-  struct AbilityInstance {
-    using CreateActiveState = std::function<ActiveAbilityStateUPtr(Point)>;
-
-    AbilityId abilityId;
-    CreateActiveState createActiveState;
+    Ability(TargetType tt, UiUPtr ui) : targetType{tt}, ui{std::move(ui)} {}
   };
 }
