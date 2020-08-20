@@ -3,11 +3,13 @@
 #include "rts/Resource.h"
 
 namespace ui {
-  struct ResourceUi : rts::Ui {
-    char repr;
+  class Icon;
 
-    explicit ResourceUi(char r) : repr{r} {}
+  struct ResourceUi : rts::ResourceUi {
+    virtual const Icon& icon() const = 0;
   };
 
-  inline char repr(const rts::Resource& r) { return static_cast<const ResourceUi&>(r.ui()).repr; }
+  inline const Icon& getIcon(const rts::Resource& r) {
+    return static_cast<const ResourceUi&>(r.ui()).icon();
+  }
 }

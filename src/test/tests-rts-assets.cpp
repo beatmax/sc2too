@@ -30,7 +30,7 @@ std::vector<rts::SideId> test::makeSides(rts::World& w) {
 
 std::map<char, int> test::Ui::count;
 
-const rts::Resource test::gas{std::make_unique<Ui>('g')};
+const rts::Resource test::gas{std::make_unique<GasUi>()};
 
 rts::EntityId test::Factory::create(
     rts::World& w, rts::EntityTypeId t, rts::Point p, rts::SideId sd) {

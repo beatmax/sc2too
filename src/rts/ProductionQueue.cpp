@@ -9,12 +9,12 @@ bool rts::ProductionQueue::add(World& w, EntityTypeId type) {
   auto& s{w[side_]};
   if (size_ < MaxProductionQueueSize) {
     const auto& t{w[type]};
-    if (s.resources().tryTransferTo(resources_, t.cost)) {
+    if (auto [ok, lackingResource] = s.resources().tryTransferTo(resources_, t.cost); ok) {
       array_[size_++] = type;
       return true;
     }
     else {
-      s.messages().add(w, "NOT ENOUGH RESOURCES!");
+      s.messages().add(w, lackingResource->ui().msgMoreRequired());
     }
   }
   else {
@@ -48,7 +48,7 @@ rts::GameTime rts::ProductionQueue::buildTime(const World& w) const {
 void rts::ProductionQueue::create(World& w, EntityTypeId type, Point p) {
   const auto& t{w[type]};
   ResourceBank tmpBank;
-  bool transferOk{resources_.tryTransferTo(tmpBank, t.cost)};
+  bool transferOk{resources_.tryTransferTo(tmpBank, t.cost).first};
   assert(transferOk);
   w.factory->create(w, type, p, side_);
 }

@@ -2,7 +2,9 @@
 
 #include "rts/Blocker.h"
 #include "rts/Entity.h"
+#include "rts/Resource.h"
 #include "rts/ResourceField.h"
+#include "ui/ResourceUi.h"
 #include "ui/Sprite.h"
 
 namespace sc2::ui {
@@ -11,6 +13,21 @@ namespace sc2::ui {
 
     explicit Entity(int sc) : sideColor{sc} {}
     int defaultColor(const rts::Entity&) const final;
+  };
+
+  struct Mineral : ::ui::ResourceUi {
+    const ::ui::Icon& icon() const final;
+    const char* msgMoreRequired() const final;
+  };
+
+  struct Gas : ::ui::ResourceUi {
+    const ::ui::Icon& icon() const final;
+    const char* msgMoreRequired() const final;
+  };
+
+  struct Supply : ::ui::ResourceUi {
+    const ::ui::Icon& icon() const final;
+    const char* msgMoreRequired() const final;
   };
 
   struct Geyser : ::ui::SpriteUi<rts::ResourceField> {

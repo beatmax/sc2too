@@ -45,6 +45,10 @@ namespace test {
   inline char repr(const rts::Ui& ui) { return static_cast<const Ui&>(ui).repr; }
   inline char repr(const rts::UiUPtr& ui) { return static_cast<const Ui&>(*ui).repr; }
 
+  struct GasUi : rts::ResourceUi {
+    const char* msgMoreRequired() const final { return "Not enough gas!"; }
+  };
+
   extern const rts::Resource gas;
 
   struct Factory : rts::Factory {

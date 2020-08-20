@@ -8,6 +8,33 @@ int sc2::ui::Entity::defaultColor(const rts::Entity&) const {
   return sideColor;
 }
 
+const ::ui::Icon& sc2::ui::Mineral::icon() const {
+  static const auto& icon{Assets::getIcon("mineral")};
+  return icon;
+}
+
+const char* sc2::ui::Mineral::msgMoreRequired() const {
+  return "WE REQUIRE MORE MINERALS!";
+}
+
+const ::ui::Icon& sc2::ui::Gas::icon() const {
+  static const auto& icon{Assets::getIcon("gas")};
+  return icon;
+}
+
+const char* sc2::ui::Gas::msgMoreRequired() const {
+  return "WE REQUIRE MORE VESPENE GAS!";
+}
+
+const ::ui::Icon& sc2::ui::Supply::icon() const {
+  static const auto& icon{Assets::getIcon("supply")};
+  return icon;
+}
+
+const char* sc2::ui::Supply::msgMoreRequired() const {
+  return "YOU MUST CONSTRUCT ADDITIONAL PYLONS!";
+}
+
 const ::ui::Sprite& sc2::ui::Geyser::sprite(const rts::ResourceField&) const {
   static const auto& sprite{Assets::getSprite("geyser")};
   return sprite;

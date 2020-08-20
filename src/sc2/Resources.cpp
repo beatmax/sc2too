@@ -1,17 +1,18 @@
 #include "sc2/Resources.h"
 
 #include "rts/constants.h"
-#include "ui/ResourceUi.h"
+#include "sc2/ui.h"
 
 #include <array>
 #include <memory>
 
-namespace {
-  // resources are ordered by address
-  const std::array<rts::Resource, 3> resources{
-      rts::Resource{std::make_unique<ui::ResourceUi>('m')},
-      rts::Resource{std::make_unique<ui::ResourceUi>('g')},
-      rts::Resource{std::make_unique<ui::ResourceUi>('s')}};
+namespace sc2 {
+  namespace {
+    // resources are ordered by address
+    const std::array<rts::Resource, 3> resources{rts::Resource{std::make_unique<ui::Mineral>()},
+                                                 rts::Resource{std::make_unique<ui::Gas>()},
+                                                 rts::Resource{std::make_unique<ui::Supply>()}};
+  }
 }
 
 rts::ResourceCPtr sc2::Resources::mineral() {

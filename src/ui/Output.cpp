@@ -82,11 +82,13 @@ namespace ui {
     }
 
     void drawResourceQuantities(const IOState& ios, const rts::World& w, const Player& player) {
+      const auto& win{ios.headerWin};
       int x = dim::defaultWinWidth;
       const rts::ResourceBank& resources{w[player.side].resources()};
       for (auto it = resources.rbegin(); it != resources.rend(); ++it) {
-        x -= 10;
-        mvwprintw(ios.headerWin.w, 0, x, "%c: %u", repr(*it->resource()), it->quantity());
+        x -= 9;
+        graph::drawSprite(win, getIcon(*it->resource()), {{x, 0}, {1, 1}}, {0, 0});
+        mvwprintw(win.w, 0, x + 2, "%u", it->quantity());
       }
     }
 

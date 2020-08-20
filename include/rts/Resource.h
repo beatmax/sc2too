@@ -9,13 +9,16 @@
 #include <vector>
 
 namespace rts {
+  class ResourceUi;
+  using ResourceUiUPtr = std::unique_ptr<ResourceUi>;
+
   class Resource {
   public:
-    explicit Resource(UiUPtr ui) : ui_{std::move(ui)} {}
-    const Ui& ui() const { return *ui_; }
+    explicit Resource(ResourceUiUPtr ui) : ui_{std::move(ui)} {}
+    const ResourceUi& ui() const { return *ui_; }
 
   private:
-    UiUPtr ui_;
+    ResourceUiUPtr ui_;
   };
 
   class ResourceBag {
@@ -56,7 +59,8 @@ namespace rts {
       return std::all_of(begin(), end(), [](const auto& b) { return b.empty(); });
     }
 
-    bool tryTransferTo(ResourceBank& other, const ResourceQuantityList& quantities);
+    std::pair<bool, ResourceCPtr> tryTransferTo(
+        ResourceBank& other, const ResourceQuantityList& quantities);
 
   private:
     ResourceBag& getOrCreate(ResourceCPtr r) {
@@ -65,5 +69,9 @@ namespace rts {
         it = insert(end(), {r, 0, QuantityInf});
       return *it;
     }
+  };
+
+  struct ResourceUi : Ui {
+    virtual const char* msgMoreRequired() const = 0;
   };
 }

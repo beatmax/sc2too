@@ -710,6 +710,23 @@ TEST_CASE("Hello world!", "[rts]") {
       }
     }
 
+    SECTION("Production is attempted with insufficient resources") {
+      rts::ResourceBank dummyBank;
+      world.sides[test::Side1Id].resources().tryTransferTo(dummyBank, {{&test::gas, 998}});
+      expectedGasLeft = 2;
+      REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+
+      triggerSimpletonProduction();
+      REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+      REQUIRE(cb.nextStepTime == GameTimeInf);
+      REQUIRE(side1.messages().size() == 1);
+      REQUIRE_THAT(side1.messages()[0].text, Equals("Not enough gas!"));
+
+      triggerThirdyProduction();
+      expectedGasLeft = 0;
+      REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+    }
+
     world.destroy(building);
     REQUIRE(!world[queueWId]);
   }
