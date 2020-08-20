@@ -4,8 +4,7 @@
 #include "WorldAction.h"
 #include "constants.h"
 #include "types.h"
-
-#include <array>
+#include "util/CircularBuffer.h"
 
 namespace rts {
   class ProductionQueue {
@@ -17,21 +16,17 @@ namespace rts {
     bool finishProduction(World& w, const Entity& parent);
 
     SideId side() const { return side_; }
-    size_t size() const { return size_; }
-    bool empty() const { return size_ == 0; }
-    EntityTypeId top() const { return type(0); }
-    EntityTypeId type(size_t index) const { return array_[index]; }
+    size_t size() const { return queue_.size(); }
+    bool empty() const { return queue_.empty(); }
+    EntityTypeId top() const { return queue_.front(); }
+    EntityTypeId type(size_t index) const { return queue_[index]; }
     GameTime buildTime(const World& w) const;
 
   private:
-    using Array = std::array<EntityTypeId, MaxProductionQueueSize>;
-
     void create(World& w, EntityTypeId type, Point p);
-    void pop();
 
+    util::CircularBuffer<EntityTypeId, MaxProductionQueueSize> queue_;
     SideId side_;
-    Array array_;
-    size_t size_;
     ResourceBank resources_;
   };
 }

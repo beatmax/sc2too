@@ -216,9 +216,10 @@ namespace ui {
 
       constexpr int x{40};
       int y{win.maxY - 2};
+      size_t i{messages.size()};
 
-      for (size_t i{0}; i < messages.size(); ++i) {
-        auto& msg{messages[i]};
+      while (i > 0) {
+        auto& msg{messages[--i]};
         if ((w.time - msg.time) >= MessageShowTime)
           break;
         wattrset(win.w, graph::red());

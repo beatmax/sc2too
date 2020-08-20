@@ -2,8 +2,7 @@
 
 #include "constants.h"
 #include "types.h"
-
-#include <array>
+#include "util/CircularBuffer.h"
 
 namespace rts {
   struct Message {
@@ -14,12 +13,10 @@ namespace rts {
   class MessageList {
   public:
     void add(const World& w, const char* text);
-    size_t size() const { return size_; }
-    const Message& operator[](size_t i) const;
+    size_t size() const { return messages_.size(); }
+    const Message& operator[](size_t i) const { return messages_[i]; }
 
   private:
-    std::array<Message, MaxMessages> messages_;
-    size_t last_{0};
-    size_t size_{0};
+    util::CircularBuffer<Message, MaxMessages> messages_;
   };
 }

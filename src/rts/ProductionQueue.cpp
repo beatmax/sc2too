@@ -7,10 +7,10 @@
 
 bool rts::ProductionQueue::add(World& w, EntityTypeId type) {
   auto& s{w[side_]};
-  if (size_ < MaxProductionQueueSize) {
+  if (size() < MaxProductionQueueSize) {
     const auto& t{w[type]};
     if (auto [ok, lackingResource] = s.resources().tryTransferTo(resources_, t.cost); ok) {
-      array_[size_++] = type;
+      queue_.push(type);
       return true;
     }
     else {
@@ -31,7 +31,7 @@ bool rts::ProductionQueue::finishProduction(World& w, const Entity& parent) {
   assert(!empty());
   if (auto p{w.emptyCellAround(parent.area)}) {
     create(w, top(), *p);
-    pop();
+    queue_.pop();
     assert(!empty() || resources_.depleted());
     return true;
   }
@@ -51,10 +51,4 @@ void rts::ProductionQueue::create(World& w, EntityTypeId type, Point p) {
   bool transferOk{resources_.tryTransferTo(tmpBank, t.cost).first};
   assert(transferOk);
   w.factory->create(w, type, p, side_);
-}
-
-void rts::ProductionQueue::pop() {
-  assert(size_ > 0);
-  std::move(array_.begin() + 1, array_.begin() + size_, array_.begin());
-  --size_;
 }
