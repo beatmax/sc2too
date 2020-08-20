@@ -61,7 +61,7 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, const
         state_ = State::MovingToBase;
         return moveTo(b->area.topLeft);
       }
-      return 0;
+      return GameTime{0};
     }
 
     case State::MovingToBase:
@@ -73,7 +73,7 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, const
           return desc_.deliverTime;
         }
       }
-      return 0;
+      return GameTime{0};
 
     case State::Delivering:
       return finishDelivering();
@@ -82,7 +82,7 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, const
       state_ = State::MovingToTarget;
       return moveTo(target_);
   }
-  return 0;
+  return GameTime{0};
 }
 
 void rts::abilities::state::Gather::cancel(World& w) {
@@ -93,7 +93,7 @@ void rts::abilities::state::Gather::cancel(World& w) {
 rts::AbilityStepResult rts::abilities::state::Gather::init(const World& w, const Entity& entity) {
   auto* rf{w.resourceField(target_)};
   if (!rf)
-    return 0;
+    return GameTime{0};
   targetField_ = w.weakId(*rf);
   resource_ = rf->bag.resource();
   targetGroup_ = rf->group;

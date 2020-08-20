@@ -32,7 +32,7 @@ rts::AbilityStepResult rts::abilities::state::Move::step(const World& w, const E
     return stepAction();
 
   if (path_.empty() && completePath_)
-    return 0;
+    return GameTime{0};
 
   const bool wasEmpty{path_.empty()};
   std::tie(path_, completePath_) = findPath(w, pos, target_);

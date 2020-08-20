@@ -26,7 +26,7 @@ void rts::abilities::state::Produce::trigger(
 rts::AbilityStepResult rts::abilities::state::Produce::step(const World& w, const Entity& e) {
   auto& pq{w[e.productionQueue]};
   if (pq.empty())
-    return 0;
+    return GameTime{0};
 
   switch (state_) {
     case State::Idle:
@@ -34,7 +34,7 @@ rts::AbilityStepResult rts::abilities::state::Produce::step(const World& w, cons
     case State::Producing:
       return finishProduction();
   }
-  return 0;
+  return GameTime{0};
 }
 
 rts::AbilityStepAction rts::abilities::state::Produce::startProduction() {

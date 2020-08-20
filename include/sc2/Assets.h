@@ -3,6 +3,8 @@
 #include "MapInitializer.h"
 #include "ui/Sprite.h"
 
+#include <string>
+
 namespace sc2 {
   class Assets {
   public:
