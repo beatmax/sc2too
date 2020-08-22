@@ -40,7 +40,7 @@ namespace rts {
     Map map;
     FactoryUPtr factory;
 
-    explicit World(FactoryUPtr f) : factory{std::move(f)} {}
+    explicit World(FactoryUPtr f);
     ~World();
 
     World(const World&) = delete;

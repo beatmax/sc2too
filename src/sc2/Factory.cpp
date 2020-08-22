@@ -1,11 +1,17 @@
 #include "sc2/Factory.h"
 
 #include "rts/World.h"
+#include "sc2/Abilities.h"
 #include "sc2/Resources.h"
 #include "sc2/UnitTypes.h"
 #include "sc2/constants.h"
 #include "sc2/ui.h"
 #include "ui/SideUi.h"
+
+void sc2::Factory::init(rts::World& w) {
+  Abilities::init(w);
+  UnitTypes::init(w);
+}
 
 rts::UnitId sc2::Factory::create(rts::World& w, rts::UnitTypeId t, rts::Point p, rts::SideId sd) {
   if (t == UnitTypes::nexus)

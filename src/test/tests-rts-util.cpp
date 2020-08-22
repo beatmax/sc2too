@@ -20,7 +20,7 @@ void test::select(World& w, SideId side, UnitIdList units, command::Selection::A
 }
 
 test::MoveStepList test::runMove(World& w, Unit& unit, Point target, GameTime timeout) {
-  execCommand(w, unit.side, command::TriggerAbility{MoveAbilityId, target});
+  execCommand(w, unit.side, command::TriggerAbility{moveAbilityId, target});
   return continueMove(w, unit, timeout);
 }
 

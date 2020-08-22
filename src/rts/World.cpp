@@ -20,6 +20,10 @@ namespace rts {
   }
 }
 
+rts::World::World(FactoryUPtr f) : factory{std::move(f)} {
+  factory->init(*this);
+}
+
 rts::World::~World() {
   for (auto& u : units)
     destroy(u);

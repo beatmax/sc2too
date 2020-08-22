@@ -4,6 +4,7 @@
 
 namespace sc2 {
   struct Factory : public rts::Factory {
+    void init(rts::World& w) final;
     rts::UnitId create(rts::World& w, rts::UnitTypeId t, rts::Point p, rts::SideId sd) final;
 
     static rts::UnitId nexus(rts::World& w, rts::Point p, rts::SideId sd);

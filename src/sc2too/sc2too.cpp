@@ -1,11 +1,9 @@
 #include "rts/Command.h"
 #include "rts/Engine.h"
 #include "rts/World.h"
-#include "sc2/Abilities.h"
 #include "sc2/Assets.h"
 #include "sc2/Factory.h"
 #include "sc2/Resources.h"
-#include "sc2/UnitTypes.h"
 #include "ui/IO.h"
 #include "ui/SideUi.h"
 
@@ -30,9 +28,6 @@ int main() try {
   sc2::Assets::init();
   auto worldPtr{rts::World::create(std::make_unique<sc2::Factory>())};
   rts::World& world{*worldPtr};
-
-  sc2::Abilities::init(world);
-  sc2::UnitTypes::init(world);
 
   const auto sides{makeSides(world)};
   world.map.load(world, sc2::Assets::mapInitializer(), std::ifstream{"data/maps/ascii_jungle.txt"});

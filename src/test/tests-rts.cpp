@@ -20,49 +20,20 @@ TEST_CASE("Hello world!", "[rts]") {
   World& world{*worldPtr};
   const World& cworld{world};
 
-  REQUIRE(
-      world.abilities.emplace(rts::Ability::TargetType::Any, std::make_unique<test::Ui>('m')) ==
-      test::MoveAbilityId);
-  REQUIRE(test::repr(world.abilities[test::MoveAbilityId].ui) == 'm');
-  REQUIRE(
-      world.abilities.emplace(rts::Ability::TargetType::None, std::make_unique<test::Ui>('0')) ==
-      test::ProduceSimpletonAbilityId);
-  REQUIRE(
-      world.abilities.emplace(rts::Ability::TargetType::None, std::make_unique<test::Ui>('1')) ==
-      test::ProduceThirdyAbilityId);
-
-  REQUIRE(
-      world.unitTypes.emplace(
-          rts::ResourceQuantityList{}, GameTimeSecond, std::make_unique<test::Ui>('B')) ==
-      test::BuildingTypeId);
-  REQUIRE(
-      world.unitTypes.emplace(
-          rts::ResourceQuantityList{{&test::gas, test::SimpletonCost}}, test::SimpletonBuildTime,
-          std::make_unique<test::Ui>('S')) == test::SimpletonTypeId);
-  REQUIRE(
-      world.unitTypes.emplace(
-          rts::ResourceQuantityList{{&test::gas, test::ThirdyCost}}, test::ThirdyBuildTime,
-          std::make_unique<test::Ui>('S')) == test::ThirdyTypeId);
-  world.unitTypes[test::BuildingTypeId].addAbility(
-      test::ProduceSimpletonAbilityIndex,
-      abilities::Produce{test::ProduceSimpletonAbilityId, test::SimpletonTypeId});
-  world.unitTypes[test::BuildingTypeId].addAbility(
-      test::ProduceThirdyAbilityIndex,
-      abilities::Produce{test::ProduceThirdyAbilityId, test::ThirdyTypeId});
-  world.unitTypes[test::SimpletonTypeId].addAbility(
-      test::MoveAbilityIndex, abilities::Move{test::MoveAbilityId, CellDistance / GameTimeSecond});
-
-  auto sides{test::makeSides(world)};
-  REQUIRE(sides.size() == 2);
-  REQUIRE(sides[0] == test::Side1Id);
-  REQUIRE(sides[1] == test::Side2Id);
-
-  const Side& side1{cworld.sides[test::Side1Id]};
-  const Side& side2{cworld.sides[test::Side2Id]};
+  test::makeSides(world);
+  const Side& side1{cworld[test::side1Id]};
+  const Side& side2{cworld[test::side2Id]};
+  REQUIRE(test::repr(side1.ui()) == "1");
+  REQUIRE(test::repr(side2.ui()) == "2");
   REQUIRE(side1.bag(&test::gas).quantity() == 1000);
-  REQUIRE(test::repr(side1.ui()) == '1');
   REQUIRE(side2.bag(&test::gas).quantity() == 1000);
-  REQUIRE(test::repr(side2.ui()) == '2');
+
+  REQUIRE(test::repr(cworld[test::moveAbilityId].ui) == "move");
+  REQUIRE(test::repr(cworld[test::produceSimpletonAbilityId].ui) == "p.s");
+  REQUIRE(test::repr(cworld[test::produceThirdyAbilityId].ui) == "p.t");
+  REQUIRE(test::repr(cworld[test::buildingTypeId].ui) == "B");
+  REQUIRE(test::repr(cworld[test::simpletonTypeId].ui) == "S");
+  REQUIRE(test::repr(cworld[test::thirdyTypeId].ui) == "T");
 
   world.map.load(world, test::MapInitializer{}, std::istringstream{test::map});
 
@@ -72,14 +43,14 @@ TEST_CASE("Hello world!", "[rts]") {
   REQUIRE(cworld.map(10, 1).contains(Cell::Blocker));
   REQUIRE(cworld.map(11, 1).contains(Cell::Blocker));
   REQUIRE(cworld.map(12, 1).contains(Cell::Blocker));
-  REQUIRE(test::repr(cworld.blocker({12, 1})->ui) == 'r');
+  REQUIRE(test::repr(cworld.blocker({12, 1})->ui) == "r");
   REQUIRE(cworld.map(13, 1).empty());
 
   const Rectangle buildingArea{Point{37, 6}, rts::Vector{2, 3}};
   REQUIRE(cworld[buildingArea.topLeft].contains(Cell::Unit));
   Unit* building{world.unit(buildingArea.topLeft)};
   REQUIRE(building->area == buildingArea);
-  REQUIRE(test::repr(building->ui) == 'b');
+  REQUIRE(test::repr(building->ui) == "b");
   forEachPoint(buildingArea, [&](Point p) {
     auto* u{cworld.unit(p)};
     REQUIRE(u != nullptr);
@@ -91,7 +62,7 @@ TEST_CASE("Hello world!", "[rts]") {
   const ResourceField* geyser{cworld.resourceField(geyserArea.topLeft)};
   REQUIRE(geyser != nullptr);
   REQUIRE(geyser->area == geyserArea);
-  REQUIRE(test::repr(geyser->ui) == 'g');
+  REQUIRE(test::repr(geyser->ui) == "g");
   forEachPoint(geyserArea, [&](Point p) {
     auto* rf{cworld.resourceField(p)};
     REQUIRE(rf != nullptr);
@@ -100,26 +71,26 @@ TEST_CASE("Hello world!", "[rts]") {
 
   SECTION("A unit is added to the world") {
     Point pos{20, 5};
-    UnitId eid{test::Factory::simpleton(world, pos, test::Side1Id)};
+    UnitId uid{test::Factory::simpleton(world, pos, test::side1Id)};
     REQUIRE(cworld[pos].contains(Cell::Unit));
     Unit& u{*world.unit(pos)};
     const Unit& cu{*cworld.unit(pos)};
     REQUIRE(cu.area.topLeft == pos);
-    REQUIRE(test::repr(cu.ui) == 's');
-    REQUIRE(test::Ui::count['s'] == 1);
+    REQUIRE(test::repr(cu.ui) == "s");
+    REQUIRE(test::Ui::count["s"] == 1);
 
     SECTION("The unit is destroyed") {
       pos = cu.area.topLeft;
-      world.destroy(eid);
+      world.destroy(uid);
       REQUIRE(cworld[pos].empty());
-      REQUIRE(test::Ui::count['s'] == 0);
+      REQUIRE(test::Ui::count["s"] == 0);
     }
 
     SECTION("The 'move' ability is triggered") {
       const AbilityState& moveAbilityState{u.abilityState(cworld, abilities::Kind::Move)};
 
       const Point targetPos{20, 3};
-      u.trigger(test::MoveAbilityId, world, targetPos);
+      u.trigger(test::moveAbilityId, world, targetPos);
 
       ++world.time;
       world.update(cu.step(cworld));
@@ -162,9 +133,9 @@ TEST_CASE("Hello world!", "[rts]") {
         REQUIRE(!actions.empty());
 
         pos = cu.area.topLeft;
-        world.destroy(eid);
+        world.destroy(uid);
         REQUIRE(cworld[pos].empty());
-        REQUIRE(test::Ui::count['s'] == 0);
+        REQUIRE(test::Ui::count["s"] == 0);
 
         world.update(actions);
       }
@@ -174,13 +145,13 @@ TEST_CASE("Hello world!", "[rts]") {
   SECTION("A multi-cell unit is added to the world") {
     const Rectangle area{Point{1, 1}, rts::Vector{2, 3}};
 
-    REQUIRE(test::Ui::count['b'] == 1);
+    REQUIRE(test::Ui::count["b"] == 1);
 
-    UnitId eid{test::Factory::building(world, area.topLeft, test::Side1Id)};
+    UnitId uid{test::Factory::building(world, area.topLeft, test::side1Id)};
     const Unit& cu{*cworld.unit(area.topLeft)};
     REQUIRE(cu.area == area);
-    REQUIRE(test::repr(cu.ui) == 'b');
-    REQUIRE(test::Ui::count['b'] == 2);
+    REQUIRE(test::repr(cu.ui) == "b");
+    REQUIRE(test::Ui::count["b"] == 2);
 
     const Rectangle outRect{area.topLeft - rts::Vector{1, 1}, area.size + rts::Vector{2, 2}};
     forEachPoint(outRect, [&](Point p) {
@@ -191,17 +162,17 @@ TEST_CASE("Hello world!", "[rts]") {
     });
 
     SECTION("The multi-cell unit is destroyed") {
-      world.destroy(eid);
-      REQUIRE(test::Ui::count['b'] == 1);
+      world.destroy(uid);
+      REQUIRE(test::Ui::count["b"] == 1);
       forEachPoint(area, [&](Point p) { (cworld[p].empty()); });
     }
   }
 
   SECTION("Try some moves!") {
-    UnitId eid{test::Factory::simpleton(world, Point{20, 5}, test::Side1Id)};
-    auto& unit{world.units[eid]};
+    UnitId uid{test::Factory::simpleton(world, Point{20, 5}, test::side1Id)};
+    auto& unit{world[uid]};
 
-    test::select(world, test::Side1Id, {eid});
+    test::select(world, test::side1Id, {uid});
 
     SECTION("Already there") {
       REQUIRE(
@@ -253,7 +224,7 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("Path around a unit") {
-      test::Factory::building(world, {24, 4}, test::Side1Id);
+      test::Factory::building(world, {24, 4}, test::side1Id);
       REQUIRE(
           test::runMove(world, unit, Point{27, 5}) ==
           test::MoveStepList{
@@ -276,7 +247,7 @@ TEST_CASE("Hello world!", "[rts]") {
       ++world.time;
       WorldActionList actions{unit.step(cworld)};
       REQUIRE(!actions.empty());
-      test::Factory::building(world, {24, 4}, test::Side1Id);
+      test::Factory::building(world, {24, 4}, test::side1Id);
       world.update(actions);
       REQUIRE(unit.area.topLeft == Point{23, 5});
       REQUIRE(
@@ -291,7 +262,7 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("Path around adjacent unit") {
-      test::Factory::simpleton(world, {21, 5}, test::Side1Id);
+      test::Factory::simpleton(world, {21, 5}, test::side1Id);
       REQUIRE(
           test::runMove(world, unit, Point{22, 5}) ==
           test::MoveStepList{{{20, 5}, 0}, {{21, 4}, 142}, {{22, 5}, 283}});
@@ -322,7 +293,7 @@ TEST_CASE("Hello world!", "[rts]") {
     SECTION("Blocked and unblocked") {
       forEachPoint(Rectangle{{19, 4}, {3, 3}}, [&](Point p) {
         if (p != Point{20, 5})
-          test::Factory::simpleton(world, p, test::Side1Id);
+          test::Factory::simpleton(world, p, test::side1Id);
       });
       REQUIRE(
           test::runMove(world, unit, Point{23, 5}, 350) ==
@@ -332,8 +303,8 @@ TEST_CASE("Hello world!", "[rts]") {
           test::continueMove(world, unit, 550) ==
           test::MoveStepList{{{20, 5}, 350}, {{21, 5}, 501}, {{21, 5}, 550}});
       for (Coordinate y : {4, 5, 6})
-        test::Factory::simpleton(world, {22, y}, test::Side1Id);
-      test::Factory::simpleton(world, {20, 5}, test::Side1Id);
+        test::Factory::simpleton(world, {22, y}, test::side1Id);
+      test::Factory::simpleton(world, {20, 5}, test::side1Id);
       REQUIRE(
           test::continueMove(world, unit, 750) ==
           test::MoveStepList{{{21, 5}, 550}, {{21, 5}, 750}});
@@ -353,44 +324,44 @@ TEST_CASE("Hello world!", "[rts]") {
     auto selectedUnits = [&]() { return side1.selection().ids(world); };
     auto subgroupType = [&]() { return side1.selection().subgroupType(world); };
 
-    UnitId u1{test::Factory::simpleton(world, Point{21, 5}, test::Side1Id)};
-    UnitId u2{test::Factory::simpleton(world, Point{22, 5}, test::Side1Id)};
-    UnitId u3{test::Factory::simpleton(world, Point{23, 5}, test::Side1Id)};
+    UnitId u1{test::Factory::simpleton(world, Point{21, 5}, test::side1Id)};
+    UnitId u2{test::Factory::simpleton(world, Point{22, 5}, test::side1Id)};
+    UnitId u3{test::Factory::simpleton(world, Point{23, 5}, test::side1Id)};
 
     REQUIRE(subgroupType() == UnitTypeId{});
 
-    test::select(world, test::Side1Id, {u1, u2, u3});
-    REQUIRE(subgroupType() == test::SimpletonTypeId);
+    test::select(world, test::side1Id, {u1, u2, u3});
+    REQUIRE(subgroupType() == test::simpletonTypeId);
 
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Set, NonExclusive, 1});
+    test::execCommand(world, test::side1Id, ControlGroupCmd{ControlGroupCmd::Set, NonExclusive, 1});
     REQUIRE(groupUnits(1) == UnitIdList{u1, u2, u3});
     REQUIRE(groupUnits(2) == UnitIdList{});
 
-    test::select(world, test::Side1Id, {u2, u3});
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Set, NonExclusive, 2});
+    test::select(world, test::side1Id, {u2, u3});
+    test::execCommand(world, test::side1Id, ControlGroupCmd{ControlGroupCmd::Set, NonExclusive, 2});
     REQUIRE(groupUnits(1) == UnitIdList{u1, u2, u3});
     REQUIRE(groupUnits(2) == UnitIdList{u2, u3});
 
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Set, Exclusive, 3});
+    test::execCommand(world, test::side1Id, ControlGroupCmd{ControlGroupCmd::Set, Exclusive, 3});
     REQUIRE(groupUnits(1) == UnitIdList{u1});
     REQUIRE(groupUnits(2) == UnitIdList{});
     REQUIRE(groupUnits(3) == UnitIdList{u2, u3});
 
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Add, NonExclusive, 1});
+    test::execCommand(world, test::side1Id, ControlGroupCmd{ControlGroupCmd::Add, NonExclusive, 1});
     REQUIRE(groupUnits(1) == UnitIdList{u1, u2, u3});
     REQUIRE(groupUnits(2) == UnitIdList{});
     REQUIRE(groupUnits(3) == UnitIdList{u2, u3});
 
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Add, Exclusive, 2});
+    test::execCommand(world, test::side1Id, ControlGroupCmd{ControlGroupCmd::Add, Exclusive, 2});
     REQUIRE(groupUnits(1) == UnitIdList{u1});
     REQUIRE(groupUnits(2) == UnitIdList{u2, u3});
     REQUIRE(groupUnits(3) == UnitIdList{});
 
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 1});
+    test::execCommand(world, test::side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 1});
     REQUIRE(selectedUnits() == UnitIdList{u1});
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 2});
+    test::execCommand(world, test::side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 2});
     REQUIRE(selectedUnits() == UnitIdList{u2, u3});
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 3});
+    test::execCommand(world, test::side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 3});
     REQUIRE(selectedUnits() == UnitIdList{});
     REQUIRE(subgroupType() == UnitTypeId{});
 
@@ -398,43 +369,43 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(groupUnits(2) == UnitIdList{u2, u3});
     REQUIRE(groupUnits(3) == UnitIdList{});
 
-    test::select(world, test::Side1Id, {u1}, command::Selection::Add);
+    test::select(world, test::side1Id, {u1}, command::Selection::Add);
     REQUIRE(selectedUnits() == UnitIdList{u1});
-    REQUIRE(subgroupType() == test::SimpletonTypeId);
+    REQUIRE(subgroupType() == test::simpletonTypeId);
 
     UnitId b1{world.units.id(*building)};
-    UnitId t1{test::Factory::thirdy(world, Point{24, 5}, test::Side1Id)};
-    UnitId t2{test::Factory::thirdy(world, Point{25, 5}, test::Side1Id)};
+    UnitId t1{test::Factory::thirdy(world, Point{24, 5}, test::side1Id)};
+    UnitId t2{test::Factory::thirdy(world, Point{25, 5}, test::side1Id)};
 
-    test::select(world, test::Side1Id, {u2, b1, t2, u1, t1});
+    test::select(world, test::side1Id, {u2, b1, t2, u1, t1});
     REQUIRE(selectedUnits() == UnitIdList{b1, u1, u2, t1, t2});
-    REQUIRE(subgroupType() == test::BuildingTypeId);
+    REQUIRE(subgroupType() == test::buildingTypeId);
 
-    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
-    REQUIRE(subgroupType() == test::SimpletonTypeId);
-    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
-    REQUIRE(subgroupType() == test::ThirdyTypeId);
-    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
-    REQUIRE(subgroupType() == test::BuildingTypeId);
-    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Previous});
-    REQUIRE(subgroupType() == test::ThirdyTypeId);
-    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Previous});
-    REQUIRE(subgroupType() == test::SimpletonTypeId);
+    test::execCommand(world, test::side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
+    REQUIRE(subgroupType() == test::simpletonTypeId);
+    test::execCommand(world, test::side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
+    REQUIRE(subgroupType() == test::thirdyTypeId);
+    test::execCommand(world, test::side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
+    REQUIRE(subgroupType() == test::buildingTypeId);
+    test::execCommand(world, test::side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Previous});
+    REQUIRE(subgroupType() == test::thirdyTypeId);
+    test::execCommand(world, test::side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Previous});
+    REQUIRE(subgroupType() == test::simpletonTypeId);
 
     world.destroy(u1);
     REQUIRE(selectedUnits() == UnitIdList{b1, u2, t1, t2});
-    REQUIRE(subgroupType() == test::SimpletonTypeId);
+    REQUIRE(subgroupType() == test::simpletonTypeId);
 
     world.destroy(u2);
     REQUIRE(selectedUnits() == UnitIdList{b1, t1, t2});
     REQUIRE(subgroupType() == UnitTypeId{});
 
-    test::execCommand(world, test::Side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
-    REQUIRE(subgroupType() == test::BuildingTypeId);
+    test::execCommand(world, test::side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
+    REQUIRE(subgroupType() == test::buildingTypeId);
 
-    test::execCommand(world, test::Side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 2});
+    test::execCommand(world, test::side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 2});
     REQUIRE(selectedUnits() == UnitIdList{u3});
-    REQUIRE(subgroupType() == test::SimpletonTypeId);
+    REQUIRE(subgroupType() == test::simpletonTypeId);
   }
 
   SECTION("Hello engine!") {
@@ -558,7 +529,7 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("The engine runs and updates the world") {
-      const auto side{test::Side1Id};
+      const auto side{test::side1Id};
       const auto unit{test::Factory::simpleton(world, Point{20, 5}, side)};
       test::select(world, side, {unit});
 
@@ -576,7 +547,7 @@ TEST_CASE("Hello world!", "[rts]") {
       auto processInput = [&](const World& w, rts::SideCommandList& cmds) {
         ++inputCalls;
         if (inputCalls == 1)
-          addCommand(cmds, side, rts::command::TriggerAbility{test::MoveAbilityId, targetPos});
+          addCommand(cmds, side, rts::command::TriggerAbility{test::moveAbilityId, targetPos});
         else if (inputCalls == 100)
           controller.paused_ = true;
         else if (inputCalls == 100 + pausedFrames)
@@ -600,24 +571,24 @@ TEST_CASE("Hello world!", "[rts]") {
   SECTION("Production queue") {
     auto triggerSimpletonProduction = [&]() {
       test::execCommand(
-          world, test::Side1Id, rts::command::TriggerAbility{test::ProduceSimpletonAbilityId, {}});
+          world, test::side1Id, rts::command::TriggerAbility{test::produceSimpletonAbilityId, {}});
     };
 
     auto triggerThirdyProduction = [&]() {
       test::execCommand(
-          world, test::Side1Id, rts::command::TriggerAbility{test::ProduceThirdyAbilityId, {}});
+          world, test::side1Id, rts::command::TriggerAbility{test::produceThirdyAbilityId, {}});
     };
 
     const Rectangle buildingArea{Point{1, 1}, rts::Vector{2, 3}};
-    UnitId building{test::Factory::building(world, buildingArea.topLeft, test::Side1Id)};
+    UnitId building{test::Factory::building(world, buildingArea.topLeft, test::side1Id)};
     const Unit& cb{cworld[building]};
-    test::select(world, test::Side1Id, {building});
+    test::select(world, test::side1Id, {building});
 
     const ProductionQueue& queue{world[world[building].productionQueue]};
     auto queueWId{world.weakId(queue)};
     REQUIRE(queue.size() == 0);
-    REQUIRE(test::Ui::count['s'] == 0);
-    REQUIRE(test::Ui::count['t'] == 0);
+    REQUIRE(test::Ui::count["s"] == 0);
+    REQUIRE(test::Ui::count["t"] == 0);
 
     Quantity expectedGasLeft{1000};
     REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
@@ -631,13 +602,13 @@ TEST_CASE("Hello world!", "[rts]") {
 
       REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
       REQUIRE(queue.size() == 1);
-      REQUIRE(test::Ui::count['s'] == 0);
+      REQUIRE(test::Ui::count["s"] == 0);
 
       REQUIRE(cb.nextStepTime == world.time + test::SimpletonBuildTime);
       world.time += test::SimpletonBuildTime;
       world.update(cb.step(cworld));
       REQUIRE(queue.size() == 0);
-      REQUIRE(test::Ui::count['s'] == 1);
+      REQUIRE(test::Ui::count["s"] == 1);
 
       SECTION("Two units are enqueued for production") {
         triggerSimpletonProduction();
@@ -649,15 +620,15 @@ TEST_CASE("Hello world!", "[rts]") {
 
         REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
         REQUIRE(queue.size() == 2);
-        REQUIRE(test::Ui::count['s'] == 1);
-        REQUIRE(test::Ui::count['t'] == 0);
+        REQUIRE(test::Ui::count["s"] == 1);
+        REQUIRE(test::Ui::count["t"] == 0);
 
         REQUIRE(cb.nextStepTime == world.time + test::SimpletonBuildTime);
         world.time += test::SimpletonBuildTime;
         world.update(cb.step(cworld));
         REQUIRE(queue.size() == 1);
-        REQUIRE(test::Ui::count['s'] == 2);
-        REQUIRE(test::Ui::count['t'] == 0);
+        REQUIRE(test::Ui::count["s"] == 2);
+        REQUIRE(test::Ui::count["t"] == 0);
 
         ++world.time;
         REQUIRE(cb.nextStepTime == world.time);
@@ -667,8 +638,8 @@ TEST_CASE("Hello world!", "[rts]") {
         world.time += test::ThirdyBuildTime;
         world.update(cb.step(cworld));
         REQUIRE(queue.size() == 0);
-        REQUIRE(test::Ui::count['s'] == 2);
-        REQUIRE(test::Ui::count['t'] == 1);
+        REQUIRE(test::Ui::count["s"] == 2);
+        REQUIRE(test::Ui::count["t"] == 1);
       }
 
       SECTION("Units are enqueued during production") {
@@ -680,8 +651,8 @@ TEST_CASE("Hello world!", "[rts]") {
 
         REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
         REQUIRE(queue.size() == 1);
-        REQUIRE(test::Ui::count['s'] == 1);
-        REQUIRE(test::Ui::count['t'] == 0);
+        REQUIRE(test::Ui::count["s"] == 1);
+        REQUIRE(test::Ui::count["t"] == 0);
 
         REQUIRE(cb.nextStepTime == world.time + test::ThirdyBuildTime);
 
@@ -691,15 +662,15 @@ TEST_CASE("Hello world!", "[rts]") {
 
         REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
         REQUIRE(queue.size() == 2);
-        REQUIRE(test::Ui::count['s'] == 1);
-        REQUIRE(test::Ui::count['t'] == 0);
+        REQUIRE(test::Ui::count["s"] == 1);
+        REQUIRE(test::Ui::count["t"] == 0);
 
         REQUIRE(cb.nextStepTime == world.time + (test::ThirdyBuildTime - 5));
         world.time += test::ThirdyBuildTime - 5;
         world.update(cb.step(cworld));
         REQUIRE(queue.size() == 1);
-        REQUIRE(test::Ui::count['s'] == 1);
-        REQUIRE(test::Ui::count['t'] == 1);
+        REQUIRE(test::Ui::count["s"] == 1);
+        REQUIRE(test::Ui::count["t"] == 1);
 
         REQUIRE(cb.nextStepTime == world.time + 1);
         ++world.time;
@@ -709,14 +680,14 @@ TEST_CASE("Hello world!", "[rts]") {
         world.time += test::SimpletonBuildTime;
         world.update(cb.step(cworld));
         REQUIRE(queue.size() == 0);
-        REQUIRE(test::Ui::count['s'] == 2);
-        REQUIRE(test::Ui::count['t'] == 1);
+        REQUIRE(test::Ui::count["s"] == 2);
+        REQUIRE(test::Ui::count["t"] == 1);
       }
     }
 
     SECTION("Production is attempted with insufficient resources") {
       rts::ResourceBank dummyBank;
-      world.sides[test::Side1Id].resources().tryTransferTo(dummyBank, {{&test::gas, 998}});
+      world[test::side1Id].resources().tryTransferTo(dummyBank, {{&test::gas, 998}});
       expectedGasLeft = 2;
       REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
 
