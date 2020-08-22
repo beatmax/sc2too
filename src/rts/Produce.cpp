@@ -1,7 +1,7 @@
 #include "Produce.h"
 
-#include "rts/Entity.h"
 #include "rts/ProductionQueue.h"
+#include "rts/Unit.h"
 #include "rts/World.h"
 
 #include <cassert>
@@ -13,9 +13,9 @@ namespace rts {
 }
 
 void rts::abilities::state::Produce::trigger(
-    World& w, Entity& e, ActiveAbilityStateUPtr& as, const Desc& desc, Point) {
-  assert(e.productionQueue);
-  auto& pq{w[e.productionQueue]};
+    World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, Point) {
+  assert(u.productionQueue);
+  auto& pq{w[u.productionQueue]};
 
   assert(pq.size() == 0 || as);
 
@@ -23,8 +23,8 @@ void rts::abilities::state::Produce::trigger(
     as = std::make_unique<Produce>();
 }
 
-rts::AbilityStepResult rts::abilities::state::Produce::step(const World& w, const Entity& e) {
-  auto& pq{w[e.productionQueue]};
+rts::AbilityStepResult rts::abilities::state::Produce::step(const World& w, const Unit& u) {
+  auto& pq{w[u.productionQueue]};
   if (pq.empty())
     return GameTime{0};
 
@@ -38,8 +38,8 @@ rts::AbilityStepResult rts::abilities::state::Produce::step(const World& w, cons
 }
 
 rts::AbilityStepAction rts::abilities::state::Produce::startProduction() {
-  return [this](World& w, Entity& e) -> GameTime {
-    auto& pq{w[e.productionQueue]};
+  return [this](World& w, Unit& u) -> GameTime {
+    auto& pq{w[u.productionQueue]};
     if (pq.empty())
       return 0;
     if (pq.startProduction(w)) {
@@ -51,9 +51,9 @@ rts::AbilityStepAction rts::abilities::state::Produce::startProduction() {
 }
 
 rts::AbilityStepAction rts::abilities::state::Produce::finishProduction() {
-  return [this](World& w, Entity& e) -> GameTime {
-    auto& pq{w[e.productionQueue]};
-    if (pq.finishProduction(w, e)) {
+  return [this](World& w, Unit& u) -> GameTime {
+    auto& pq{w[u.productionQueue]};
+    if (pq.finishProduction(w, u)) {
       state_ = State::Idle;
       return 1;
     }

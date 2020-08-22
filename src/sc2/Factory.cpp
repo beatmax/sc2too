@@ -1,32 +1,31 @@
 #include "sc2/Factory.h"
 
 #include "rts/World.h"
-#include "sc2/EntityTypes.h"
 #include "sc2/Resources.h"
+#include "sc2/UnitTypes.h"
 #include "sc2/constants.h"
 #include "sc2/ui.h"
 #include "ui/SideUi.h"
 
-rts::EntityId sc2::Factory::create(
-    rts::World& w, rts::EntityTypeId t, rts::Point p, rts::SideId sd) {
-  if (t == EntityTypes::nexus)
+rts::UnitId sc2::Factory::create(rts::World& w, rts::UnitTypeId t, rts::Point p, rts::SideId sd) {
+  if (t == UnitTypes::nexus)
     return nexus(w, p, sd);
-  if (t == EntityTypes::probe)
+  if (t == UnitTypes::probe)
     return probe(w, p, sd);
   return {};
 }
 
-rts::EntityId sc2::Factory::nexus(rts::World& w, rts::Point p, rts::SideId sd) {
+rts::UnitId sc2::Factory::nexus(rts::World& w, rts::Point p, rts::SideId sd) {
   auto sideColor{::ui::getColor(w.sides[sd])};
-  return w.createEntity(
-      p, rts::Vector{5, 5}, EntityTypes::nexus, sd, std::make_unique<ui::Nexus>(sideColor), 0,
+  return w.createUnit(
+      p, rts::Vector{5, 5}, UnitTypes::nexus, sd, std::make_unique<ui::Nexus>(sideColor), 0,
       w.createProductionQueue(sd));
 }
 
-rts::EntityId sc2::Factory::probe(rts::World& w, rts::Point p, rts::SideId sd) {
+rts::UnitId sc2::Factory::probe(rts::World& w, rts::Point p, rts::SideId sd) {
   auto sideColor{::ui::getColor(w.sides[sd])};
-  return w.createEntity(
-      p, rts::Vector{1, 1}, EntityTypes::probe, sd, std::make_unique<ui::Probe>(sideColor),
+  return w.createUnit(
+      p, rts::Vector{1, 1}, UnitTypes::probe, sd, std::make_unique<ui::Probe>(sideColor),
       ProbeCargoCapacity);
 }
 

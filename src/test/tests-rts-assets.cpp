@@ -32,8 +32,7 @@ std::map<char, int> test::Ui::count;
 
 const rts::Resource test::gas{std::make_unique<GasUi>()};
 
-rts::EntityId test::Factory::create(
-    rts::World& w, rts::EntityTypeId t, rts::Point p, rts::SideId sd) {
+rts::UnitId test::Factory::create(rts::World& w, rts::UnitTypeId t, rts::Point p, rts::SideId sd) {
   if (t == BuildingTypeId)
     return building(w, p, sd);
   if (t == SimpletonTypeId)
@@ -43,18 +42,18 @@ rts::EntityId test::Factory::create(
   return {};
 }
 
-rts::EntityId test::Factory::building(rts::World& w, rts::Point p, rts::SideId sd) {
-  return w.createEntity(
+rts::UnitId test::Factory::building(rts::World& w, rts::Point p, rts::SideId sd) {
+  return w.createUnit(
       p, rts::Vector{2, 3}, BuildingTypeId, sd, std::make_unique<Ui>('b'), 0,
       w.createProductionQueue(sd));
 }
 
-rts::EntityId test::Factory::simpleton(rts::World& w, rts::Point p, rts::SideId sd) {
-  return w.createEntity(p, rts::Vector{1, 1}, SimpletonTypeId, sd, std::make_unique<Ui>('s'));
+rts::UnitId test::Factory::simpleton(rts::World& w, rts::Point p, rts::SideId sd) {
+  return w.createUnit(p, rts::Vector{1, 1}, SimpletonTypeId, sd, std::make_unique<Ui>('s'));
 }
 
-rts::EntityId test::Factory::thirdy(rts::World& w, rts::Point p, rts::SideId sd) {
-  return w.createEntity(p, rts::Vector{1, 1}, ThirdyTypeId, sd, std::make_unique<Ui>('t'));
+rts::UnitId test::Factory::thirdy(rts::World& w, rts::Point p, rts::SideId sd) {
+  return w.createUnit(p, rts::Vector{1, 1}, ThirdyTypeId, sd, std::make_unique<Ui>('t'));
 }
 
 rts::ResourceFieldId test::Factory::geyser(rts::World& w, rts::Point p) {

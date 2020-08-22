@@ -2,8 +2,8 @@
 
 #include "dim.h"
 #include "graph.h"
-#include "rts/Entity.h"
 #include "rts/Selection.h"
+#include "rts/Unit.h"
 #include "rts/World.h"
 #include "ui/Sprite.h"
 #include "util/geo.h"
@@ -20,12 +20,13 @@ namespace ui {
 
     ScreenRect toScreenRect(const Camera& camera, const rts::Rectangle& area) {
       const rts::Vector relativeTopLeft{area.topLeft - camera.topLeft()};
-      return {ScreenPoint{0, 0} + toScreenVector(relativeTopLeft),
-              toScreenVector(area.size) - ScreenVector{1, 1}};
+      return {
+          ScreenPoint{0, 0} + toScreenVector(relativeTopLeft),
+          toScreenVector(area.size) - ScreenVector{1, 1}};
     }
 
     void draw(const Window& win, const Camera& camera, const rts::WorldObject& object) {
-      // default for color pair 0 (e.g. entity's side color)
+      // default for color pair 0 (e.g. unit's side color)
       wattrset(win.w, getDefaultColor(object));
 
       const Sprite& sprite{getSprite(object)};

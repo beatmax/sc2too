@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cassert>
 
-bool rts::ProductionQueue::add(World& w, EntityTypeId type) {
+bool rts::ProductionQueue::add(World& w, UnitTypeId type) {
   auto& s{w[side_]};
   if (size() < MaxProductionQueueSize) {
     const auto& t{w[type]};
@@ -27,7 +27,7 @@ bool rts::ProductionQueue::startProduction(World& w) {
   return true;
 }
 
-bool rts::ProductionQueue::finishProduction(World& w, const Entity& parent) {
+bool rts::ProductionQueue::finishProduction(World& w, const Unit& parent) {
   assert(!empty());
   if (auto p{w.emptyCellAround(parent.area)}) {
     create(w, top(), *p);
@@ -45,7 +45,7 @@ rts::GameTime rts::ProductionQueue::buildTime(const World& w) const {
   return w[top()].buildTime;
 }
 
-void rts::ProductionQueue::create(World& w, EntityTypeId type, Point p) {
+void rts::ProductionQueue::create(World& w, UnitTypeId type, Point p) {
   const auto& t{w[type]};
   ResourceBank tmpBank;
   bool transferOk{resources_.tryTransferTo(tmpBank, t.cost).first};

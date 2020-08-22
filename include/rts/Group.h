@@ -10,18 +10,18 @@
 namespace rts {
   class Group {
   public:
-    void set(const World& w, EntityIdList ids);
-    void add(const World& w, EntityIdList ids);
-    void remove(const EntityIdList& ids);
-    EntityIdList ids(const World& w) const;
-    EntityCPtrList items(const World& w) const;
-    bool contains(EntityId id) const { return list_.contains(id); }
+    void set(const World& w, UnitIdList ids);
+    void add(const World& w, UnitIdList ids);
+    void remove(const UnitIdList& ids);
+    UnitIdList ids(const World& w) const;
+    UnitCPtrList items(const World& w) const;
+    bool contains(UnitId id) const { return list_.contains(id); }
 
   private:
     struct Compare {
-      bool operator()(const Entity& e1, const Entity& e2) const;
+      bool operator()(const Unit& u1, const Unit& u2) const;
     };
 
-    util::WeakList<Entity, MaxSideEntities, Compare> list_;
+    util::WeakList<Unit, MaxSideUnits, Compare> list_;
   };
 }

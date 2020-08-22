@@ -5,16 +5,16 @@
 
 #include <cassert>
 
-void rts::AbilityState::trigger(World& w, Entity& e, const abilities::Instance& ai, Point target) {
-  ai.trigger(w, e, activeState_, target);
+void rts::AbilityState::trigger(World& w, Unit& u, const abilities::Instance& ai, Point target) {
+  ai.trigger(w, u, activeState_, target);
   if (nextStepTime_ == GameTimeInf && activeState_)
     nextStepTime_ = w.time + 1;
 }
 
 void rts::AbilityState::step(
-    const World& w, const Entity& e, AbilityStateIndex as, WorldActionList& actions) {
+    const World& w, const Unit& u, AbilityStateIndex as, WorldActionList& actions) {
   assert(activeState_);
-  AbilityStepResult sr{activeState_->step(w, e)};
+  AbilityStepResult sr{activeState_->step(w, u)};
   if (auto* t{std::get_if<GameTime>(&sr)}) {
     if (*t == GameTimeInf)
       nextStepTime_ = *t;
@@ -26,19 +26,19 @@ void rts::AbilityState::step(
     }
   }
   else {
-    actions += [as, wid{w.weakId(e)}, f{std::move(std::get<AbilityStepAction>(sr))}](World& w) {
-      if (auto* e{w[wid]})
-        e->abilityStepAction(w, as, f);
+    actions += [as, wid{w.weakId(u)}, f{std::move(std::get<AbilityStepAction>(sr))}](World& w) {
+      if (auto* u{w[wid]})
+        u->abilityStepAction(w, as, f);
     };
     nextStepTime_ = GameTimeInf;
   }
 }
 
-void rts::AbilityState::stepAction(World& w, Entity& e, const AbilityStepAction& f) {
+void rts::AbilityState::stepAction(World& w, Unit& u, const AbilityStepAction& f) {
   if (!activeState_)
     return;
 
-  GameTime t{f(w, e)};
+  GameTime t{f(w, u)};
   if (t) {
     nextStepTime_ = w.time + t;
   }

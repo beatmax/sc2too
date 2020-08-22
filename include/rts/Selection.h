@@ -5,16 +5,16 @@
 namespace rts {
   class Selection : public Group {
   public:
-    void set(const World& w, EntityIdList ids);
-    void add(const World& w, EntityIdList ids);
+    void set(const World& w, UnitIdList ids);
+    void add(const World& w, UnitIdList ids);
 
-    EntityTypeId subgroupType(const World& w) const;
+    UnitTypeId subgroupType(const World& w) const;
     void subgroupNext(const World& w);
     void subgroupPrevious(const World& w);
 
   private:
     void subgroupReset(const World& w);
 
-    mutable EntityTypeId subgroupType_;
+    mutable UnitTypeId subgroupType_;
   };
 }

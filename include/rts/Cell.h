@@ -8,8 +8,8 @@
 namespace rts {
   struct Cell {
     using Empty = std::monostate;
-    using Content = std::variant<Empty, BlockerId, EntityId, ResourceFieldId>;
-    enum ContentType { Nothing, Blocker, Entity, ResourceField };
+    using Content = std::variant<Empty, BlockerId, UnitId, ResourceFieldId>;
+    enum ContentType { Nothing, Blocker, Unit, ResourceField };
 
     Content content;
 
@@ -18,7 +18,7 @@ namespace rts {
     bool empty() const { return contains(Nothing); }
 
     BlockerId blockerId() const { return getId<BlockerId>(); }
-    EntityId entityId() const { return getId<EntityId>(); }
+    UnitId unitId() const { return getId<UnitId>(); }
     ResourceFieldId resourceFieldId() const { return getId<ResourceFieldId>(); }
 
     template<typename T>

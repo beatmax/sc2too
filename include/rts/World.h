@@ -3,13 +3,13 @@
 #include "Ability.h"
 #include "Blocker.h"
 #include "Command.h"
-#include "Entity.h"
-#include "EntityType.h"
 #include "Factory.h"
 #include "Map.h"
 #include "ProductionQueue.h"
 #include "ResourceField.h"
 #include "Side.h"
+#include "Unit.h"
+#include "UnitType.h"
 #include "WorldAction.h"
 #include "constants.h"
 #include "types.h"
@@ -31,8 +31,8 @@ namespace rts {
 
     GameTime time{};
     util::Pool<Side, MaxSides> sides;
-    util::Pool<Entity, MaxEntities> entities;
-    util::Pool<EntityType, MaxEntityTypes> entityTypes;
+    util::Pool<Unit, MaxUnits> units;
+    util::Pool<UnitType, MaxUnitTypes> unitTypes;
     util::Pool<Ability, MaxAbilities> abilities;
     util::Pool<Blocker, MaxBlockers> blockers;
     util::Pool<ResourceField, MaxResourceFields> resourceFields;
@@ -55,8 +55,8 @@ namespace rts {
     }
 
     template<typename... Args>
-    EntityId createEntity(Args&&... args) {
-      return create(entities, std::forward<Args>(args)...);
+    UnitId createUnit(Args&&... args) {
+      return create(units, std::forward<Args>(args)...);
     }
 
     template<typename... Args>
@@ -74,10 +74,10 @@ namespace rts {
       return productionQueues.emplace(std::forward<Args>(args)...);
     }
 
-    void move(Entity& e, Point p);
+    void move(Unit& u, Point p);
 
-    void destroy(Entity& e);
-    void destroy(EntityId e) { destroy(entities[e]); }
+    void destroy(Unit& u);
+    void destroy(UnitId u) { destroy(units[u]); }
     void destroy(ResourceField& rf);
     void destroy(ResourceFieldId rf) { destroy(resourceFields[rf]); }
     void destroy(ProductionQueue& pq) { destroy(productionQueues.id(pq)); }
@@ -85,10 +85,10 @@ namespace rts {
 
     Side& operator[](SideId id) { return sides[id]; }
     const Side& operator[](SideId id) const { return sides[id]; }
-    Entity& operator[](EntityId id) { return entities[id]; }
-    const Entity& operator[](EntityId id) const { return entities[id]; }
-    EntityType& operator[](EntityTypeId id) { return entityTypes[id]; }
-    const EntityType& operator[](EntityTypeId id) const { return entityTypes[id]; }
+    Unit& operator[](UnitId id) { return units[id]; }
+    const Unit& operator[](UnitId id) const { return units[id]; }
+    UnitType& operator[](UnitTypeId id) { return unitTypes[id]; }
+    const UnitType& operator[](UnitTypeId id) const { return unitTypes[id]; }
     Ability& operator[](AbilityId id) { return abilities[id]; }
     const Ability& operator[](AbilityId id) const { return abilities[id]; }
     Blocker& operator[](BlockerId id) { return blockers[id]; }
@@ -98,8 +98,8 @@ namespace rts {
     ProductionQueue& operator[](ProductionQueueId id) { return productionQueues[id]; }
     const ProductionQueue& operator[](ProductionQueueId id) const { return productionQueues[id]; }
 
-    Entity* operator[](EntityWId wid) { return entities[wid]; }
-    const Entity* operator[](EntityWId wid) const { return entities[wid]; }
+    Unit* operator[](UnitWId wid) { return units[wid]; }
+    const Unit* operator[](UnitWId wid) const { return units[wid]; }
     ResourceField* operator[](ResourceFieldWId wid) { return resourceFields[wid]; }
     const ResourceField* operator[](ResourceFieldWId wid) const { return resourceFields[wid]; }
     ProductionQueue* operator[](ProductionQueueWId wid) { return productionQueues[wid]; }
@@ -108,13 +108,13 @@ namespace rts {
     }
 
     SideId id(const Side& s) const { return sides.id(s); }
-    EntityId id(const Entity& e) const { return entities.id(e); }
+    UnitId id(const Unit& u) const { return units.id(u); }
     AbilityId id(const Ability& a) const { return abilities.id(a); }
     BlockerId id(const Blocker& b) const { return blockers.id(b); }
     ResourceFieldId id(const ResourceField& rf) const { return resourceFields.id(rf); }
     ProductionQueueId id(const ProductionQueue& pq) const { return productionQueues.id(pq); }
 
-    EntityWId weakId(const Entity& e) const { return entities.weakId(e); }
+    UnitWId weakId(const Unit& u) const { return units.weakId(u); }
     ResourceFieldWId weakId(const ResourceField& rf) const { return resourceFields.weakId(rf); }
     ProductionQueueWId weakId(const ProductionQueue& pq) const {
       return productionQueues.weakId(pq);
@@ -127,7 +127,7 @@ namespace rts {
     RelativeContent relativeContent(SideId side, Point p) const;
 
     BlockerId blockerId(Point p) const { return map[p].blockerId(); }
-    EntityId entityId(Point p) const { return map[p].entityId(); }
+    UnitId unitId(Point p) const { return map[p].unitId(); }
     ResourceFieldId resourceFieldId(Point p) const { return map[p].resourceFieldId(); }
 
     Blocker* blocker(const Cell& c) { return getPtrAt(c, blockers); }
@@ -135,10 +135,10 @@ namespace rts {
     Blocker* blocker(Point p) { return blocker(map[p]); }
     const Blocker* blocker(Point p) const { return blocker(map[p]); }
 
-    Entity* entity(const Cell& c) { return getPtrAt(c, entities); }
-    const Entity* entity(const Cell& c) const { return getPtrAt(c, entities); }
-    Entity* entity(Point p) { return entity(map[p]); }
-    const Entity* entity(Point p) const { return entity(map[p]); }
+    Unit* unit(const Cell& c) { return getPtrAt(c, units); }
+    const Unit* unit(const Cell& c) const { return getPtrAt(c, units); }
+    Unit* unit(Point p) { return unit(map[p]); }
+    const Unit* unit(Point p) const { return unit(map[p]); }
 
     ResourceField* resourceField(const Cell& c) { return getPtrAt(c, resourceFields); }
     const ResourceField* resourceField(const Cell& c) const { return getPtrAt(c, resourceFields); }
@@ -151,9 +151,8 @@ namespace rts {
     const WorldObject* object(Point p) const { return object(map[p]); }
 
     std::set<WorldObjectCPtr> objectsInArea(const Rectangle& area) const;
-    EntityIdList entitiesInArea(
-        const Rectangle& area, SideId side = {}, EntityTypeId type = {}) const;
-    const Entity* closestEntity(Point p, SideId side, EntityTypeId type) const;
+    UnitIdList unitsInArea(const Rectangle& area, SideId side = {}, UnitTypeId type = {}) const;
+    const Unit* closestUnit(Point p, SideId side, UnitTypeId type) const;
     const ResourceField* closestResourceField(Point p, ResourceGroupId group, bool blockedOk) const;
     std::optional<Point> emptyCellAround(const Rectangle& area) const;
 

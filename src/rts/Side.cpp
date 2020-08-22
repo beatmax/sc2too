@@ -37,13 +37,13 @@ void rts::Side::exec(const World& w, WorldActionList& actions, const command::Co
 void rts::Side::exec(const World& w, WorldActionList& actions, const command::Selection& cmd) {
   switch (cmd.action) {
     case command::Selection::Set:
-      selection_.set(w, cmd.entities);
+      selection_.set(w, cmd.units);
       break;
     case command::Selection::Add:
-      selection_.add(w, cmd.entities);
+      selection_.add(w, cmd.units);
       break;
     case command::Selection::Remove:
-      selection_.remove(cmd.entities);
+      selection_.remove(cmd.units);
       break;
   }
 }
@@ -62,20 +62,20 @@ void rts::Side::exec(
 
 void rts::Side::exec(const World& w, WorldActionList& actions, const command::TriggerAbility& cmd) {
   actions += [ids{selection_.ids(w)}, ability{cmd.ability}, target{cmd.target}](World& w) {
-    for (auto e : ids)
-      w[e].trigger(ability, w, target);
+    for (auto u : ids)
+      w[u].trigger(ability, w, target);
   };
 }
 
 void rts::Side::exec(
     const World& w, WorldActionList& actions, const command::TriggerDefaultAbility& cmd) {
   actions += [side{w.id(*this)}, ids{selection_.ids(w)}, target{cmd.target}](World& w) {
-    for (auto e : ids) {
-      auto& entity{w[e]};
-      const auto& entityType{w.entityTypes[entity.type]};
+    for (auto u : ids) {
+      auto& unit{w[u]};
+      const auto& unitType{w.unitTypes[unit.type]};
       auto rc{w.relativeContent(side, target)};
-      if (auto a{entityType.defaultAbility[size_t(rc)]})
-        entity.trigger(a, w, target);
+      if (auto a{unitType.defaultAbility[size_t(rc)]})
+        unit.trigger(a, w, target);
     }
   };
 }

@@ -12,22 +12,22 @@
 #include <utility>
 
 namespace rts {
-  class Entity : public WorldObject {
+  class Unit : public WorldObject {
   public:
     enum class CancelOthers { No, Yes };
 
-    EntityTypeId type;
+    UnitTypeId type;
     SideId side;
     ResourceBag bag;
     ProductionQueueId productionQueue;
 
-    mutable std::array<AbilityState, MaxEntityAbilities> abilityStates;
+    mutable std::array<AbilityState, MaxUnitAbilities> abilityStates;
     mutable GameTime nextStepTime{GameTimeInf};
 
-    Entity(
+    Unit(
         Point p,
         Vector s,
-        EntityTypeId t,
+        UnitTypeId t,
         SideId sd,
         UiUPtr ui,
         Quantity cargoCapacity = 0,

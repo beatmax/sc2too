@@ -11,21 +11,21 @@ namespace rts {
   public:
     explicit ProductionQueue(SideId side) : side_{side} {};
 
-    bool add(World& w, EntityTypeId type);
+    bool add(World& w, UnitTypeId type);
     bool startProduction(World& w);
-    bool finishProduction(World& w, const Entity& parent);
+    bool finishProduction(World& w, const Unit& parent);
 
     SideId side() const { return side_; }
     size_t size() const { return queue_.size(); }
     bool empty() const { return queue_.empty(); }
-    EntityTypeId top() const { return queue_.front(); }
-    EntityTypeId type(size_t index) const { return queue_[index]; }
+    UnitTypeId top() const { return queue_.front(); }
+    UnitTypeId type(size_t index) const { return queue_[index]; }
     GameTime buildTime(const World& w) const;
 
   private:
-    void create(World& w, EntityTypeId type, Point p);
+    void create(World& w, UnitTypeId type, Point p);
 
-    util::CircularBuffer<EntityTypeId, MaxProductionQueueSize> queue_;
+    util::CircularBuffer<UnitTypeId, MaxProductionQueueSize> queue_;
     SideId side_;
     ResourceBank resources_;
   };

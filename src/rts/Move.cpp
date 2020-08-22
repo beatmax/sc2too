@@ -1,6 +1,6 @@
 #include "Move.h"
 
-#include "rts/Entity.h"
+#include "rts/Unit.h"
 #include "rts/World.h"
 #include "rts/WorldAction.h"
 #include "rts/constants.h"
@@ -19,14 +19,14 @@ namespace rts {
 }
 
 void rts::abilities::state::Move::trigger(
-    World& w, Entity& e, ActiveAbilityStateUPtr& as, const Desc& desc, Point target) {
+    World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, Point target) {
   if (as)
     as->cancel(w);
   as = std::make_unique<Move>(desc, target);
 }
 
-rts::AbilityStepResult rts::abilities::state::Move::step(const World& w, const Entity& e) {
-  const Point& pos{e.area.topLeft};
+rts::AbilityStepResult rts::abilities::state::Move::step(const World& w, const Unit& u) {
+  const Point& pos{u.area.topLeft};
 
   if (!path_.empty() && w[path_.front()].empty())
     return stepAction();
@@ -42,12 +42,12 @@ rts::AbilityStepResult rts::abilities::state::Move::step(const World& w, const E
 }
 
 rts::AbilityStepAction rts::abilities::state::Move::stepAction() {
-  return [this](World& w, Entity& e) -> GameTime {
+  return [this](World& w, Unit& u) -> GameTime {
     assert(!path_.empty());
     Point newPos{path_.front()};
     if (w[newPos].empty()) {
       path_.pop_front();
-      w.move(e, newPos);
+      w.move(u, newPos);
       if (path_.empty())
         return completePath_ ? 0 : 1;
       else

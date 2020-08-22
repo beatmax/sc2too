@@ -20,6 +20,6 @@ namespace ui {
   private:
     rts::Point selectionBoxStart_;
 
-    rts::EntityIdList visibleSameType(const rts::World& w, rts::EntityId entity);
+    rts::UnitIdList visibleSameType(const rts::World& w, rts::UnitId unit);
   };
 }

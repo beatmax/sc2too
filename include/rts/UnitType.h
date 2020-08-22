@@ -8,15 +8,15 @@
 #include <utility>
 
 namespace rts {
-  class EntityType {
+  class UnitType {
   public:
-    std::array<abilities::Instance, MaxEntityAbilities> abilities{};
+    std::array<abilities::Instance, MaxUnitAbilities> abilities{};
     std::array<AbilityId, size_t(RelativeContent::Count)> defaultAbility{};
     ResourceQuantityList cost;
     GameTime buildTime;
     UiUPtr ui;
 
-    EntityType(ResourceQuantityList c, GameTime bt, UiUPtr ui)
+    UnitType(ResourceQuantityList c, GameTime bt, UiUPtr ui)
       : cost{std::move(c)}, buildTime{bt}, ui{std::move(ui)} {}
 
     template<typename D>

@@ -14,8 +14,6 @@ namespace rts {
   class Ability;
   class Blocker;
   class Engine;
-  class Entity;
-  class EntityType;
   class Factory;
   class Map;
   class ProductionQueue;
@@ -23,6 +21,8 @@ namespace rts {
   class ResourceField;
   class Selection;
   class Side;
+  class Unit;
+  class UnitType;
   class World;
   class WorldObject;
 
@@ -43,12 +43,6 @@ namespace rts {
   using BlockerId = util::PoolObjectId<Blocker>;
   using BlockerWId = util::PoolObjectWeakId<Blocker>;
   using ControlGroupId = uint8_t;
-  using EntityId = util::PoolObjectId<Entity>;
-  using EntityWId = util::PoolObjectWeakId<Entity>;
-  using EntityCPtr = const Entity*;
-  using EntityIdList = std::vector<EntityId>;
-  using EntityCPtrList = std::vector<EntityCPtr>;
-  using EntityTypeId = util::PoolObjectId<EntityType>;
   using ProductionQueueId = util::PoolObjectId<ProductionQueue>;
   using ProductionQueueWId = util::PoolObjectWeakId<ProductionQueue>;
   using ResourceCPtr = const Resource*;
@@ -56,9 +50,15 @@ namespace rts {
   using ResourceFieldWId = util::PoolObjectWeakId<ResourceField>;
   using ResourceGroupId = uint32_t;
   using SideId = util::PoolObjectId<Side>;
+  using UnitCPtr = const Unit*;
+  using UnitCPtrList = std::vector<UnitCPtr>;
+  using UnitId = util::PoolObjectId<Unit>;
+  using UnitIdList = std::vector<UnitId>;
+  using UnitTypeId = util::PoolObjectId<UnitType>;
+  using UnitWId = util::PoolObjectWeakId<Unit>;
   using WorldObjectCPtr = const WorldObject*;
 
-  using AnyWeakId = std::variant<EntityWId, ProductionQueueWId>;
+  using AnyWeakId = std::variant<UnitWId, ProductionQueueWId>;
 
   using Distance = uint32_t;   // = 1/100 cell width/height
   using GameTime = uint32_t;   // = centiseconds at normal speed (100 Hz)

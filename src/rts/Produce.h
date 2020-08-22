@@ -11,9 +11,9 @@ namespace rts::abilities::state {
     using State = abilities::ProduceState;
 
     static void trigger(
-        World& w, Entity& e, ActiveAbilityStateUPtr& as, const Desc& desc, Point target);
+        World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, Point target);
 
-    AbilityStepResult step(const World& w, const Entity& e) final;
+    AbilityStepResult step(const World& w, const Unit& u) final;
     void cancel(World& w) final {}
     int state() const final { return int(state_); }
 

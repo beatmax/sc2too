@@ -1,7 +1,7 @@
 #include "ui/Player.h"
 
-#include "rts/Entity.h"
 #include "rts/Side.h"
+#include "rts/Unit.h"
 #include "rts/World.h"
 #include "util/geo.h"
 
@@ -28,8 +28,9 @@ namespace ui {
     }
 
     rts::Vector scrollDirectionVector(ScrollDirection sd) {
-      return {(sd & ScrollDirectionLeft) ? -1 : (sd & ScrollDirectionRight) ? 1 : 0,
-              (sd & ScrollDirectionUp) ? -1 : (sd & ScrollDirectionDown) ? 1 : 0};
+      return {
+          (sd & ScrollDirectionLeft) ? -1 : (sd & ScrollDirectionRight) ? 1 : 0,
+          (sd & ScrollDirectionUp) ? -1 : (sd & ScrollDirectionDown) ? 1 : 0};
     }
 
     void processKeyScrollEvent(InputType type, ScrollDirection sd, Camera& camera) {
@@ -95,20 +96,21 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
       break;
     case InputType::KeyPress:
       if (event.symbol == InputKeySym::Tab) {
-        return SelectionSubgroupCmd{(event.state & ShiftPressed) ? SelectionSubgroupCmd::Previous
-                                                                 : SelectionSubgroupCmd::Next};
+        return SelectionSubgroupCmd{
+            (event.state & ShiftPressed) ? SelectionSubgroupCmd::Previous
+                                         : SelectionSubgroupCmd::Next};
       }
       else if (int digit{getDigit(event.symbol)}; digit >= 0) {
-        return ControlGroupCmd{(event.state & ShiftPressed)
-                                   ? ControlGroupCmd::Add
-                                   : (event.state & (ControlPressed | AltPressed))
-                                       ? ControlGroupCmd::Set
-                                       : ControlGroupCmd::Select,
-                               bool(event.state & AltPressed), rts::ControlGroupId(digit)};
+        return ControlGroupCmd{
+            (event.state & ShiftPressed)
+                ? ControlGroupCmd::Add
+                : (event.state & (ControlPressed | AltPressed)) ? ControlGroupCmd::Set
+                                                                : ControlGroupCmd::Select,
+            bool(event.state & AltPressed), rts::ControlGroupId(digit)};
       }
       else if (auto abilityIndex{getAbilityIndex(event.symbol)};
                abilityIndex != rts::AbilityInstanceIndex::None) {
-        assert(abilityIndex < rts::MaxEntityAbilities);
+        assert(abilityIndex < rts::MaxUnitAbilities);
         auto subgroupType{w[side].selection().subgroupType(w)};
         if (subgroupType) {
           const auto& type{w[subgroupType]};
@@ -131,16 +133,16 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
         if (event.mouseButton == InputButton::Button1) {
           auto rc{w.relativeContent(side, mouseCell)};
           if (rc == RC::Friend) {
-            auto entity{w.entityId(mouseCell)};
-            auto entities{(event.state & ControlPressed) ? visibleSameType(w, entity)
-                                                         : rts::EntityIdList{entity}};
+            auto unit{w.unitId(mouseCell)};
+            auto units{
+                (event.state & ControlPressed) ? visibleSameType(w, unit) : rts::UnitIdList{unit}};
             if (event.state & ShiftPressed) {
-              bool alreadySelected{w[side].selection().contains(entity)};
-              return SelectionCmd{alreadySelected ? SelectionCmd::Remove : SelectionCmd::Add,
-                                  entities};
+              bool alreadySelected{w[side].selection().contains(unit)};
+              return SelectionCmd{
+                  alreadySelected ? SelectionCmd::Remove : SelectionCmd::Add, units};
             }
             else {
-              return SelectionCmd{SelectionCmd::Set, std::move(entities)};
+              return SelectionCmd{SelectionCmd::Set, std::move(units)};
             }
           }
           else if (rc == RC::Ground) {
@@ -158,10 +160,10 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
       break;
     case InputType::MouseRelease:
       if (selectionBox && event.mouseButton == InputButton::Button1) {
-        auto entities{w.entitiesInArea(*selectionBox, side)};
+        auto units{w.unitsInArea(*selectionBox, side)};
         selectionBox.reset();
-        return SelectionCmd{(event.state & ShiftPressed) ? SelectionCmd::Add : SelectionCmd::Set,
-                            std::move(entities)};
+        return SelectionCmd{
+            (event.state & ShiftPressed) ? SelectionCmd::Add : SelectionCmd::Set, std::move(units)};
       }
       break;
     case InputType::MousePosition:
@@ -179,7 +181,7 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
   return std::nullopt;
 }
 
-rts::EntityIdList ui::Player::visibleSameType(const rts::World& w, rts::EntityId entity) {
-  const auto type{w[entity].type};
-  return w.entitiesInArea(camera.area(), side, type);
+rts::UnitIdList ui::Player::visibleSameType(const rts::World& w, rts::UnitId unit) {
+  const auto type{w[unit].type};
+  return w.unitsInArea(camera.area(), side, type);
 }

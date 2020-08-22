@@ -4,7 +4,7 @@
 #include "sc2/Abilities.h"
 #include "sc2/Assets.h"
 
-int sc2::ui::Entity::defaultColor(const rts::Entity&) const {
+int sc2::ui::Unit::defaultColor(const rts::Unit&) const {
   return sideColor;
 }
 
@@ -55,19 +55,19 @@ const ::ui::Icon& sc2::ui::ProbeType::icon() const {
   return icon;
 }
 
-const ::ui::Sprite& sc2::ui::Nexus::sprite(const rts::Entity&) const {
+const ::ui::Sprite& sc2::ui::Nexus::sprite(const rts::Unit&) const {
   static const auto& sprite{Assets::getSprite("nexus")};
   return sprite;
 }
 
-const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::Entity& e) const {
+const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::Unit& u) const {
   using GatherState = rts::abilities::GatherState;
   static const auto& sprite{Assets::getSprite("probe")};
   static const auto& spriteGather{Assets::getSprite("probe_gather")};
   static const auto& spriteMineral{Assets::getSprite("probe_mineral")};
-  return (!e.bag.empty())
+  return (!u.bag.empty())
       ? spriteMineral
-      : (e.state<GatherState>(rts::abilities::Kind::Gather) == GatherState::Gathering)
+      : (u.state<GatherState>(rts::abilities::Kind::Gather) == GatherState::Gathering)
           ? spriteGather
           : sprite;
 }

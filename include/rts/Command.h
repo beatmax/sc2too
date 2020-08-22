@@ -17,7 +17,7 @@ namespace rts {
 
     struct Selection {
       enum Action { Set, Add, Remove } action;
-      EntityIdList entities;
+      UnitIdList units;
     };
 
     struct SelectionSubgroup {

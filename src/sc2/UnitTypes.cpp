@@ -1,6 +1,6 @@
-#include "sc2/EntityTypes.h"
+#include "sc2/UnitTypes.h"
 
-#include "rts/EntityType.h"
+#include "rts/UnitType.h"
 #include "rts/World.h"
 #include "rts/abilities.h"
 #include "sc2/Abilities.h"
@@ -8,24 +8,24 @@
 #include "sc2/constants.h"
 #include "sc2/ui.h"
 
-void sc2::EntityTypes::init(rts::World& w) {
-  nexus = w.entityTypes.emplace(
+void sc2::UnitTypes::init(rts::World& w) {
+  nexus = w.unitTypes.emplace(
       rts::ResourceQuantityList{{Resources::mineral(), NexusMineralCost}}, NexusBuildTime,
       std::make_unique<ui::NexusType>());
-  probe = w.entityTypes.emplace(
+  probe = w.unitTypes.emplace(
       rts::ResourceQuantityList{{Resources::mineral(), ProbeMineralCost}}, ProbeBuildTime,
       std::make_unique<ui::ProbeType>());
   {
-    auto& nexusType{w.entityTypes[nexus]};
+    auto& nexusType{w.unitTypes[nexus]};
     nexusType.addAbility(
         Abilities::WarpInProbeIndex, rts::abilities::Produce{Abilities::warpInProbe, probe});
   }
   {
-    auto& probeType{w.entityTypes[probe]};
+    auto& probeType{w.unitTypes[probe]};
     probeType.addAbility(
         Abilities::GatherIndex,
-        rts::abilities::Gather{Abilities::gather, Abilities::move, nexus, GatherTime,
-                               DeliveryTime});
+        rts::abilities::Gather{
+            Abilities::gather, Abilities::move, nexus, GatherTime, DeliveryTime});
     probeType.addAbility(
         Abilities::MoveIndex, rts::abilities::Move{Abilities::move, rts::Speed{4}});
 
@@ -36,5 +36,5 @@ void sc2::EntityTypes::init(rts::World& w) {
   }
 }
 
-rts::EntityTypeId sc2::EntityTypes::nexus;
-rts::EntityTypeId sc2::EntityTypes::probe;
+rts::UnitTypeId sc2::UnitTypes::nexus;
+rts::UnitTypeId sc2::UnitTypes::probe;

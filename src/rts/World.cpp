@@ -1,7 +1,7 @@
 #include "rts/World.h"
 
-#include "rts/Entity.h"
 #include "rts/SemaphoreLock.h"
+#include "rts/Unit.h"
 #include "rts/WorldAction.h"
 #include "util/geo.h"
 
@@ -21,8 +21,8 @@ namespace rts {
 }
 
 rts::World::~World() {
-  for (auto& e : entities)
-    destroy(e);
+  for (auto& u : units)
+    destroy(u);
   for (auto& rf : resourceFields)
     destroy(rf);
 }
@@ -37,20 +37,20 @@ void rts::World::update(const WorldActionList& actions) {
     action(*this);
 }
 
-void rts::World::move(Entity& e, Point p) {
-  assert(e.area.size == Vector({1, 1}));  // no need to move big entities so far
+void rts::World::move(Unit& u, Point p) {
+  assert(u.area.size == Vector({1, 1}));  // no need to move big units so far
   assert(map[p].empty());
-  auto& epos = e.area.topLeft;
+  auto& epos = u.area.topLeft;
   map.setContent(epos, Cell::Empty{});
-  map.setContent(p, entities.id(e));
+  map.setContent(p, units.id(u));
   epos = p;
 }
 
-void rts::World::destroy(Entity& e) {
-  assert(map[e.area.topLeft].contains(Cell::Entity));
-  e.onDestroy(*this);
-  map.setContent(e.area, Cell::Empty{});
-  entities.erase(entities.id(e));
+void rts::World::destroy(Unit& u) {
+  assert(map[u.area.topLeft].contains(Cell::Unit));
+  u.onDestroy(*this);
+  map.setContent(u.area, Cell::Empty{});
+  units.erase(units.id(u));
 }
 
 void rts::World::destroy(ResourceField& rf) {
@@ -61,8 +61,8 @@ void rts::World::destroy(ResourceField& rf) {
 
 rts::RelativeContent rts::World::relativeContent(SideId side, Point p) const {
   auto& cell{map[p]};
-  if (auto* e{entity(cell)})
-    return (e->side == side) ? RelativeContent::Friend : RelativeContent::Foe;
+  if (auto* u{unit(cell)})
+    return (u->side == side) ? RelativeContent::Friend : RelativeContent::Foe;
   else if (cell.contains(Cell::ResourceField))
     return RelativeContent::Resource;
   return RelativeContent::Ground;
@@ -81,29 +81,28 @@ std::set<rts::WorldObjectCPtr> rts::World::objectsInArea(const Rectangle& area) 
   return result;
 }
 
-rts::EntityIdList rts::World::entitiesInArea(
-    const Rectangle& area, SideId side, EntityTypeId type) const {
-  EntityIdList result;
+rts::UnitIdList rts::World::unitsInArea(const Rectangle& area, SideId side, UnitTypeId type) const {
+  UnitIdList result;
   forEachPoint(area, [&](Point p) {
-    if (auto eId{entityId(p)}) {
-      if (std::find(result.begin(), result.end(), eId) == result.end()) {
-        const auto& e{entities[eId]};
-        if ((!side || e.side == side) && (!type || e.type == type))
-          result.push_back(eId);
+    if (auto uId{unitId(p)}) {
+      if (std::find(result.begin(), result.end(), uId) == result.end()) {
+        const auto& u{units[uId]};
+        if ((!side || u.side == side) && (!type || u.type == type))
+          result.push_back(uId);
       }
     }
   });
   return result;
 }
 
-const rts::Entity* rts::World::closestEntity(Point p, SideId side, EntityTypeId type) const {
-  const Entity* closest{nullptr};
+const rts::Unit* rts::World::closestUnit(Point p, SideId side, UnitTypeId type) const {
+  const Unit* closest{nullptr};
   float closestDistance{std::numeric_limits<float>::infinity()};
-  for (const auto& e : entities) {
-    if (e.side == side && e.type == type) {
-      if (float d{diagonalDistance(p, e.area.center())}; d < closestDistance) {
+  for (const auto& u : units) {
+    if (u.side == side && u.type == type) {
+      if (float d{diagonalDistance(p, u.area.center())}; d < closestDistance) {
         closestDistance = d;
-        closest = &e;
+        closest = &u;
       }
     }
   }

@@ -1,18 +1,18 @@
 #pragma once
 
 #include "rts/Blocker.h"
-#include "rts/Entity.h"
 #include "rts/Resource.h"
 #include "rts/ResourceField.h"
+#include "rts/Unit.h"
 #include "ui/ResourceUi.h"
 #include "ui/Sprite.h"
 
 namespace sc2::ui {
-  struct Entity : ::ui::SpriteUi<rts::Entity> {
+  struct Unit : ::ui::SpriteUi<rts::Unit> {
     int sideColor;
 
-    explicit Entity(int sc) : sideColor{sc} {}
-    int defaultColor(const rts::Entity&) const final;
+    explicit Unit(int sc) : sideColor{sc} {}
+    int defaultColor(const rts::Unit&) const final;
   };
 
   struct Mineral : ::ui::ResourceUi {
@@ -38,22 +38,22 @@ namespace sc2::ui {
     const ::ui::Sprite& sprite(const rts::ResourceField&) const final;
   };
 
-  struct NexusType : ::ui::IconUi<rts::EntityType> {
+  struct NexusType : ::ui::IconUi<rts::UnitType> {
     const ::ui::Icon& icon() const final;
   };
 
-  struct ProbeType : ::ui::IconUi<rts::EntityType> {
+  struct ProbeType : ::ui::IconUi<rts::UnitType> {
     const ::ui::Icon& icon() const final;
   };
 
-  struct Nexus : Entity {
-    using Entity::Entity;
-    const ::ui::Sprite& sprite(const rts::Entity&) const final;
+  struct Nexus : Unit {
+    using Unit::Unit;
+    const ::ui::Sprite& sprite(const rts::Unit&) const final;
   };
 
-  struct Probe : Entity {
-    using Entity::Entity;
-    const ::ui::Sprite& sprite(const rts::Entity&) const final;
+  struct Probe : Unit {
+    using Unit::Unit;
+    const ::ui::Sprite& sprite(const rts::Unit&) const final;
   };
 
   struct Rock : ::ui::SpriteUi<rts::Blocker> {

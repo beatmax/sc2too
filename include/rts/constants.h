@@ -8,18 +8,16 @@
 //#define MAP_DEBUG
 
 namespace rts {
-  constexpr static size_t MaxControlGroups{10};
   constexpr static size_t MaxSides{8};
-  constexpr static size_t MaxSideUnits{200};
-  constexpr static size_t MaxSideStructures{1000};
-  constexpr static size_t MaxSideEntities{MaxSideUnits + MaxSideStructures};
-  constexpr static size_t MaxEntities{MaxSideEntities * MaxSides};
-  constexpr static size_t MaxEntityTypes{1000};
-  constexpr static size_t MaxAbilities{1000};
-  constexpr static size_t MaxEntityAbilities{15};
+  constexpr static size_t MaxSideUnits{1000};
+  constexpr static size_t MaxUnits{MaxSideUnits * MaxSides};
+  constexpr static size_t MaxUnitTypes{150};
+  constexpr static size_t MaxUnitAbilities{15};
+  constexpr static size_t MaxAbilities{1500};
   constexpr static size_t MaxBlockers{10000};
-  constexpr static size_t MaxResourceFields{10000};
-  constexpr static size_t MaxProductionQueues{MaxEntities};
+  constexpr static size_t MaxResourceFields{1000};
+  constexpr static size_t MaxControlGroups{10};
+  constexpr static size_t MaxProductionQueues{MaxUnits};
   constexpr static size_t MaxProductionQueueSize{5};
   constexpr static size_t MaxMessageSize{79};
   constexpr static size_t MaxMessages{4};

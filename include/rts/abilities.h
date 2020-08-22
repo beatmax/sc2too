@@ -26,7 +26,7 @@ namespace rts::abilities {
     static constexpr auto kind{Kind::Gather};
     AbilityId id;
     AbilityId moveAbility;
-    EntityTypeId baseType;
+    UnitTypeId baseType;
     GameTime gatherTime;
     GameTime deliverTime;
   };
@@ -40,11 +40,11 @@ namespace rts::abilities {
   struct Produce {
     static constexpr auto kind{Kind::Produce};
     AbilityId id;
-    EntityTypeId type;
+    UnitTypeId type;
   };
 
   struct Instance {
-    using Trigger = std::function<void(World&, Entity&, ActiveAbilityStateUPtr&, Point)>;
+    using Trigger = std::function<void(World&, Unit&, ActiveAbilityStateUPtr&, Point)>;
 
     Kind kind{Kind::None};
     AbilityId abilityId;

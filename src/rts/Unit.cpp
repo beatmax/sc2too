@@ -1,4 +1,4 @@
-#include "rts/Entity.h"
+#include "rts/Unit.h"
 
 #include "rts/World.h"
 #include "rts/WorldAction.h"
@@ -6,10 +6,10 @@
 #include <algorithm>
 #include <cassert>
 
-rts::Entity::Entity(
+rts::Unit::Unit(
     Point p,
     Vector s,
-    EntityTypeId t,
+    UnitTypeId t,
     SideId sd,
     UiUPtr ui,
     Quantity cargoCapacity,
@@ -21,19 +21,19 @@ rts::Entity::Entity(
     productionQueue{pq} {
 }
 
-void rts::Entity::onDestroy(World& w) {
+void rts::Unit::onDestroy(World& w) {
   cancelAll(w);
   if (productionQueue)
     w.destroy(productionQueue);
 }
 
-void rts::Entity::trigger(AbilityId ability, World& w, Point target, CancelOthers cancelOthers) {
-  const auto& entityType{w[type]};
-  auto ai{entityType.abilityIndex(ability)};
+void rts::Unit::trigger(AbilityId ability, World& w, Point target, CancelOthers cancelOthers) {
+  const auto& unitType{w[type]};
+  auto ai{unitType.abilityIndex(ability)};
   if (ai == AbilityInstanceIndex::None)
     return;
 
-  const auto& abilityInstance{entityType.abilities[ai]};
+  const auto& abilityInstance{unitType.abilities[ai]};
   AbilityState& abilityState{abilityStates[abilityInstance.stateIndex]};
 
   if (cancelOthers == CancelOthers::Yes) {
@@ -47,7 +47,7 @@ void rts::Entity::trigger(AbilityId ability, World& w, Point target, CancelOther
   nextStepTime = std::min(nextStepTime, abilityState.nextStepTime());
 }
 
-rts::WorldActionList rts::Entity::step(const World& w) const {
+rts::WorldActionList rts::Unit::step(const World& w) const {
   WorldActionList actions;
   if (nextStepTime != w.time) {
     assert(nextStepTime > w.time);
@@ -55,7 +55,7 @@ rts::WorldActionList rts::Entity::step(const World& w) const {
   }
 
   nextStepTime = GameTimeInf;
-  for (size_t i = 0; i < MaxEntityAbilities; ++i) {
+  for (size_t i = 0; i < MaxUnitAbilities; ++i) {
     AbilityStateIndex as{i};
     auto& abilityState{abilityStates[as]};
     if (abilityState.nextStepTime() == w.time)
@@ -65,27 +65,27 @@ rts::WorldActionList rts::Entity::step(const World& w) const {
   return actions;
 }
 
-void rts::Entity::abilityStepAction(World& w, AbilityStateIndex as, const AbilityStepAction& f) {
+void rts::Unit::abilityStepAction(World& w, AbilityStateIndex as, const AbilityStepAction& f) {
   auto& abilityState{abilityStates[as]};
   abilityState.stepAction(w, *this, f);
   nextStepTime = std::min(nextStepTime, abilityState.nextStepTime());
 }
 
-void rts::Entity::cancelAll(World& w) {
+void rts::Unit::cancelAll(World& w) {
   for (auto& as : abilityStates) {
     if (as.active())
       as.cancel(w);
   }
 }
 
-const rts::AbilityState& rts::Entity::abilityState(const World& w, abilities::Kind kind) const {
+const rts::AbilityState& rts::Unit::abilityState(const World& w, abilities::Kind kind) const {
   auto& t{w[type]};
   auto as{t.abilityStateIndex(kind)};
   assert(as != AbilityStateIndex::None);
   return abilityStates[as];
 }
 
-const rts::AbilityStateIndex rts::Entity::activeAbilityStateIndex(abilities::Kind kind) const {
+const rts::AbilityStateIndex rts::Unit::activeAbilityStateIndex(abilities::Kind kind) const {
   auto it = std::find_if(
       abilityStates.begin(), abilityStates.end(),
       [kind](const AbilityState& as) { return as.kind() == kind; });

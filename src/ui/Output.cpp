@@ -159,14 +159,14 @@ namespace ui {
         const IOState& ios,
         const rts::World& w,
         const rts::Selection& selection,
-        rts::EntityTypeId subgroupType) {
+        rts::UnitTypeId subgroupType) {
       const auto& win{ios.controlWin};
 
       int row{0}, col{0}, cnt{0};
       const auto left{40};
       ScreenRect rect{{left, 2}, {dim::cellWidth, dim::cellHeight}};
 
-      const rts::Entity* last;
+      const rts::Unit* last;
       for (auto* e : selection.items(w)) {
         ++cnt;
         last = e;
@@ -192,16 +192,17 @@ namespace ui {
         drawProductionQueue(ios, w, w[last->productionQueue]);
     }
 
-    void drawAbilities(const IOState& ios, const rts::World& w, const rts::EntityType& type) {
+    void drawAbilities(const IOState& ios, const rts::World& w, const rts::UnitType& type) {
       const auto& win{ios.controlWin};
 
       for (int row{0}; row < 3; ++row) {
         for (int col{0}; col < 5; ++col) {
           rts::AbilityInstanceIndex ai(row * 5 + col);
-          assert(ai < rts::MaxEntityAbilities);
+          assert(ai < rts::MaxUnitAbilities);
           if (auto a{type.abilities[ai].abilityId}) {
-            ScreenRect rect{{84 + col * (dim::cellWidth + 1), 2 + row * (dim::cellHeight + 1)},
-                            {dim::cellWidth, dim::cellHeight}};
+            ScreenRect rect{
+                {84 + col * (dim::cellWidth + 1), 2 + row * (dim::cellHeight + 1)},
+                {dim::cellWidth, dim::cellHeight}};
             wattrset(win.w, graph::lightGreen());
             graph::drawRect(win, boundingBox(rect));
             wattrset(win.w, graph::green());

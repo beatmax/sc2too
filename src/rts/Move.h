@@ -12,10 +12,10 @@ namespace rts::abilities::state {
     using State = abilities::MoveState;
 
     static void trigger(
-        World& w, Entity& e, ActiveAbilityStateUPtr& as, const Desc& desc, Point target);
+        World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, Point target);
 
     explicit Move(const Desc& desc, Point target) : desc_{desc}, target_{target} {}
-    AbilityStepResult step(const World& w, const Entity& e);
+    AbilityStepResult step(const World& w, const Unit& u);
     void cancel(World& w) final {}
     int state() const final { return int(State::Moving); }
 
