@@ -23,8 +23,8 @@ void rts::abilities::state::Produce::trigger(
     as = std::make_unique<Produce>();
 }
 
-rts::AbilityStepResult rts::abilities::state::Produce::step(const World& w, const Unit& u) {
-  auto& pq{w[u.productionQueue]};
+rts::AbilityStepResult rts::abilities::state::Produce::step(const World& w, UnitStableRef u) {
+  auto& pq{w[u->productionQueue]};
   if (pq.empty())
     return GameTime{0};
 

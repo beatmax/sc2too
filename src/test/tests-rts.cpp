@@ -87,16 +87,17 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("The 'move' ability is triggered") {
-      const AbilityState& moveAbilityState{u.abilityState(cworld, abilities::Kind::Move)};
+      const AbilityState& moveAbilityState{
+          Unit::abilityState(UnitStableRef{u}, cworld, abilities::Kind::Move)};
 
       const Point targetPos{20, 3};
       u.trigger(test::moveAbilityId, world, targetPos);
 
       ++world.time;
-      world.update(cu.step(cworld));
+      test::stepUpdate(world, cu);
 
       REQUIRE(cu.area.topLeft == pos);
-      REQUIRE(cu.nextStepTime == GameTimeSecond + 1);
+      REQUIRE(test::nextStepTime(cu) == GameTimeSecond + 1);
 
       SECTION("The path is found") {
         auto [path, isComplete] = findPath(world, pos, targetPos);
@@ -107,7 +108,7 @@ TEST_CASE("Hello world!", "[rts]") {
       SECTION("The unit moves") {
         while (pos != targetPos) {
           world.time += GameTimeSecond;
-          world.update(cu.step(cworld));
+          test::stepUpdate(world, cu);
 
           Point prevPos{pos};
           --pos.y;
@@ -123,13 +124,13 @@ TEST_CASE("Hello world!", "[rts]") {
             REQUIRE(!moveAbilityState.active());
             REQUIRE(moveAbilityState.nextStepTime() == GameTimeInf);
           }
-          REQUIRE(cu.nextStepTime == moveAbilityState.nextStepTime());
+          REQUIRE(test::nextStepTime(cu) == moveAbilityState.nextStepTime());
         }
       }
 
       SECTION("The unit is destroyed with pending actions on it") {
         world.time += GameTimeSecond;
-        WorldActionList actions{cu.step(cworld)};
+        WorldActionList actions{Unit::step(UnitStableRef{cu}, cworld)};
         REQUIRE(!actions.empty());
 
         pos = cu.area.topLeft;
@@ -245,7 +246,7 @@ TEST_CASE("Hello world!", "[rts]") {
           test::MoveStepList{
               {{20, 5}, 0}, {{21, 5}, 101}, {{22, 5}, 201}, {{23, 5}, 301}, {{23, 5}, 400}});
       ++world.time;
-      WorldActionList actions{unit.step(cworld)};
+      WorldActionList actions{Unit::step(UnitStableRef{unit}, cworld)};
       REQUIRE(!actions.empty());
       test::Factory::building(world, {24, 4}, test::side1Id);
       world.update(actions);
@@ -595,27 +596,27 @@ TEST_CASE("Hello world!", "[rts]") {
 
     SECTION("A unit is enqueued for production") {
       triggerSimpletonProduction();
-      REQUIRE(cb.nextStepTime == world.time + 1);
+      REQUIRE(test::nextStepTime(cb) == world.time + 1);
       ++world.time;
-      world.update(cb.step(cworld));
+      test::stepUpdate(world, cb);
       expectedGasLeft -= test::SimpletonCost;
 
       REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
       REQUIRE(queue.size() == 1);
       REQUIRE(test::Ui::count["s"] == 0);
 
-      REQUIRE(cb.nextStepTime == world.time + test::SimpletonBuildTime);
+      REQUIRE(test::nextStepTime(cb) == world.time + test::SimpletonBuildTime);
       world.time += test::SimpletonBuildTime;
-      world.update(cb.step(cworld));
+      test::stepUpdate(world, cb);
       REQUIRE(queue.size() == 0);
       REQUIRE(test::Ui::count["s"] == 1);
 
       SECTION("Two units are enqueued for production") {
         triggerSimpletonProduction();
         triggerThirdyProduction();
-        REQUIRE(cb.nextStepTime == world.time + 1);
+        REQUIRE(test::nextStepTime(cb) == world.time + 1);
         ++world.time;
-        world.update(cb.step(cworld));
+        test::stepUpdate(world, cb);
         expectedGasLeft -= test::SimpletonCost + test::ThirdyCost;
 
         REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
@@ -623,20 +624,20 @@ TEST_CASE("Hello world!", "[rts]") {
         REQUIRE(test::Ui::count["s"] == 1);
         REQUIRE(test::Ui::count["t"] == 0);
 
-        REQUIRE(cb.nextStepTime == world.time + test::SimpletonBuildTime);
+        REQUIRE(test::nextStepTime(cb) == world.time + test::SimpletonBuildTime);
         world.time += test::SimpletonBuildTime;
-        world.update(cb.step(cworld));
+        test::stepUpdate(world, cb);
         REQUIRE(queue.size() == 1);
         REQUIRE(test::Ui::count["s"] == 2);
         REQUIRE(test::Ui::count["t"] == 0);
 
         ++world.time;
-        REQUIRE(cb.nextStepTime == world.time);
-        world.update(cb.step(cworld));
+        REQUIRE(test::nextStepTime(cb) == world.time);
+        test::stepUpdate(world, cb);
 
-        REQUIRE(cb.nextStepTime == world.time + test::ThirdyBuildTime);
+        REQUIRE(test::nextStepTime(cb) == world.time + test::ThirdyBuildTime);
         world.time += test::ThirdyBuildTime;
-        world.update(cb.step(cworld));
+        test::stepUpdate(world, cb);
         REQUIRE(queue.size() == 0);
         REQUIRE(test::Ui::count["s"] == 2);
         REQUIRE(test::Ui::count["t"] == 1);
@@ -644,9 +645,9 @@ TEST_CASE("Hello world!", "[rts]") {
 
       SECTION("Units are enqueued during production") {
         triggerThirdyProduction();
-        REQUIRE(cb.nextStepTime == world.time + 1);
+        REQUIRE(test::nextStepTime(cb) == world.time + 1);
         ++world.time;
-        world.update(cb.step(cworld));
+        test::stepUpdate(world, cb);
         expectedGasLeft -= test::ThirdyCost;
 
         REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
@@ -654,7 +655,7 @@ TEST_CASE("Hello world!", "[rts]") {
         REQUIRE(test::Ui::count["s"] == 1);
         REQUIRE(test::Ui::count["t"] == 0);
 
-        REQUIRE(cb.nextStepTime == world.time + test::ThirdyBuildTime);
+        REQUIRE(test::nextStepTime(cb) == world.time + test::ThirdyBuildTime);
 
         world.time += 5;
         triggerSimpletonProduction();
@@ -665,20 +666,20 @@ TEST_CASE("Hello world!", "[rts]") {
         REQUIRE(test::Ui::count["s"] == 1);
         REQUIRE(test::Ui::count["t"] == 0);
 
-        REQUIRE(cb.nextStepTime == world.time + (test::ThirdyBuildTime - 5));
+        REQUIRE(test::nextStepTime(cb) == world.time + (test::ThirdyBuildTime - 5));
         world.time += test::ThirdyBuildTime - 5;
-        world.update(cb.step(cworld));
+        test::stepUpdate(world, cb);
         REQUIRE(queue.size() == 1);
         REQUIRE(test::Ui::count["s"] == 1);
         REQUIRE(test::Ui::count["t"] == 1);
 
-        REQUIRE(cb.nextStepTime == world.time + 1);
+        REQUIRE(test::nextStepTime(cb) == world.time + 1);
         ++world.time;
-        world.update(cb.step(cworld));
+        test::stepUpdate(world, cb);
 
-        REQUIRE(cb.nextStepTime == world.time + test::SimpletonBuildTime);
+        REQUIRE(test::nextStepTime(cb) == world.time + test::SimpletonBuildTime);
         world.time += test::SimpletonBuildTime;
-        world.update(cb.step(cworld));
+        test::stepUpdate(world, cb);
         REQUIRE(queue.size() == 0);
         REQUIRE(test::Ui::count["s"] == 2);
         REQUIRE(test::Ui::count["t"] == 1);
@@ -693,7 +694,7 @@ TEST_CASE("Hello world!", "[rts]") {
 
       triggerSimpletonProduction();
       REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
-      REQUIRE(cb.nextStepTime == GameTimeInf);
+      REQUIRE(test::nextStepTime(cb) == GameTimeInf);
       REQUIRE(side1.messages().size() == 1);
       REQUIRE_THAT(side1.messages()[0].text, Equals("Not enough gas!"));
 

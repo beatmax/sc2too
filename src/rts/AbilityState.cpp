@@ -12,7 +12,7 @@ void rts::AbilityState::trigger(World& w, Unit& u, const abilities::Instance& ai
 }
 
 void rts::AbilityState::step(
-    const World& w, const Unit& u, AbilityStateIndex as, WorldActionList& actions) {
+    const World& w, const UnitStableRef u, AbilityStateIndex as, WorldActionList& actions) {
   assert(activeState_);
   AbilityStepResult sr{activeState_->step(w, u)};
   if (auto* t{std::get_if<GameTime>(&sr)}) {
@@ -26,7 +26,7 @@ void rts::AbilityState::step(
     }
   }
   else {
-    actions += [as, wid{w.weakId(u)}, f{std::move(std::get<AbilityStepAction>(sr))}](World& w) {
+    actions += [as, wid{w.weakId(*u)}, f{std::move(std::get<AbilityStepAction>(sr))}](World& w) {
       if (auto* u{w[wid]})
         u->abilityStepAction(w, as, f);
     };
@@ -54,10 +54,6 @@ void rts::AbilityState::cancel(World& w) {
     activeState_.reset();
   }
   nextStepTime_ = GameTimeInf;
-}
-
-rts::abilities::Kind rts::AbilityState::kind() const {
-  return activeState_ ? activeState_->kind() : abilities::Kind::None;
 }
 
 rts::ActiveAbilityState::~ActiveAbilityState() = default;

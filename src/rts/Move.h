@@ -15,7 +15,7 @@ namespace rts::abilities::state {
         World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, Point target);
 
     explicit Move(const Desc& desc, Point target) : desc_{desc}, target_{target} {}
-    AbilityStepResult step(const World& w, const Unit& u);
+    AbilityStepResult step(const World& w, UnitStableRef u);
     void cancel(World& w) final {}
     int state() const final { return int(State::Moving); }
 

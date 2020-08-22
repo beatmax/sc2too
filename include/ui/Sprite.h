@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rts/WorldObject.h"
 #include "rts/types.h"
 
 #include <array>
@@ -33,11 +34,25 @@ namespace ui {
     using Sprite::Sprite;
   };
 
-  template<typename T>
-  class SpriteUi : public rts::Ui {
+  class SpriteUiBase : public rts::Ui {
   public:
-    virtual const Sprite& sprite(const T&) const = 0;
-    virtual int defaultColor(const T&) const { return detail::defaultDefaultColor(); }
+    virtual const Sprite& spriteBase(const rts::World& w, const rts::WorldObject&) const = 0;
+    virtual int defaultColorBase(const rts::WorldObject&) const = 0;
+  };
+
+  template<typename T>
+  class SpriteUi : public SpriteUiBase {
+  public:
+    const Sprite& spriteBase(const rts::World& w, const rts::WorldObject& object) const final {
+      return sprite(w, rts::StableRef<T>{static_cast<const T&>(object)});
+    }
+    int defaultColorBase(const rts::WorldObject& object) const final {
+      return defaultColor(rts::StableRef<T>{static_cast<const T&>(object)});
+    }
+
+  private:
+    virtual const Sprite& sprite(const rts::World& w, rts::StableRef<T>) const = 0;
+    virtual int defaultColor(rts::StableRef<T>) const { return detail::defaultDefaultColor(); }
   };
 
   template<typename T>
@@ -46,18 +61,16 @@ namespace ui {
     virtual const Icon& icon() const = 0;
   };
 
-  template<typename T>
-  inline const Sprite& getSprite(const T& object) {
-    return static_cast<const SpriteUi<T>&>(*object.ui).sprite(object);
+  inline const Sprite& getSprite(const rts::World& w, const rts::WorldObject& object) {
+    return static_cast<const SpriteUiBase&>(*object.ui).spriteBase(w, object);
+  }
+
+  inline int getDefaultColor(const rts::WorldObject& object) {
+    return static_cast<const SpriteUiBase&>(*object.ui).defaultColorBase(object);
   }
 
   template<typename T>
   inline const Icon& getIcon(const T& object) {
     return static_cast<const IconUi<T>&>(*object.ui).icon();
-  }
-
-  template<typename T>
-  inline int getDefaultColor(const T& object) {
-    return static_cast<const SpriteUi<T>&>(*object.ui).defaultColor(object);
   }
 }

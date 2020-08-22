@@ -25,8 +25,8 @@ void rts::abilities::state::Move::trigger(
   as = std::make_unique<Move>(desc, target);
 }
 
-rts::AbilityStepResult rts::abilities::state::Move::step(const World& w, const Unit& u) {
-  const Point& pos{u.area.topLeft};
+rts::AbilityStepResult rts::abilities::state::Move::step(const World& w, UnitStableRef u) {
+  const Point& pos{u->area.topLeft};
 
   if (!path_.empty() && w[path_.front()].empty())
     return stepAction();

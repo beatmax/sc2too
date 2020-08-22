@@ -25,11 +25,15 @@ namespace ui {
           toScreenVector(area.size) - ScreenVector{1, 1}};
     }
 
-    void draw(const Window& win, const Camera& camera, const rts::WorldObject& object) {
+    void draw(
+        const Window& win,
+        const Camera& camera,
+        const rts::World& w,
+        const rts::WorldObject& object) {
       // default for color pair 0 (e.g. unit's side color)
       wattrset(win.w, getDefaultColor(object));
 
-      const Sprite& sprite{getSprite(object)};
+      const Sprite& sprite{getSprite(w, object)};
       assert(sprite.area(object.area.topLeft) == object.area);
 
       const rts::Rectangle visibleArea{intersection(object.area, camera.area())};
@@ -66,7 +70,7 @@ void ui::render(
   const std::set<rts::WorldObjectCPtr> selectedObjects{selectedItems.begin(), selectedItems.end()};
 
   for (rts::WorldObjectCPtr obj : w.objectsInArea(camera.area())) {
-    draw(win, camera, *obj);
+    draw(win, camera, w, *obj);
     if (selectedObjects.find(obj) != selectedObjects.end())
       drawBoundingBox(win, camera, obj->area, graph::green());
   }

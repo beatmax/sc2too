@@ -34,61 +34,54 @@ void rts::Unit::trigger(AbilityId ability, World& w, Point target, CancelOthers 
     return;
 
   const auto& abilityInstance{unitType.abilities[ai]};
-  AbilityState& abilityState{abilityStates[abilityInstance.stateIndex]};
+  AbilityState& abilityState{abilityStates_[abilityInstance.stateIndex]};
 
   if (cancelOthers == CancelOthers::Yes) {
-    for (auto& as : abilityStates) {
+    for (auto& as : abilityStates_) {
       if (&as != &abilityState && as.active())
         as.cancel(w);
     }
   }
 
   abilityState.trigger(w, *this, abilityInstance, target);
-  nextStepTime = std::min(nextStepTime, abilityState.nextStepTime());
+  nextStepTime_ = std::min(nextStepTime_, abilityState.nextStepTime());
 }
 
-rts::WorldActionList rts::Unit::step(const World& w) const {
+rts::WorldActionList rts::Unit::step(UnitStableRef u, const World& w) {
   WorldActionList actions;
-  if (nextStepTime != w.time) {
-    assert(nextStepTime > w.time);
+  if (u->nextStepTime_ != w.time) {
+    assert(u->nextStepTime_ > w.time);
     return actions;
   }
 
-  nextStepTime = GameTimeInf;
+  u->nextStepTime_ = GameTimeInf;
   for (size_t i = 0; i < MaxUnitAbilities; ++i) {
     AbilityStateIndex as{i};
-    auto& abilityState{abilityStates[as]};
+    auto& abilityState{u->abilityStates_[as]};
     if (abilityState.nextStepTime() == w.time)
-      abilityState.step(w, *this, as, actions);
-    nextStepTime = std::min(nextStepTime, abilityState.nextStepTime());
+      abilityState.step(w, u, as, actions);
+    u->nextStepTime_ = std::min(u->nextStepTime_, abilityState.nextStepTime());
   }
   return actions;
 }
 
 void rts::Unit::abilityStepAction(World& w, AbilityStateIndex as, const AbilityStepAction& f) {
-  auto& abilityState{abilityStates[as]};
+  auto& abilityState{abilityStates_[as]};
   abilityState.stepAction(w, *this, f);
-  nextStepTime = std::min(nextStepTime, abilityState.nextStepTime());
+  nextStepTime_ = std::min(nextStepTime_, abilityState.nextStepTime());
 }
 
 void rts::Unit::cancelAll(World& w) {
-  for (auto& as : abilityStates) {
+  for (auto& as : abilityStates_) {
     if (as.active())
       as.cancel(w);
   }
 }
 
-const rts::AbilityState& rts::Unit::abilityState(const World& w, abilities::Kind kind) const {
-  auto& t{w[type]};
+const rts::AbilityState& rts::Unit::abilityState(
+    UnitStableRef u, const World& w, abilities::Kind kind) {
+  auto& t{w[u->type]};
   auto as{t.abilityStateIndex(kind)};
   assert(as != AbilityStateIndex::None);
-  return abilityStates[as];
-}
-
-const rts::AbilityStateIndex rts::Unit::activeAbilityStateIndex(abilities::Kind kind) const {
-  auto it = std::find_if(
-      abilityStates.begin(), abilityStates.end(),
-      [kind](const AbilityState& as) { return as.kind() == kind; });
-  return (it != abilityStates.end()) ? AbilityStateIndex(it - abilityStates.begin())
-                                     : AbilityStateIndex::None;
+  return u->abilityStates_[as];
 }

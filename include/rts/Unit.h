@@ -21,9 +21,6 @@ namespace rts {
     ResourceBag bag;
     ProductionQueueId productionQueue;
 
-    mutable std::array<AbilityState, MaxUnitAbilities> abilityStates;
-    mutable GameTime nextStepTime{GameTimeInf};
-
     Unit(
         Point p,
         Vector s,
@@ -36,20 +33,24 @@ namespace rts {
 
     void trigger(
         AbilityId ability, World& w, Point target, CancelOthers cancelOthers = CancelOthers::Yes);
-    WorldActionList step(const World& w) const __attribute__((warn_unused_result));
+    static WorldActionList step(UnitStableRef u, const World& w)
+        __attribute__((warn_unused_result));
     void abilityStepAction(World& w, AbilityStateIndex as, const AbilityStepAction& f);
     void cancelAll(World& w);
 
+    static const AbilityState& abilityState(UnitStableRef u, const World& w, abilities::Kind kind);
+    static GameTime nextStepTime(UnitStableRef u) { return u->nextStepTime_; }
+
     template<typename T>
-    std::optional<T> state(abilities::Kind kind) const {
-      if (auto as{activeAbilityStateIndex(kind)}; as != AbilityStateIndex::None)
-        return abilityStates[as].state<T>();
-      return std::nullopt;
+    static std::optional<T> state(UnitStableRef u, const World& w) {
+      const AbilityState& as{abilityState(u, w, abilities::kind<T>())};
+      return as.state<T>();
     }
 
-    const AbilityState& abilityState(const World& w, abilities::Kind kind) const;
-
   private:
+    mutable std::array<AbilityState, MaxUnitAbilities> abilityStates_;
+    mutable GameTime nextStepTime_{GameTimeInf};
+
     const AbilityStateIndex activeAbilityStateIndex(abilities::Kind kind) const;
   };
 }

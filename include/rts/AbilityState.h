@@ -23,11 +23,10 @@ namespace rts {
     GameTime nextStepTime() const { return nextStepTime_; }
 
     void trigger(World& w, Unit& u, const abilities::Instance& ai, Point target);
-    void step(const World& w, const Unit& u, AbilityStateIndex as, WorldActionList& actions);
+    void step(const World& w, UnitStableRef u, AbilityStateIndex as, WorldActionList& actions);
     void stepAction(World& w, Unit& u, const AbilityStepAction& f);
     void cancel(World& w);
 
-    abilities::Kind kind() const;
     template<typename T>
     std::optional<T> state() const;
 
@@ -39,10 +38,8 @@ namespace rts {
   class ActiveAbilityState {
   public:
     virtual ~ActiveAbilityState() = 0;
-    virtual AbilityStepResult step(const World& w, const Unit& u) = 0;
+    virtual AbilityStepResult step(const World& w, UnitStableRef u) = 0;
     virtual void cancel(World& w) = 0;
-
-    virtual abilities::Kind kind() const = 0;
     virtual int state() const = 0;
   };
 
@@ -50,8 +47,6 @@ namespace rts {
   class ActiveAbilityStateTpl : public ActiveAbilityState {
   public:
     using ActiveAbilityState::ActiveAbilityState;
-
-    abilities::Kind kind() const final { return Derived::Desc::kind; }
 
     template<typename D>
     static auto makeTrigger(const D& desc) {

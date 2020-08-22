@@ -4,7 +4,7 @@
 #include "sc2/Abilities.h"
 #include "sc2/Assets.h"
 
-int sc2::ui::Unit::defaultColor(const rts::Unit&) const {
+int sc2::ui::Unit::defaultColor(rts::UnitStableRef) const {
   return sideColor;
 }
 
@@ -35,12 +35,13 @@ const char* sc2::ui::Supply::msgMoreRequired() const {
   return "YOU MUST CONSTRUCT ADDITIONAL PYLONS!";
 }
 
-const ::ui::Sprite& sc2::ui::Geyser::sprite(const rts::ResourceField&) const {
+const ::ui::Sprite& sc2::ui::Geyser::sprite(const rts::World&, rts::ResourceFieldStableRef) const {
   static const auto& sprite{Assets::getSprite("geyser")};
   return sprite;
 }
 
-const ::ui::Sprite& sc2::ui::MineralPatch::sprite(const rts::ResourceField&) const {
+const ::ui::Sprite& sc2::ui::MineralPatch::sprite(
+    const rts::World&, rts::ResourceFieldStableRef) const {
   static const auto& sprite{Assets::getSprite("mineral")};
   return sprite;
 }
@@ -55,24 +56,22 @@ const ::ui::Icon& sc2::ui::ProbeType::icon() const {
   return icon;
 }
 
-const ::ui::Sprite& sc2::ui::Nexus::sprite(const rts::Unit&) const {
+const ::ui::Sprite& sc2::ui::Nexus::sprite(const rts::World&, rts::UnitStableRef) const {
   static const auto& sprite{Assets::getSprite("nexus")};
   return sprite;
 }
 
-const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::Unit& u) const {
+const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::World& w, rts::UnitStableRef u) const {
   using GatherState = rts::abilities::GatherState;
   static const auto& sprite{Assets::getSprite("probe")};
   static const auto& spriteGather{Assets::getSprite("probe_gather")};
   static const auto& spriteMineral{Assets::getSprite("probe_mineral")};
-  return (!u.bag.empty())
+  return (!u->bag.empty())
       ? spriteMineral
-      : (u.state<GatherState>(rts::abilities::Kind::Gather) == GatherState::Gathering)
-          ? spriteGather
-          : sprite;
+      : (rts::Unit::state<GatherState>(u, w) == GatherState::Gathering) ? spriteGather : sprite;
 }
 
-const ::ui::Sprite& sc2::ui::Rock::sprite(const rts::Blocker&) const {
+const ::ui::Sprite& sc2::ui::Rock::sprite(const rts::World&, rts::BlockerStableRef) const {
   static const auto& sprite{Assets::getSprite("rock")};
   return sprite;
 }

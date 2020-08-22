@@ -12,7 +12,7 @@ namespace sc2::ui {
     int sideColor;
 
     explicit Unit(int sc) : sideColor{sc} {}
-    int defaultColor(const rts::Unit&) const final;
+    int defaultColor(rts::UnitStableRef) const final;
   };
 
   struct Mineral : ::ui::ResourceUi {
@@ -31,11 +31,11 @@ namespace sc2::ui {
   };
 
   struct Geyser : ::ui::SpriteUi<rts::ResourceField> {
-    const ::ui::Sprite& sprite(const rts::ResourceField&) const final;
+    const ::ui::Sprite& sprite(const rts::World&, rts::ResourceFieldStableRef) const final;
   };
 
   struct MineralPatch : ::ui::SpriteUi<rts::ResourceField> {
-    const ::ui::Sprite& sprite(const rts::ResourceField&) const final;
+    const ::ui::Sprite& sprite(const rts::World&, rts::ResourceFieldStableRef) const final;
   };
 
   struct NexusType : ::ui::IconUi<rts::UnitType> {
@@ -48,16 +48,16 @@ namespace sc2::ui {
 
   struct Nexus : Unit {
     using Unit::Unit;
-    const ::ui::Sprite& sprite(const rts::Unit&) const final;
+    const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
   };
 
   struct Probe : Unit {
     using Unit::Unit;
-    const ::ui::Sprite& sprite(const rts::Unit&) const final;
+    const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
   };
 
   struct Rock : ::ui::SpriteUi<rts::Blocker> {
-    const ::ui::Sprite& sprite(const rts::Blocker&) const final;
+    const ::ui::Sprite& sprite(const rts::World&, rts::BlockerStableRef) const final;
   };
 
   struct GatherAbility : ::ui::IconUi<rts::Ability> {

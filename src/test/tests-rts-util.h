@@ -10,6 +10,8 @@ namespace test {
   using MoveStep = std::pair<rts::Point, rts::GameTime>;
   using MoveStepList = std::vector<MoveStep>;
 
+  rts::GameTime nextStepTime(const rts::Unit& u);
+  void stepUpdate(rts::World& w, const rts::Unit& u);
   void execCommand(rts::World& w, rts::SideId side, rts::Command command);
   void select(
       rts::World& w,

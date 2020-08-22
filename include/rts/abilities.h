@@ -4,8 +4,11 @@
 #include "types.h"
 
 #include <functional>
+#include <type_traits>
 
 namespace rts::abilities {
+  enum class Kind { None, Gather, Move, Produce };
+
   enum class GatherState {
     Init,
     MovingToTarget,
@@ -17,10 +20,18 @@ namespace rts::abilities {
     DeliveringDone
   };
 
-  enum class Kind { None, Gather, Move, Produce };
-
   enum class MoveState { Moving };
   enum class ProduceState { Idle, Producing };
+
+  template<typename State>
+  inline constexpr Kind kind() {
+    if constexpr (std::is_same_v<State, GatherState>)
+      return Kind::Gather;
+    else if constexpr (std::is_same_v<State, MoveState>)
+      return Kind::Move;
+    else if constexpr (std::is_same_v<State, ProduceState>)
+      return Kind::Produce;
+  }
 
   struct Gather {
     static constexpr auto kind{Kind::Gather};

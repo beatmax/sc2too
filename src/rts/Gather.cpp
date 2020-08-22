@@ -19,16 +19,16 @@ void rts::abilities::state::Gather::trigger(
   as = std::make_unique<Gather>(desc, target);
 }
 
-rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, const Unit& u) {
+rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitStableRef u) {
   switch (state_) {
     case State::Init:
       return init(w, u);
 
     case State::MovingToTarget:
-      if (moveAbilityState_->active())
+      if (Unit::abilityState(u, w, abilities::Kind::Move).active())
         return MonitorTime;
       if (auto rf{w[targetField_]}) {
-        if (adjacent(u.area, rf->area))
+        if (adjacent(u->area, rf->area))
           return tryOccupy();
       }
       state_ = State::Occupying;
@@ -44,7 +44,7 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, const
       else {
         findBlockedOk = true;
       }
-      if (auto* rf{w.closestResourceField(u.area.topLeft, targetGroup_, findBlockedOk)}) {
+      if (auto* rf{w.closestResourceField(u->area.topLeft, targetGroup_, findBlockedOk)}) {
         targetField_ = w.weakId(*rf);
         target_ = rf->area.topLeft;
         state_ = State::MovingToTarget;
@@ -56,7 +56,7 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, const
       return finishGathering();
 
     case State::GatheringDone: {
-      if (auto* b{w.closestUnit(u.area.topLeft, u.side, desc_.baseType)}) {
+      if (auto* b{w.closestUnit(u->area.topLeft, u->side, desc_.baseType)}) {
         base_ = w.weakId(*b);
         state_ = State::MovingToBase;
         return moveTo(b->area.topLeft);
@@ -65,10 +65,10 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, const
     }
 
     case State::MovingToBase:
-      if (moveAbilityState_->active())
+      if (Unit::abilityState(u, w, abilities::Kind::Move).active())
         return MonitorTime;
       if (auto b{w[base_]}) {
-        if (adjacent(u.area, b->area)) {
+        if (adjacent(u->area, b->area)) {
           state_ = State::Delivering;
           return desc_.deliverTime;
         }
@@ -97,8 +97,6 @@ rts::AbilityStepResult rts::abilities::state::Gather::init(const World& w, const
   targetField_ = w.weakId(*rf);
   resource_ = rf->bag.resource();
   targetGroup_ = rf->group;
-
-  moveAbilityState_ = &unit.abilityState(w, abilities::Kind::Move);
 
   state_ = State::MovingToTarget;
   return moveTo(target_);

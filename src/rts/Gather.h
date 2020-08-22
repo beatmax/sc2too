@@ -16,7 +16,7 @@ namespace rts::abilities::state {
 
     explicit Gather(const Desc& desc, Point target) : desc_{desc}, target_{target} {}
 
-    AbilityStepResult step(const World& w, const Unit& u) final;
+    AbilityStepResult step(const World& w, UnitStableRef u) final;
     void cancel(World& w) final;
     int state() const final { return int(state_); }
 
@@ -30,7 +30,6 @@ namespace rts::abilities::state {
     const Desc desc_;
     State state_{State::Init};
     Point target_;
-    const AbilityState* moveAbilityState_{};
     UnitWId base_;
     ResourceFieldWId targetField_;
     SemaphoreLock<ResourceField> targetFieldLock_;

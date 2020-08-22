@@ -30,8 +30,8 @@ template<typename Clock>
 void rts::EngineBase<Clock>::advanceWorld() {
   ++world_.time;
 
-  for (const auto& u : world_.units)
-    world_.update(u.step(world_));
+  for (auto& u : world_.units)
+    world_.update(Unit::step(StableRef{u}, world_));
 }
 
 template<typename Clock>

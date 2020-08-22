@@ -13,7 +13,7 @@ namespace rts::abilities::state {
     static void trigger(
         World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, Point target);
 
-    AbilityStepResult step(const World& w, const Unit& u) final;
+    AbilityStepResult step(const World& w, UnitStableRef u) final;
     void cancel(World& w) final {}
     int state() const final { return int(state_); }
 

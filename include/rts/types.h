@@ -37,16 +37,31 @@ namespace rts {
     size_t i_;
   };
 
+  // const reference to object whose mutable members are only modified by the current thread
+  template<typename T>
+  class StableRef {
+  public:
+    explicit StableRef(const T& t) : t_{t} {}
+    operator const T&() const { return t_; }
+    const T& operator*() const { return t_; }
+    const T* operator->() const { return &t_; }
+
+  private:
+    const T& t_;
+  };
+
   using AbilityId = util::PoolObjectId<Ability>;
   using AbilityInstanceIndex = NamedIndex<struct AbilityInstanceIndexTag>;
   using AbilityStateIndex = NamedIndex<struct AbilityStateIndexTag>;
   using BlockerId = util::PoolObjectId<Blocker>;
+  using BlockerStableRef = StableRef<Blocker>;
   using BlockerWId = util::PoolObjectWeakId<Blocker>;
   using ControlGroupId = uint8_t;
   using ProductionQueueId = util::PoolObjectId<ProductionQueue>;
   using ProductionQueueWId = util::PoolObjectWeakId<ProductionQueue>;
   using ResourceCPtr = const Resource*;
   using ResourceFieldId = util::PoolObjectId<ResourceField>;
+  using ResourceFieldStableRef = StableRef<ResourceField>;
   using ResourceFieldWId = util::PoolObjectWeakId<ResourceField>;
   using ResourceGroupId = uint32_t;
   using SideId = util::PoolObjectId<Side>;
@@ -54,6 +69,7 @@ namespace rts {
   using UnitCPtrList = std::vector<UnitCPtr>;
   using UnitId = util::PoolObjectId<Unit>;
   using UnitIdList = std::vector<UnitId>;
+  using UnitStableRef = StableRef<Unit>;
   using UnitTypeId = util::PoolObjectId<UnitType>;
   using UnitWId = util::PoolObjectWeakId<Unit>;
   using WorldObjectCPtr = const WorldObject*;

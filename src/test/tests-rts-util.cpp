@@ -11,6 +11,14 @@
 
 using namespace rts;
 
+GameTime test::nextStepTime(const Unit& u) {
+  return Unit::nextStepTime(UnitStableRef{u});
+}
+
+void test::stepUpdate(World& w, const Unit& u) {
+  w.update(Unit::step(UnitStableRef{u}, w));
+}
+
 void test::execCommand(World& w, SideId side, Command command) {
   w.exec({{side, std::move(command)}});
 }
@@ -25,14 +33,15 @@ test::MoveStepList test::runMove(World& w, Unit& unit, Point target, GameTime ti
 }
 
 test::MoveStepList test::continueMove(World& w, Unit& unit, GameTime timeout) {
-  const AbilityState& moveAbilityState{unit.abilityState(w, abilities::Kind::Move)};
+  const AbilityState& moveAbilityState{
+      Unit::abilityState(UnitStableRef{unit}, w, abilities::Kind::Move)};
 
   MoveStepList result;
   result.emplace_back(unit.area.topLeft, w.time);
 
   while (moveAbilityState.active() && w.time < timeout) {
     ++w.time;
-    w.update(unit.step(w));
+    stepUpdate(w, unit);
     if (unit.area.topLeft != result.back().first)
       result.emplace_back(unit.area.topLeft, w.time);
   }
