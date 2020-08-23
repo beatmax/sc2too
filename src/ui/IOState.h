@@ -2,7 +2,7 @@
 
 #include "Menu.h"
 #include "rts/types.h"
-#include "types.h"
+#include "ui/types.h"
 
 namespace ui {
   struct IOState {

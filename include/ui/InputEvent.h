@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rts/types.h"
+#include "types.h"
 
 #include <optional>
 
@@ -95,12 +96,6 @@ namespace ui {
   constexpr InputState ButtonMask{0b0011100000000};
 
   enum class InputButton { Unknown, Button1, Button2, Button3 };
-
-  using ScrollDirection = unsigned int;
-  constexpr ScrollDirection ScrollDirectionLeft{0b0001};
-  constexpr ScrollDirection ScrollDirectionRight{0b0010};
-  constexpr ScrollDirection ScrollDirectionUp{0b0100};
-  constexpr ScrollDirection ScrollDirectionDown{0b1000};
 
   struct InputEvent {
     InputType type;

@@ -3,6 +3,7 @@
 #include "rts/abilities.h"
 #include "sc2/Abilities.h"
 #include "sc2/Assets.h"
+#include "sc2/Resources.h"
 
 int sc2::ui::Unit::defaultColor(rts::UnitStableRef) const {
   return sideColor;
@@ -66,8 +67,9 @@ const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::World& w, rts::UnitStableR
   static const auto& sprite{Assets::getSprite("probe")};
   static const auto& spriteGather{Assets::getSprite("probe_gather")};
   static const auto& spriteMineral{Assets::getSprite("probe_mineral")};
+  static const auto& spriteGas{Assets::getSprite("probe_gas")};
   return (!u->bag.empty())
-      ? spriteMineral
+      ? (u->bag.resource() == Resources::mineral() ? spriteMineral : spriteGas)
       : (rts::Unit::state<GatherState>(u, w) == GatherState::Gathering) ? spriteGather : sprite;
 }
 

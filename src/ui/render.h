@@ -2,8 +2,8 @@
 
 #include "rts/constants.h"
 #include "rts/types.h"
-#include "types.h"
 #include "ui/Camera.h"
+#include "ui/types.h"
 
 namespace ui {
   void grid(const Window& win);

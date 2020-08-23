@@ -1,6 +1,7 @@
 #include "ui/Output.h"
 
 #include "IOState.h"
+#include "Layout.h"
 #include "MenuImpl.h"
 #include "X.h"
 #include "dim.h"
@@ -192,7 +193,8 @@ namespace ui {
         drawProductionQueue(ios, w, w[last->productionQueue]);
     }
 
-    void drawAbilities(const IOState& ios, const rts::World& w, const rts::UnitType& type) {
+    void drawAbilities(
+        const IOState& ios, const rts::World& w, const Player& player, const rts::UnitType& type) {
       const auto& win{ios.controlWin};
 
       for (int row{0}; row < 3; ++row) {
@@ -201,12 +203,18 @@ namespace ui {
           assert(ai < rts::MaxUnitAbilities);
           if (auto a{type.abilities[ai].abilityId}) {
             ScreenRect rect{
-                {84 + col * (dim::cellWidth + 1), 2 + row * (dim::cellHeight + 1)},
-                {dim::cellWidth, dim::cellHeight}};
+                {79 + col * (dim::cellWidth + 2), 2 + row * (dim::cellHeight + 1)},
+                {dim::cellWidth + 1, dim::cellHeight}};
+            ScreenRect spriteRect{
+                rect.topLeft + rts::Vector{1, 0}, {dim::cellWidth, dim::cellHeight}};
             wattrset(win.w, graph::lightGreen());
             graph::drawRect(win, boundingBox(rect));
+            wattrset(
+                win.w,
+                a == player.selectingAbilityTarget ? (graph::white() | A_BOLD) : graph::white());
+            mvwaddch(win.w, rect.topLeft.y, rect.topLeft.x, ui::Layout::abilityKey(ai));
             wattrset(win.w, graph::green());
-            graph::drawSprite(win, getIcon(w[a]), rect, {0, 0});
+            graph::drawSprite(win, getIcon(w[a]), spriteRect, {0, 0});
           }
         }
       }
@@ -268,6 +276,8 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   render(ios_.renderWin, w, camera, side.selection());
   if (player.selectionBox)
     drawBoundingBox(ios_.renderWin, camera, *player.selectionBox, graph::green());
+  if (player.selectingAbilityTarget)
+    highlight(ios_.renderWin, camera, ios_.mousePosition, graph::lightGreen());
 
   drawResourceQuantities(ios_, w, player);
   drawGameTime(ios_, engine, w);
@@ -278,7 +288,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   auto subgroupType{side.selection().subgroupType(w)};
   drawSelection(ios_, w, side.selection(), subgroupType);
   if (subgroupType)
-    drawAbilities(ios_, w, w[subgroupType]);
+    drawAbilities(ios_, w, player, w[subgroupType]);
   drawMessages(ios_, w, side.messages());
 
   if (termTooSmall) {

@@ -21,67 +21,68 @@ namespace {
   ui::InputKeySym uiKeymap[256];
   ui::InputState uiModmap[256]{};
 
-  const std::map<KeySym, ui::InputKeySym> keysymMap{{XK_Tab, ui::InputKeySym::Tab},
-                                                    {XK_Escape, ui::InputKeySym::Escape},
-                                                    {XK_Left, ui::InputKeySym::Left},
-                                                    {XK_Right, ui::InputKeySym::Right},
-                                                    {XK_Up, ui::InputKeySym::Up},
-                                                    {XK_Down, ui::InputKeySym::Down},
-                                                    {XK_F1, ui::InputKeySym::F1},
-                                                    {XK_F2, ui::InputKeySym::F2},
-                                                    {XK_F3, ui::InputKeySym::F3},
-                                                    {XK_F4, ui::InputKeySym::F4},
-                                                    {XK_F5, ui::InputKeySym::F5},
-                                                    {XK_F6, ui::InputKeySym::F6},
-                                                    {XK_F7, ui::InputKeySym::F7},
-                                                    {XK_F8, ui::InputKeySym::F8},
-                                                    {XK_F9, ui::InputKeySym::F9},
-                                                    {XK_F10, ui::InputKeySym::F10},
-                                                    {XK_F11, ui::InputKeySym::F11},
-                                                    {XK_F12, ui::InputKeySym::F12},
-                                                    {XK_Shift_L, ui::InputKeySym::Shift_L},
-                                                    {XK_Shift_R, ui::InputKeySym::Shift_R},
-                                                    {XK_Control_L, ui::InputKeySym::Control_L},
-                                                    {XK_Control_R, ui::InputKeySym::Control_R},
-                                                    {XK_Alt_L, ui::InputKeySym::Alt_L},
-                                                    {XK_Alt_R, ui::InputKeySym::Alt_R},
-                                                    {XK_ISO_Level3_Shift, ui::InputKeySym::Alt_R},
-                                                    {XK_0, ui::InputKeySym::Digit_0},
-                                                    {XK_1, ui::InputKeySym::Digit_1},
-                                                    {XK_2, ui::InputKeySym::Digit_2},
-                                                    {XK_3, ui::InputKeySym::Digit_3},
-                                                    {XK_4, ui::InputKeySym::Digit_4},
-                                                    {XK_5, ui::InputKeySym::Digit_5},
-                                                    {XK_6, ui::InputKeySym::Digit_6},
-                                                    {XK_7, ui::InputKeySym::Digit_7},
-                                                    {XK_8, ui::InputKeySym::Digit_8},
-                                                    {XK_9, ui::InputKeySym::Digit_9},
-                                                    {XK_a, ui::InputKeySym::A},
-                                                    {XK_b, ui::InputKeySym::B},
-                                                    {XK_c, ui::InputKeySym::C},
-                                                    {XK_d, ui::InputKeySym::D},
-                                                    {XK_e, ui::InputKeySym::E},
-                                                    {XK_f, ui::InputKeySym::F},
-                                                    {XK_g, ui::InputKeySym::G},
-                                                    {XK_h, ui::InputKeySym::H},
-                                                    {XK_i, ui::InputKeySym::I},
-                                                    {XK_j, ui::InputKeySym::J},
-                                                    {XK_k, ui::InputKeySym::K},
-                                                    {XK_l, ui::InputKeySym::L},
-                                                    {XK_m, ui::InputKeySym::M},
-                                                    {XK_n, ui::InputKeySym::N},
-                                                    {XK_o, ui::InputKeySym::O},
-                                                    {XK_p, ui::InputKeySym::P},
-                                                    {XK_q, ui::InputKeySym::Q},
-                                                    {XK_r, ui::InputKeySym::R},
-                                                    {XK_s, ui::InputKeySym::S},
-                                                    {XK_t, ui::InputKeySym::T},
-                                                    {XK_u, ui::InputKeySym::U},
-                                                    {XK_v, ui::InputKeySym::V},
-                                                    {XK_w, ui::InputKeySym::W},
-                                                    {XK_x, ui::InputKeySym::X},
-                                                    {XK_y, ui::InputKeySym::Y},
-                                                    {XK_z, ui::InputKeySym::Z}};
+  const std::map<KeySym, ui::InputKeySym> keysymMap{
+      {XK_Tab, ui::InputKeySym::Tab},
+      {XK_Escape, ui::InputKeySym::Escape},
+      {XK_Left, ui::InputKeySym::Left},
+      {XK_Right, ui::InputKeySym::Right},
+      {XK_Up, ui::InputKeySym::Up},
+      {XK_Down, ui::InputKeySym::Down},
+      {XK_F1, ui::InputKeySym::F1},
+      {XK_F2, ui::InputKeySym::F2},
+      {XK_F3, ui::InputKeySym::F3},
+      {XK_F4, ui::InputKeySym::F4},
+      {XK_F5, ui::InputKeySym::F5},
+      {XK_F6, ui::InputKeySym::F6},
+      {XK_F7, ui::InputKeySym::F7},
+      {XK_F8, ui::InputKeySym::F8},
+      {XK_F9, ui::InputKeySym::F9},
+      {XK_F10, ui::InputKeySym::F10},
+      {XK_F11, ui::InputKeySym::F11},
+      {XK_F12, ui::InputKeySym::F12},
+      {XK_Shift_L, ui::InputKeySym::Shift_L},
+      {XK_Shift_R, ui::InputKeySym::Shift_R},
+      {XK_Control_L, ui::InputKeySym::Control_L},
+      {XK_Control_R, ui::InputKeySym::Control_R},
+      {XK_Alt_L, ui::InputKeySym::Alt_L},
+      {XK_Alt_R, ui::InputKeySym::Alt_R},
+      {XK_ISO_Level3_Shift, ui::InputKeySym::Alt_R},
+      {XK_0, ui::InputKeySym::Digit_0},
+      {XK_1, ui::InputKeySym::Digit_1},
+      {XK_2, ui::InputKeySym::Digit_2},
+      {XK_3, ui::InputKeySym::Digit_3},
+      {XK_4, ui::InputKeySym::Digit_4},
+      {XK_5, ui::InputKeySym::Digit_5},
+      {XK_6, ui::InputKeySym::Digit_6},
+      {XK_7, ui::InputKeySym::Digit_7},
+      {XK_8, ui::InputKeySym::Digit_8},
+      {XK_9, ui::InputKeySym::Digit_9},
+      {XK_a, ui::InputKeySym::A},
+      {XK_b, ui::InputKeySym::B},
+      {XK_c, ui::InputKeySym::C},
+      {XK_d, ui::InputKeySym::D},
+      {XK_e, ui::InputKeySym::E},
+      {XK_f, ui::InputKeySym::F},
+      {XK_g, ui::InputKeySym::G},
+      {XK_h, ui::InputKeySym::H},
+      {XK_i, ui::InputKeySym::I},
+      {XK_j, ui::InputKeySym::J},
+      {XK_k, ui::InputKeySym::K},
+      {XK_l, ui::InputKeySym::L},
+      {XK_m, ui::InputKeySym::M},
+      {XK_n, ui::InputKeySym::N},
+      {XK_o, ui::InputKeySym::O},
+      {XK_p, ui::InputKeySym::P},
+      {XK_q, ui::InputKeySym::Q},
+      {XK_r, ui::InputKeySym::R},
+      {XK_s, ui::InputKeySym::S},
+      {XK_t, ui::InputKeySym::T},
+      {XK_u, ui::InputKeySym::U},
+      {XK_v, ui::InputKeySym::V},
+      {XK_w, ui::InputKeySym::W},
+      {XK_x, ui::InputKeySym::X},
+      {XK_y, ui::InputKeySym::Y},
+      {XK_z, ui::InputKeySym::Z}};
 
   const std::map<KeySym, ui::InputState> keysymMod{
       {XK_Shift_L, ui::ShiftPressed},       {XK_Shift_R, ui::ShiftPressed},
@@ -128,8 +129,8 @@ namespace {
   }
 
   void getDisplaySize() {
-    Window window = DefaultRootWindow(display);
-    Window root;
+    ::Window window = DefaultRootWindow(display);
+    ::Window root;
     int x, y;
     unsigned int borderWidth, depth;
     XGetGeometry(
@@ -161,7 +162,7 @@ void ui::X::finish() {
 
 void ui::X::grabInput() {
   assert(!grabbing);
-  Window window = DefaultRootWindow(display);
+  ::Window window = DefaultRootWindow(display);
   XGrabKeyboard(display, window, False, GrabModeAsync, GrabModeAsync, CurrentTime);
   grabbing = true;
 }
@@ -205,8 +206,8 @@ ui::InputEvent ui::X::nextEvent() {
 }
 
 void ui::X::updatePointerState() {
-  Window window = DefaultRootWindow(display);
-  Window root, child;
+  ::Window window = DefaultRootWindow(display);
+  ::Window root, child;
   int winX, winY;
   unsigned int mask;
   if (XQueryPointer(display, window, &root, &child, &pointerX, &pointerY, &winX, &winY, &mask))

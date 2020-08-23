@@ -34,8 +34,7 @@ int main() try {
   ui::Player player{sides[0], ui::Camera{{0, 0}, {world.map.maxX(), world.map.maxY()}}};
 
   forEachPoint(rts::Rectangle{{20, 11}, {6, 6}}, [&](rts::Point p) {
-    auto probe{sc2::Factory::probe(world, p, sides[0])};
-    world.sides[sides[0]].selection().add(world, {probe});
+    sc2::Factory::probe(world, p, sides[0]);
   });
 
   rts::Engine engine{world};

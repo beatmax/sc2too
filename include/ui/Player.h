@@ -13,6 +13,7 @@ namespace ui {
     rts::SideId side;
     Camera camera;
     std::optional<rts::Rectangle> selectionBox;
+    std::optional<rts::AbilityId> selectingAbilityTarget;
 
     Player(rts::SideId s, Camera&& c) : side{s}, camera{std::move(c)} {}
     std::optional<rts::Command> processInput(const rts::World& w, const InputEvent& event);
@@ -20,6 +21,7 @@ namespace ui {
   private:
     rts::Point selectionBoxStart_;
 
+    std::optional<rts::Command> doProcessInput(const rts::World& w, const InputEvent& event);
     rts::UnitIdList visibleSameType(const rts::World& w, rts::UnitId unit);
   };
 }

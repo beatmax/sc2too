@@ -1,5 +1,6 @@
 #include "ui/Player.h"
 
+#include "Layout.h"
 #include "rts/Side.h"
 #include "rts/Unit.h"
 #include "rts/World.h"
@@ -11,21 +12,6 @@
 namespace ui {
   namespace {
     int scrollKeyCnt{0};
-
-    ScrollDirection keyScrollDirection(InputKeySym symbol) {
-      switch (symbol) {
-        case InputKeySym::Left:
-          return ScrollDirectionLeft;
-        case InputKeySym::Right:
-          return ScrollDirectionRight;
-        case InputKeySym::Up:
-          return ScrollDirectionUp;
-        case InputKeySym::Down:
-          return ScrollDirectionDown;
-        default:
-          return 0;
-      }
-    }
 
     rts::Vector scrollDirectionVector(ScrollDirection sd) {
       return {
@@ -45,47 +31,18 @@ namespace ui {
       }
       camera.setMoveDirection(camera.moveDirection() + delta);
     }
-
-    rts::AbilityInstanceIndex getAbilityIndex(InputKeySym symbol) {
-      switch (symbol) {
-        case InputKeySym::Q:
-          return rts::AbilityInstanceIndex{0};
-        case InputKeySym::W:
-          return rts::AbilityInstanceIndex{1};
-        case InputKeySym::E:
-          return rts::AbilityInstanceIndex{2};
-        case InputKeySym::R:
-          return rts::AbilityInstanceIndex{3};
-        case InputKeySym::T:
-          return rts::AbilityInstanceIndex{4};
-        case InputKeySym::A:
-          return rts::AbilityInstanceIndex{5};
-        case InputKeySym::S:
-          return rts::AbilityInstanceIndex{6};
-        case InputKeySym::D:
-          return rts::AbilityInstanceIndex{7};
-        case InputKeySym::F:
-          return rts::AbilityInstanceIndex{8};
-        case InputKeySym::G:
-          return rts::AbilityInstanceIndex{9};
-        case InputKeySym::Z:
-          return rts::AbilityInstanceIndex{10};
-        case InputKeySym::X:
-          return rts::AbilityInstanceIndex{11};
-        case InputKeySym::C:
-          return rts::AbilityInstanceIndex{12};
-        case InputKeySym::V:
-          return rts::AbilityInstanceIndex{13};
-        case InputKeySym::B:
-          return rts::AbilityInstanceIndex{14};
-        default:
-          return rts::AbilityInstanceIndex::None;
-      }
-    }
   }
 }
 
 std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const InputEvent& event) {
+  auto cmd{doProcessInput(w, event)};
+  if (cmd)
+    selectingAbilityTarget.reset();
+  return cmd;
+}
+
+std::optional<rts::Command> ui::Player::doProcessInput(
+    const rts::World& w, const InputEvent& event) {
   using ControlGroupCmd = rts::command::ControlGroup;
   using SelectionCmd = rts::command::Selection;
   using SelectionSubgroupCmd = rts::command::SelectionSubgroup;
@@ -108,22 +65,31 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
                                                                 : ControlGroupCmd::Select,
             bool(event.state & AltPressed), rts::ControlGroupId(digit)};
       }
-      else if (auto abilityIndex{getAbilityIndex(event.symbol)};
+      else if ((selectionBox || selectingAbilityTarget) && Layout::cancel(event.symbol)) {
+        selectionBox.reset();
+        selectingAbilityTarget.reset();
+      }
+      else if (auto abilityIndex{Layout::abilityIndex(event.symbol)};
                abilityIndex != rts::AbilityInstanceIndex::None) {
         assert(abilityIndex < rts::MaxUnitAbilities);
         auto subgroupType{w[side].selection().subgroupType(w)};
         if (subgroupType) {
           const auto& type{w[subgroupType]};
           if (auto a{type.abilities[abilityIndex].abilityId}) {
-            if (w[a].targetType == rts::Ability::TargetType::None)
+            if (w[a].targetType == rts::Ability::TargetType::None) {
               return rts::command::TriggerAbility{a, {-1, -1}};
+            }
+            else {
+              selectingAbilityTarget = a;
+              selectionBox.reset();
+            }
           }
         }
         break;
       }
       // pass-through
     case InputType::KeyRelease:
-      if (auto scrollDirection{keyScrollDirection(event.symbol)})
+      if (auto scrollDirection{Layout::scrollDirection(event.symbol)})
         processKeyScrollEvent(event.type, scrollDirection, camera);
       break;
     case InputType::MousePress:
@@ -131,6 +97,8 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
         auto mouseCell{*event.mouseCell};
 
         if (event.mouseButton == InputButton::Button1) {
+          if (selectingAbilityTarget)
+            return rts::command::TriggerAbility{*selectingAbilityTarget, mouseCell};
           auto rc{w.relativeContent(side, mouseCell)};
           if (rc == RC::Friend) {
             auto unit{w.unitId(mouseCell)};

@@ -3,7 +3,10 @@
 #include <algorithm>
 
 rts::Quantity rts::ResourceBag::transferTo(ResourceBag& other, Quantity q) {
-  other.resource_ = resource_;
+  if (other.resource_ != resource_) {
+    other.resource_ = resource_;
+    other.quantity_ = 0;
+  }
   q = std::min({q, quantity_, other.capacityLeft()});
   quantity_ -= q;
   other.quantity_ += q;

@@ -20,4 +20,10 @@ namespace ui {
     int maxY{}, maxX{};
     int beginY{}, beginX{};
   };
+
+  using ScrollDirection = unsigned int;
+  constexpr ScrollDirection ScrollDirectionLeft{0b0001};
+  constexpr ScrollDirection ScrollDirectionRight{0b0010};
+  constexpr ScrollDirection ScrollDirectionUp{0b0100};
+  constexpr ScrollDirection ScrollDirectionDown{0b1000};
 }
