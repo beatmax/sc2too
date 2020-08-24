@@ -115,6 +115,7 @@ const rts::Unit* rts::World::closestUnit(Point p, SideId side, UnitTypeId type) 
 
 const rts::ResourceField* rts::World::closestResourceField(
     Point p, ResourceGroupId group, bool blockedOk) const {
+  assert(group);
   const ResourceField* closest{nullptr};
   float closestDistance{std::numeric_limits<float>::infinity()};
   for (const auto& rf : resourceFields) {

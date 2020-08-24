@@ -44,11 +44,13 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitS
       else {
         findBlockedOk = true;
       }
-      if (auto* rf{w.closestResourceField(u->area.topLeft, targetGroup_, findBlockedOk)}) {
-        targetField_ = w.weakId(*rf);
-        target_ = rf->area.topLeft;
-        state_ = State::MovingToTarget;
-        return moveTo(target_);
+      if (targetGroup_) {
+        if (auto* rf{w.closestResourceField(u->area.topLeft, targetGroup_, findBlockedOk)}) {
+          targetField_ = w.weakId(*rf);
+          target_ = rf->area.topLeft;
+          state_ = State::MovingToTarget;
+          return moveTo(target_);
+        }
       }
       return findBlockedOk ? 0 : MonitorTime;
 
