@@ -25,8 +25,8 @@ TEST_CASE("Hello world!", "[rts]") {
   const Side& side2{cworld[test::side2Id]};
   REQUIRE(test::repr(side1.ui()) == "1");
   REQUIRE(test::repr(side2.ui()) == "2");
-  REQUIRE(side1.bag(&test::gas).quantity() == 1000);
-  REQUIRE(side2.bag(&test::gas).quantity() == 1000);
+  REQUIRE(side1.bag(test::gasResourceId).quantity() == 1000);
+  REQUIRE(side2.bag(test::gasResourceId).quantity() == 1000);
 
   REQUIRE(test::repr(cworld[test::moveAbilityId].ui) == "move");
   REQUIRE(test::repr(cworld[test::produceSimpletonAbilityId].ui) == "p.s");
@@ -592,7 +592,7 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(test::Ui::count["t"] == 0);
 
     Quantity expectedGasLeft{1000};
-    REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+    REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
 
     SECTION("A unit is enqueued for production") {
       triggerSimpletonProduction();
@@ -601,7 +601,7 @@ TEST_CASE("Hello world!", "[rts]") {
       test::stepUpdate(world, cb);
       expectedGasLeft -= test::SimpletonCost;
 
-      REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+      REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
       REQUIRE(queue.size() == 1);
       REQUIRE(test::Ui::count["s"] == 0);
 
@@ -619,7 +619,7 @@ TEST_CASE("Hello world!", "[rts]") {
         test::stepUpdate(world, cb);
         expectedGasLeft -= test::SimpletonCost + test::ThirdyCost;
 
-        REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+        REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
         REQUIRE(queue.size() == 2);
         REQUIRE(test::Ui::count["s"] == 1);
         REQUIRE(test::Ui::count["t"] == 0);
@@ -650,7 +650,7 @@ TEST_CASE("Hello world!", "[rts]") {
         test::stepUpdate(world, cb);
         expectedGasLeft -= test::ThirdyCost;
 
-        REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+        REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
         REQUIRE(queue.size() == 1);
         REQUIRE(test::Ui::count["s"] == 1);
         REQUIRE(test::Ui::count["t"] == 0);
@@ -661,7 +661,7 @@ TEST_CASE("Hello world!", "[rts]") {
         triggerSimpletonProduction();
         expectedGasLeft -= test::SimpletonCost;
 
-        REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+        REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
         REQUIRE(queue.size() == 2);
         REQUIRE(test::Ui::count["s"] == 1);
         REQUIRE(test::Ui::count["t"] == 0);
@@ -688,19 +688,19 @@ TEST_CASE("Hello world!", "[rts]") {
 
     SECTION("Production is attempted with insufficient resources") {
       rts::ResourceBank dummyBank;
-      world[test::side1Id].resources().tryTransferTo(dummyBank, {{&test::gas, 998}});
+      world[test::side1Id].resources().tryTransferTo(dummyBank, {{test::gasResourceId, 998}});
       expectedGasLeft = 2;
-      REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+      REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
 
       triggerSimpletonProduction();
-      REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+      REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
       REQUIRE(test::nextStepTime(cb) == GameTimeInf);
       REQUIRE(side1.messages().size() == 1);
       REQUIRE_THAT(side1.messages()[0].text, Equals("Not enough gas!"));
 
       triggerThirdyProduction();
       expectedGasLeft = 0;
-      REQUIRE(side1.bag(&test::gas).quantity() == expectedGasLeft);
+      REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
     }
 
     world.destroy(building);

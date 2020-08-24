@@ -8,6 +8,7 @@
 //#define MAP_DEBUG
 
 namespace rts {
+  constexpr static size_t MaxResources{10};
   constexpr static size_t MaxSides{8};
   constexpr static size_t MaxSideUnits{1000};
   constexpr static size_t MaxUnits{MaxSideUnits * MaxSides};

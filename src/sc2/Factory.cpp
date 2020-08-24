@@ -9,6 +9,7 @@
 #include "ui/SideUi.h"
 
 void sc2::Factory::init(rts::World& w) {
+  Resources::init(w);
   Abilities::init(w);
   UnitTypes::init(w);
 }
@@ -37,13 +38,13 @@ rts::UnitId sc2::Factory::probe(rts::World& w, rts::Point p, rts::SideId sd) {
 
 rts::ResourceFieldId sc2::Factory::geyser(rts::World& w, rts::Point p) {
   return w.createResourceField(
-      p, rts::Vector{3, 3}, Resources::gas(), GeyserContent, std::make_unique<ui::Geyser>());
+      p, rts::Vector{3, 3}, Resources::gas, GeyserContent, std::make_unique<ui::Geyser>());
 }
 
 rts::ResourceFieldId sc2::Factory::mineralPatch(
     rts::World& w, rts::Point p, rts::ResourceGroupId group) {
   return w.createResourceField(
-      p, rts::Vector{1, 1}, Resources::mineral(), MineralPatchContent,
+      p, rts::Vector{1, 1}, Resources::mineral, MineralPatchContent,
       std::make_unique<ui::MineralPatch>(), group);
 }
 

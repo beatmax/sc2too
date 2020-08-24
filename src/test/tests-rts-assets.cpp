@@ -1,6 +1,5 @@
 #include "tests-rts-assets.h"
 
-#include "rts/Side.h"
 #include "rts/World.h"
 #include "rts/abilities.h"
 #include "rts/constants.h"
@@ -22,8 +21,7 @@ const std::string test::map{
     "                  r                     \n"  // 9
 };
 
-const rts::Resource test::gas{std::make_unique<GasUi>()};
-
+rts::ResourceId test::gasResourceId;
 rts::AbilityId test::moveAbilityId;
 rts::AbilityId test::produceSimpletonAbilityId;
 rts::AbilityId test::produceThirdyAbilityId;
@@ -36,19 +34,22 @@ rts::SideId test::side2Id;
 std::map<std::string, int> test::Ui::count;
 
 void test::Factory::init(rts::World& w) {
-  moveAbilityId = w.abilities.emplace(rts::Ability::TargetType::Any, std::make_unique<Ui>("move"));
-  produceSimpletonAbilityId =
-      w.abilities.emplace(rts::Ability::TargetType::None, std::make_unique<Ui>("p.s"));
-  produceThirdyAbilityId =
-      w.abilities.emplace(rts::Ability::TargetType::None, std::make_unique<Ui>("p.t"));
+  gasResourceId = w.createResource(std::make_unique<GasUi>());
 
-  buildingTypeId = w.unitTypes.emplace(
-      rts::ResourceQuantityList{}, rts::GameTimeSecond, std::make_unique<Ui>("B"));
-  simpletonTypeId = w.unitTypes.emplace(
-      rts::ResourceQuantityList{{&gas, SimpletonCost}}, SimpletonBuildTime,
+  moveAbilityId = w.createAbility(rts::Ability::TargetType::Any, std::make_unique<Ui>("move"));
+  produceSimpletonAbilityId =
+      w.createAbility(rts::Ability::TargetType::None, std::make_unique<Ui>("p.s"));
+  produceThirdyAbilityId =
+      w.createAbility(rts::Ability::TargetType::None, std::make_unique<Ui>("p.t"));
+
+  buildingTypeId =
+      w.createUnitType(rts::ResourceQuantityList{}, rts::GameTimeSecond, std::make_unique<Ui>("B"));
+  simpletonTypeId = w.createUnitType(
+      rts::ResourceQuantityList{{gasResourceId, SimpletonCost}}, SimpletonBuildTime,
       std::make_unique<Ui>("S"));
-  thirdyTypeId = w.unitTypes.emplace(
-      rts::ResourceQuantityList{{&gas, ThirdyCost}}, ThirdyBuildTime, std::make_unique<Ui>("T"));
+  thirdyTypeId = w.createUnitType(
+      rts::ResourceQuantityList{{gasResourceId, ThirdyCost}}, ThirdyBuildTime,
+      std::make_unique<Ui>("T"));
 
   w.unitTypes[buildingTypeId].addAbility(
       ProduceSimpletonAbilityIndex,
@@ -85,7 +86,7 @@ rts::UnitId test::Factory::thirdy(rts::World& w, rts::Point p, rts::SideId sd) {
 }
 
 rts::ResourceFieldId test::Factory::geyser(rts::World& w, rts::Point p) {
-  return w.createResourceField(p, rts::Vector{2, 2}, &gas, 100, std::make_unique<Ui>("g"));
+  return w.createResourceField(p, rts::Vector{2, 2}, gasResourceId, 100, std::make_unique<Ui>("g"));
 }
 
 rts::BlockerId test::Factory::rock(rts::World& w, rts::Point p) {
@@ -107,7 +108,7 @@ void test::MapInitializer::operator()(rts::World& w, rts::Point p, char c) const
 }
 
 void test::makeSides(rts::World& w) {
-  const rts::ResourceBank resources{{&gas, 1000, rts::QuantityInf}};
+  const rts::ResourceBank resources{{gasResourceId, 1000, rts::QuantityInf}};
   side1Id = w.createSide(resources, std::make_unique<Ui>("1"));
   side2Id = w.createSide(resources, std::make_unique<Ui>("2"));
 }

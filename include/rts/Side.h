@@ -24,8 +24,8 @@ namespace rts {
     const Group& group(ControlGroupId group) const { return groups_[group]; }
     ResourceBank& resources() { return resources_; }
     const ResourceBank& resources() const { return resources_; }
-    ResourceBag& bag(ResourceCPtr r) { return resources_[r]; }
-    const ResourceBag& bag(ResourceCPtr r) const { return resources_[r]; }
+    ResourceBag& bag(ResourceId r) { return resources_[r]; }
+    const ResourceBag& bag(ResourceId r) const { return resources_[r]; }
     MessageList& messages() { return messages_; }
     const MessageList& messages() const { return messages_; }
     const Ui& ui() const { return *ui_; }

@@ -14,7 +14,7 @@ bool rts::ProductionQueue::add(World& w, UnitTypeId type) {
       return true;
     }
     else {
-      s.messages().add(w, lackingResource->ui().msgMoreRequired());
+      s.messages().add(w, w[lackingResource].ui().msgMoreRequired());
     }
   }
   else {

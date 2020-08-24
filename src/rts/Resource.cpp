@@ -13,7 +13,7 @@ rts::Quantity rts::ResourceBag::transferTo(ResourceBag& other, Quantity q) {
   return q;
 }
 
-std::pair<bool, rts::ResourceCPtr> rts::ResourceBank::tryTransferTo(
+std::pair<bool, rts::ResourceId> rts::ResourceBank::tryTransferTo(
     ResourceBank& other, const ResourceQuantityList& quantities) {
   for (auto& [r, q] : quantities) {
     if ((*this)[r].quantity() < q)
@@ -21,5 +21,5 @@ std::pair<bool, rts::ResourceCPtr> rts::ResourceBank::tryTransferTo(
   }
   for (auto& [r, q] : quantities)
     (*this)[r].transferTo(other.getOrCreate(r), q);
-  return {true, nullptr};
+  return {true, {}};
 }

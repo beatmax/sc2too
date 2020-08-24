@@ -6,6 +6,7 @@
 #include "Factory.h"
 #include "Map.h"
 #include "ProductionQueue.h"
+#include "Resource.h"
 #include "ResourceField.h"
 #include "Side.h"
 #include "Unit.h"
@@ -29,16 +30,18 @@ namespace rts {
       return std::make_unique<World>(std::move(factory));
     }
 
+    Map map;
     GameTime time{};
+    FactoryUPtr factory;
+
+    util::Pool<Resource, MaxResources> resources;
+    util::Pool<Ability, MaxAbilities> abilities;
+    util::Pool<UnitType, MaxUnitTypes> unitTypes;
     util::Pool<Side, MaxSides> sides;
     util::Pool<Unit, MaxUnits> units;
-    util::Pool<UnitType, MaxUnitTypes> unitTypes;
-    util::Pool<Ability, MaxAbilities> abilities;
-    util::Pool<Blocker, MaxBlockers> blockers;
     util::Pool<ResourceField, MaxResourceFields> resourceFields;
+    util::Pool<Blocker, MaxBlockers> blockers;
     util::Pool<ProductionQueue, MaxProductionQueues> productionQueues;
-    Map map;
-    FactoryUPtr factory;
 
     explicit World(FactoryUPtr f);
     ~World();
@@ -48,6 +51,21 @@ namespace rts {
 
     void exec(const SideCommandList& commands);
     void update(const WorldActionList& actions);
+
+    template<typename... Args>
+    ResourceId createResource(Args&&... args) {
+      return resources.emplace(std::forward<Args>(args)...);
+    }
+
+    template<typename... Args>
+    AbilityId createAbility(Args&&... args) {
+      return abilities.emplace(std::forward<Args>(args)...);
+    }
+
+    template<typename... Args>
+    UnitTypeId createUnitType(Args&&... args) {
+      return unitTypes.emplace(std::forward<Args>(args)...);
+    }
 
     template<typename... Args>
     SideId createSide(Args&&... args) {
@@ -60,13 +78,13 @@ namespace rts {
     }
 
     template<typename... Args>
-    BlockerId createBlocker(Args&&... args) {
-      return create(blockers, std::forward<Args>(args)...);
+    ResourceFieldId createResourceField(Args&&... args) {
+      return create(resourceFields, std::forward<Args>(args)...);
     }
 
     template<typename... Args>
-    ResourceFieldId createResourceField(Args&&... args) {
-      return create(resourceFields, std::forward<Args>(args)...);
+    BlockerId createBlocker(Args&&... args) {
+      return create(blockers, std::forward<Args>(args)...);
     }
 
     template<typename... Args>
@@ -83,18 +101,19 @@ namespace rts {
     void destroy(ProductionQueue& pq) { destroy(productionQueues.id(pq)); }
     void destroy(ProductionQueueId pq) { productionQueues.erase(pq); }
 
+    const Resource& operator[](ResourceId id) const { return resources[id]; }
+    Ability& operator[](AbilityId id) { return abilities[id]; }
+    const Ability& operator[](AbilityId id) const { return abilities[id]; }
+    UnitType& operator[](UnitTypeId id) { return unitTypes[id]; }
+    const UnitType& operator[](UnitTypeId id) const { return unitTypes[id]; }
     Side& operator[](SideId id) { return sides[id]; }
     const Side& operator[](SideId id) const { return sides[id]; }
     Unit& operator[](UnitId id) { return units[id]; }
     const Unit& operator[](UnitId id) const { return units[id]; }
-    UnitType& operator[](UnitTypeId id) { return unitTypes[id]; }
-    const UnitType& operator[](UnitTypeId id) const { return unitTypes[id]; }
-    Ability& operator[](AbilityId id) { return abilities[id]; }
-    const Ability& operator[](AbilityId id) const { return abilities[id]; }
-    Blocker& operator[](BlockerId id) { return blockers[id]; }
-    const Blocker& operator[](BlockerId id) const { return blockers[id]; }
     ResourceField& operator[](ResourceFieldId id) { return resourceFields[id]; }
     const ResourceField& operator[](ResourceFieldId id) const { return resourceFields[id]; }
+    Blocker& operator[](BlockerId id) { return blockers[id]; }
+    const Blocker& operator[](BlockerId id) const { return blockers[id]; }
     ProductionQueue& operator[](ProductionQueueId id) { return productionQueues[id]; }
     const ProductionQueue& operator[](ProductionQueueId id) const { return productionQueues[id]; }
 
@@ -107,11 +126,11 @@ namespace rts {
       return productionQueues[wid];
     }
 
+    AbilityId id(const Ability& a) const { return abilities.id(a); }
     SideId id(const Side& s) const { return sides.id(s); }
     UnitId id(const Unit& u) const { return units.id(u); }
-    AbilityId id(const Ability& a) const { return abilities.id(a); }
-    BlockerId id(const Blocker& b) const { return blockers.id(b); }
     ResourceFieldId id(const ResourceField& rf) const { return resourceFields.id(rf); }
+    BlockerId id(const Blocker& b) const { return blockers.id(b); }
     ProductionQueueId id(const ProductionQueue& pq) const { return productionQueues.id(pq); }
 
     UnitWId weakId(const Unit& u) const { return units.weakId(u); }
@@ -126,14 +145,9 @@ namespace rts {
 
     RelativeContent relativeContent(SideId side, Point p) const;
 
-    BlockerId blockerId(Point p) const { return map[p].blockerId(); }
     UnitId unitId(Point p) const { return map[p].unitId(); }
     ResourceFieldId resourceFieldId(Point p) const { return map[p].resourceFieldId(); }
-
-    Blocker* blocker(const Cell& c) { return getPtrAt(c, blockers); }
-    const Blocker* blocker(const Cell& c) const { return getPtrAt(c, blockers); }
-    Blocker* blocker(Point p) { return blocker(map[p]); }
-    const Blocker* blocker(Point p) const { return blocker(map[p]); }
+    BlockerId blockerId(Point p) const { return map[p].blockerId(); }
 
     Unit* unit(const Cell& c) { return getPtrAt(c, units); }
     const Unit* unit(const Cell& c) const { return getPtrAt(c, units); }
@@ -144,6 +158,11 @@ namespace rts {
     const ResourceField* resourceField(const Cell& c) const { return getPtrAt(c, resourceFields); }
     ResourceField* resourceField(Point p) { return resourceField(map[p]); }
     const ResourceField* resourceField(Point p) const { return resourceField(map[p]); }
+
+    Blocker* blocker(const Cell& c) { return getPtrAt(c, blockers); }
+    const Blocker* blocker(const Cell& c) const { return getPtrAt(c, blockers); }
+    Blocker* blocker(Point p) { return blocker(map[p]); }
+    const Blocker* blocker(Point p) const { return blocker(map[p]); }
 
     WorldObject* object(const Cell& c);
     const WorldObject* object(const Cell& c) const { return const_cast<World&>(*this).object(c); }

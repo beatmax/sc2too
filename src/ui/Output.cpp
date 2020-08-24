@@ -88,7 +88,7 @@ namespace ui {
       const rts::ResourceBank& resources{w[player.side].resources()};
       for (auto it = resources.rbegin(); it != resources.rend(); ++it) {
         x -= 9;
-        graph::drawSprite(win, getIcon(*it->resource()), {{x, 0}, {1, 1}}, {0, 0});
+        graph::drawSprite(win, getIcon(w[it->resource()]), {{x, 0}, {1, 1}}, {0, 0});
         mvwprintw(win.w, 0, x + 2, "%u", it->quantity());
       }
     }

@@ -17,7 +17,7 @@ rts::Unit::Unit(
   : WorldObject{p, s, std::move(ui)},
     type{t},
     side{sd},
-    bag{nullptr, 0, cargoCapacity},
+    bag{{}, 0, cargoCapacity},
     productionQueue{pq} {
 }
 

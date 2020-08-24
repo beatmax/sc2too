@@ -69,7 +69,7 @@ const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::World& w, rts::UnitStableR
   static const auto& spriteMineral{Assets::getSprite("probe_mineral")};
   static const auto& spriteGas{Assets::getSprite("probe_gas")};
   return (!u->bag.empty())
-      ? (u->bag.resource() == Resources::mineral() ? spriteMineral : spriteGas)
+      ? (u->bag.resource() == Resources::mineral ? spriteMineral : spriteGas)
       : (rts::Unit::state<GatherState>(u, w) == GatherState::Gathering) ? spriteGather : sprite;
 }
 

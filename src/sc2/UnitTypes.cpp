@@ -9,11 +9,11 @@
 #include "sc2/ui.h"
 
 void sc2::UnitTypes::init(rts::World& w) {
-  nexus = w.unitTypes.emplace(
-      rts::ResourceQuantityList{{Resources::mineral(), NexusMineralCost}}, NexusBuildTime,
+  nexus = w.createUnitType(
+      rts::ResourceQuantityList{{Resources::mineral, NexusMineralCost}}, NexusBuildTime,
       std::make_unique<ui::NexusType>());
-  probe = w.unitTypes.emplace(
-      rts::ResourceQuantityList{{Resources::mineral(), ProbeMineralCost}}, ProbeBuildTime,
+  probe = w.createUnitType(
+      rts::ResourceQuantityList{{Resources::mineral, ProbeMineralCost}}, ProbeBuildTime,
       std::make_unique<ui::ProbeType>());
   {
     auto& nexusType{w.unitTypes[nexus]};

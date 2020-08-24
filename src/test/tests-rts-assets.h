@@ -1,11 +1,8 @@
 #pragma once
 
-#include "rts/Blocker.h"
 #include "rts/Factory.h"
 #include "rts/Map.h"
 #include "rts/Resource.h"
-#include "rts/ResourceField.h"
-#include "rts/Unit.h"
 #include "rts/types.h"
 
 #include <map>
@@ -22,8 +19,8 @@ namespace test {
   constexpr rts::GameTime ThirdyBuildTime{20};
 
   extern const std::string map;
-  extern const rts::Resource gas;
 
+  extern rts::ResourceId gasResourceId;
   extern rts::AbilityId moveAbilityId;
   extern rts::AbilityId produceSimpletonAbilityId;
   extern rts::AbilityId produceThirdyAbilityId;

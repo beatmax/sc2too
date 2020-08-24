@@ -23,10 +23,10 @@ namespace rts {
 
   class ResourceBag {
   public:
-    ResourceBag(ResourceCPtr r, Quantity q, Quantity capacity)
+    ResourceBag(ResourceId r, Quantity q, Quantity capacity)
       : resource_{r}, quantity_{q}, capacity_{capacity} {}
 
-    ResourceCPtr resource() const { return resource_; }
+    ResourceId resource() const { return resource_; }
     Quantity quantity() const { return quantity_; }
     Quantity capacity() const { return capacity_; }
     Quantity capacityLeft() const { return capacity_ - quantity_; }
@@ -36,7 +36,7 @@ namespace rts {
     Quantity transferAllTo(ResourceBag& other) { return transferTo(other, quantity_); }
 
   private:
-    ResourceCPtr resource_;
+    ResourceId resource_;
     Quantity quantity_;
     Quantity capacity_;
   };
@@ -46,12 +46,12 @@ namespace rts {
 
     using Inherited::Inherited;
 
-    ResourceBag& operator[](ResourceCPtr r) {
+    ResourceBag& operator[](ResourceId r) {
       auto it = std::find_if(begin(), end(), [r](const auto& b) { return b.resource() == r; });
       assert(it != end());
       return *it;
     }
-    const ResourceBag& operator[](ResourceCPtr r) const {
+    const ResourceBag& operator[](ResourceId r) const {
       return const_cast<ResourceBank&>(*this)[r];
     }
 
@@ -59,11 +59,11 @@ namespace rts {
       return std::all_of(begin(), end(), [](const auto& b) { return b.empty(); });
     }
 
-    std::pair<bool, ResourceCPtr> tryTransferTo(
+    std::pair<bool, ResourceId> tryTransferTo(
         ResourceBank& other, const ResourceQuantityList& quantities);
 
   private:
-    ResourceBag& getOrCreate(ResourceCPtr r) {
+    ResourceBag& getOrCreate(ResourceId r) {
       auto it = std::find_if(begin(), end(), [r](const auto& b) { return b.resource() == r; });
       if (it == end())
         it = insert(end(), {r, 0, QuantityInf});

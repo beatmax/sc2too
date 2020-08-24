@@ -1,13 +1,15 @@
 #pragma once
 
 #include "rts/Resource.h"
+#include "rts/types.h"
 
 namespace sc2 {
   struct Resources {
-    static rts::ResourceCPtr mineral();
-    static rts::ResourceCPtr gas();
-    static rts::ResourceCPtr supply();
-
+    static void init(rts::World& w);
     static rts::ResourceBank initialResources();
+
+    static rts::ResourceId mineral;
+    static rts::ResourceId gas;
+    static rts::ResourceId supply;
   };
 }

@@ -59,11 +59,11 @@ namespace rts {
   using ControlGroupId = uint8_t;
   using ProductionQueueId = util::PoolObjectId<ProductionQueue>;
   using ProductionQueueWId = util::PoolObjectWeakId<ProductionQueue>;
-  using ResourceCPtr = const Resource*;
   using ResourceFieldId = util::PoolObjectId<ResourceField>;
   using ResourceFieldStableRef = StableRef<ResourceField>;
   using ResourceFieldWId = util::PoolObjectWeakId<ResourceField>;
   using ResourceGroupId = uint32_t;
+  using ResourceId = util::PoolObjectId<Resource>;
   using SideId = util::PoolObjectId<Side>;
   using UnitCPtr = const Unit*;
   using UnitCPtrList = std::vector<UnitCPtr>;
@@ -83,7 +83,7 @@ namespace rts {
   using Fps = uint32_t;
   using Quantity = uint32_t;
 
-  using ResourceQuantityList = std::vector<std::pair<ResourceCPtr, Quantity>>;
+  using ResourceQuantityList = std::vector<std::pair<ResourceId, Quantity>>;
 
   using util::geo::Coordinate;
   using util::geo::Point;
