@@ -50,6 +50,6 @@ namespace rts {
   class MapInitializer {
   public:
     virtual ~MapInitializer() = default;
-    virtual void operator()(World& w, Point p, char c) const = 0;
+    virtual Cell::Content operator()(World& w, Point p, char c) const = 0;
   };
 }

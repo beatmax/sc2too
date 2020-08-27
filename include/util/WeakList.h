@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Pool.h"
+#include "algorithm.h"
 
 #include <algorithm>
 #include <cassert>
@@ -81,9 +82,8 @@ namespace util {
 
   template<typename T, uint32_t N, typename Compare>
   void WeakList<T, N, Compare>::remove(const IdList& ids) {
-    auto it = std::remove_if(begin(), end(), [&ids](WeakId wid) {
-      return std::find(ids.begin(), ids.end(), Id(wid)) != ids.end();
-    });
+    auto it =
+        std::remove_if(begin(), end(), [&ids](WeakId wid) { return util::contains(ids, Id(wid)); });
     n_ = std::distance(begin(), it);
   }
 
@@ -109,7 +109,7 @@ namespace util {
 
   template<typename T, uint32_t N, typename Compare>
   bool WeakList<T, N, Compare>::contains(Id id) const {
-    return std::find_if(begin(), end(), [id](WeakId wid) { return id == Id(wid); }) != end();
+    return std::any_of(begin(), end(), [id](WeakId wid) { return id == Id(wid); });
   }
 
   template<typename T, uint32_t N, typename Compare>

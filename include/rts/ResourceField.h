@@ -10,7 +10,7 @@
 namespace rts {
   class ResourceField : public WorldObject {
   public:
-    ResourceBag bag;
+    ResourceFlexBag bag;
     ResourceGroupId group;
     Semaphore sem{1};
 

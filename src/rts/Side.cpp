@@ -79,3 +79,12 @@ void rts::Side::exec(
     }
   };
 }
+
+void rts::Side::exec(const World& w, WorldActionList& actions, const command::Debug& cmd) {
+  if (cmd.action == command::Debug::Destroy) {
+    actions += [ids{selection_.ids(w)}](World& w) {
+      for (auto u : ids)
+        w.destroy(u);
+    };
+  }
+}

@@ -74,17 +74,7 @@ namespace rts {
 
     template<typename... Args>
     UnitId createUnit(Args&&... args) {
-      return create(units, std::forward<Args>(args)...);
-    }
-
-    template<typename... Args>
-    ResourceFieldId createResourceField(Args&&... args) {
-      return create(resourceFields, std::forward<Args>(args)...);
-    }
-
-    template<typename... Args>
-    BlockerId createBlocker(Args&&... args) {
-      return create(blockers, std::forward<Args>(args)...);
+      return add(factory->create(*this, std::forward<Args>(args)...));
     }
 
     template<typename... Args>
@@ -92,14 +82,30 @@ namespace rts {
       return productionQueues.emplace(std::forward<Args>(args)...);
     }
 
+    template<typename Id>
+    Id add(Id id) {
+      auto& obj{(*this)[id]};
+      map.setContent(obj.area, id);
+      return id;
+    }
+    UnitId add(UnitId id, bool negativeOk = false);
+    void add(Cell::Empty) {}
+
+    template<typename Id>
+    Id addForFree(Id id) {
+      return add(id);
+    }
+    UnitId addForFree(UnitId id);
+    void addForFree(Cell::Empty) {}
+
     void move(Unit& u, Point p);
 
     void destroy(Unit& u);
     void destroy(UnitId u) { destroy(units[u]); }
     void destroy(ResourceField& rf);
     void destroy(ResourceFieldId rf) { destroy(resourceFields[rf]); }
-    void destroy(ProductionQueue& pq) { destroy(productionQueues.id(pq)); }
-    void destroy(ProductionQueueId pq) { productionQueues.erase(pq); }
+    void destroy(ProductionQueue& pq);
+    void destroy(ProductionQueueId pq) { destroy(productionQueues[pq]); }
 
     const Resource& operator[](ResourceId id) const { return resources[id]; }
     Ability& operator[](AbilityId id) { return abilities[id]; }
@@ -178,8 +184,8 @@ namespace rts {
   private:
     template<typename P, typename... Args>
     auto create(P& pool, Args&&... args) {
-      auto id{pool.emplace(std::forward<Args>(args)...)};
-      map.setContent(pool[id].area, id);
+      auto id{factory->create(*this, std::forward<Args>(args)...)};
+      add(id);
       return id;
     }
 

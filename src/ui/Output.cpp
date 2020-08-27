@@ -82,14 +82,25 @@ namespace ui {
       initWins(ios);
     }
 
-    void drawResourceQuantities(const IOState& ios, const rts::World& w, const Player& player) {
+    void drawResourceQuantities(const IOState& ios, const rts::World& w, const rts::Side& side) {
       const auto& win{ios.headerWin};
       int x = dim::defaultWinWidth;
-      const rts::ResourceBank& resources{w[player.side].resources()};
-      for (auto it = resources.rbegin(); it != resources.rend(); ++it) {
-        x -= 9;
-        graph::drawSprite(win, getIcon(w[it->resource()]), {{x, 0}, {1, 1}}, {0, 0});
-        mvwprintw(win.w, 0, x + 2, "%u", it->quantity());
+      const auto& resources{side.resources()};
+      for (auto id{resources.maxId()}; id >= resources.minId(); --id) {
+        const auto& ui{getUi(w[id])};
+        const auto& acc{side.resources()[id]};
+        bool displayAlloc{ui.display == ResourceUi::Display::Allocated};
+        x -= displayAlloc ? 13 : 9;
+        wattrset(win.w, graph::white());
+        graph::drawSprite(win, ui.icon(), {{x, 0}, {1, 1}}, {0, 0});
+        if (displayAlloc) {
+          if (acc.allocated() > acc.totalSlots())
+            wattrset(win.w, graph::red() | A_BOLD);
+          mvwprintw(win.w, 0, x + 2, "%d/%d", acc.allocated(), acc.totalSlots());
+        }
+        else {
+          mvwprintw(win.w, 0, x + 2, "%d", acc.available());
+        }
       }
     }
 
@@ -129,20 +140,22 @@ namespace ui {
       }
     }
 
-    void drawProductionQueue(
-        const IOState& ios, const rts::World& w, const rts::ProductionQueue& pq) {
-      const auto& win{ios.controlWin};
+    void drawProductionQueue(const IOState& ios, const rts::World& w, rts::UnitStableRef unit) {
+      using ProduceState = rts::abilities::ProduceState;
+      const rts::ProductionQueue& pq{w[unit->productionQueue]};
+      const bool blocked{rts::Unit::state<ProduceState>(unit, w) == ProduceState::Blocked};
 
+      const auto& win{ios.controlWin};
       const auto left{40};
       const auto right{left + (rts::MaxProductionQueueSize - 2) * (dim::cellWidth + 1)};
       const auto sideColor{getColor(w[pq.side()])};
       ScreenRect rect{{right, 4}, {dim::cellWidth, dim::cellHeight}};
 
       for (size_t i{0}; i < rts::MaxProductionQueueSize; ++i) {
-        wattrset(win.w, graph::darkGreen());
+        wattrset(win.w, blocked ? graph::darkGrey() : graph::darkGreen());
         graph::drawRect(win, boundingBox(rect));
         if (i < pq.size()) {
-          wattrset(win.w, sideColor);
+          wattrset(win.w, blocked ? graph::darkGrey() : sideColor);
           graph::drawSprite(win, getIcon(w[pq.type(i)]), rect, {0, 0});
         }
 
@@ -190,7 +203,7 @@ namespace ui {
       if (row == 3)
         mvwprintw(win.w, rect.topLeft.y, rect.topLeft.x, "...");
       if (cnt == 1 && last->productionQueue)
-        drawProductionQueue(ios, w, w[last->productionQueue]);
+        drawProductionQueue(ios, w, rts::StableRef{*last});
     }
 
     void drawAbilities(
@@ -279,7 +292,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   if (player.selectingAbilityTarget)
     highlight(ios_.renderWin, camera, ios_.mousePosition, graph::lightGreen());
 
-  drawResourceQuantities(ios_, w, player);
+  drawResourceQuantities(ios_, w, side);
   drawGameTime(ios_, engine, w);
   drawGameSpeed(ios_, engine);
   drawFps(ios_, engine);

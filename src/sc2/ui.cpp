@@ -36,6 +36,10 @@ const char* sc2::ui::Supply::msgMoreRequired() const {
   return "YOU MUST CONSTRUCT ADDITIONAL PYLONS!";
 }
 
+const char* sc2::ui::Supply::msgCapReached() const {
+  return "WE ARE AT MAXIMUM SUPPLY!";
+}
+
 const ::ui::Sprite& sc2::ui::Geyser::sprite(const rts::World&, rts::ResourceFieldStableRef) const {
   static const auto& sprite{Assets::getSprite("geyser")};
   return sprite;
@@ -69,7 +73,7 @@ const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::World& w, rts::UnitStableR
   static const auto& spriteMineral{Assets::getSprite("probe_mineral")};
   static const auto& spriteGas{Assets::getSprite("probe_gas")};
   return (!u->bag.empty())
-      ? (u->bag.resource() == Resources::mineral ? spriteMineral : spriteGas)
+      ? (u->bag.resource == Resources::mineral ? spriteMineral : spriteGas)
       : (rts::Unit::state<GatherState>(u, w) == GatherState::Gathering) ? spriteGather : sprite;
 }
 

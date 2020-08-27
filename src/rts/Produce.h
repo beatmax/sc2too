@@ -17,6 +17,8 @@ namespace rts::abilities::state {
     void cancel(World& w) final {}
     int state() const final { return int(state_); }
 
+    void unblock();
+
   private:
     AbilityStepAction startProduction();
     AbilityStepAction finishProduction();

@@ -3,6 +3,7 @@
 #include "util/Pool.h"
 #include "util/geo.h"
 
+#include <array>
 #include <cstdint>
 #include <limits>
 #include <memory>
@@ -18,6 +19,7 @@ namespace rts {
   class Map;
   class ProductionQueue;
   class Resource;
+  class ResourceBank;
   class ResourceField;
   class Selection;
   class Side;
@@ -25,6 +27,12 @@ namespace rts {
   class UnitType;
   class World;
   class WorldObject;
+
+  template<typename Id, typename T, uint32_t N>
+  struct IdIndexedArray : std::array<T, N + 1> {
+    T& operator[](Id id) { return this->data()[id.idx]; }
+    const T& operator[](Id id) const { return this->data()[id.idx]; }
+  };
 
   template<typename Tag>
   class NamedIndex {
@@ -81,7 +89,7 @@ namespace rts {
   using GameSpeed = uint32_t;  // game units per second
   using Speed = uint32_t;      // distance per game unit = cells per second
   using Fps = uint32_t;
-  using Quantity = uint32_t;
+  using Quantity = int32_t;
 
   using ResourceQuantityList = std::vector<std::pair<ResourceId, Quantity>>;
 

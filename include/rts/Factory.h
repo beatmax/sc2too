@@ -3,7 +3,7 @@
 #include "types.h"
 
 namespace rts {
-  struct Factory {
+  class Factory {
   public:
     virtual ~Factory() = default;
     virtual void init(World& w) = 0;

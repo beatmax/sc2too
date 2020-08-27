@@ -21,12 +21,12 @@ TEST_CASE("Hello world!", "[rts]") {
   const World& cworld{world};
 
   test::makeSides(world);
-  const Side& side1{cworld[test::side1Id]};
-  const Side& side2{cworld[test::side2Id]};
+  Side& side1{world[test::side1Id]};
+  Side& side2{world[test::side2Id]};
   REQUIRE(test::repr(side1.ui()) == "1");
   REQUIRE(test::repr(side2.ui()) == "2");
-  REQUIRE(side1.bag(test::gasResourceId).quantity() == 1000);
-  REQUIRE(side2.bag(test::gasResourceId).quantity() == 1000);
+  REQUIRE(side1.resource(test::gasResourceId).available() == 1000);
+  REQUIRE(side2.resource(test::gasResourceId).available() == 1000);
 
   REQUIRE(test::repr(cworld[test::moveAbilityId].ui) == "move");
   REQUIRE(test::repr(cworld[test::produceSimpletonAbilityId].ui) == "p.s");
@@ -69,9 +69,16 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(rf == geyser);
   });
 
+  side1.resources().provision({{test::supplyResourceId, 100}});
+
+  test::TestResources expectedResources;
+  expectedResources.gas.available = 1000;
+  expectedResources.supply.available = 115;
+  REQUIRE(test::TestResources{side1} == expectedResources);
+
   SECTION("A unit is added to the world") {
     Point pos{20, 5};
-    UnitId uid{test::Factory::simpleton(world, pos, test::side1Id)};
+    UnitId uid{world.add(test::Factory::simpleton(world, pos, test::side1Id))};
     REQUIRE(cworld[pos].contains(Cell::Unit));
     Unit& u{*world.unit(pos)};
     const Unit& cu{*cworld.unit(pos)};
@@ -79,11 +86,19 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(test::repr(cu.ui) == "s");
     REQUIRE(test::Ui::count["s"] == 1);
 
+    expectedResources.gas.allocate(test::SimpletonGasCost);
+    expectedResources.supply.allocate(test::SimpletonSupplyCost);
+    REQUIRE(test::TestResources{side1} == expectedResources);
+
     SECTION("The unit is destroyed") {
       pos = cu.area.topLeft;
       world.destroy(uid);
       REQUIRE(cworld[pos].empty());
       REQUIRE(test::Ui::count["s"] == 0);
+
+      expectedResources.gas.lose(test::SimpletonGasCost);
+      expectedResources.supply.restore(test::SimpletonSupplyCost);
+      REQUIRE(test::TestResources{side1} == expectedResources);
     }
 
     SECTION("The 'move' ability is triggered") {
@@ -148,7 +163,7 @@ TEST_CASE("Hello world!", "[rts]") {
 
     REQUIRE(test::Ui::count["b"] == 1);
 
-    UnitId uid{test::Factory::building(world, area.topLeft, test::side1Id)};
+    UnitId uid{world.add(test::Factory::building(world, area.topLeft, test::side1Id))};
     const Unit& cu{*cworld.unit(area.topLeft)};
     REQUIRE(cu.area == area);
     REQUIRE(test::repr(cu.ui) == "b");
@@ -170,7 +185,7 @@ TEST_CASE("Hello world!", "[rts]") {
   }
 
   SECTION("Try some moves!") {
-    UnitId uid{test::Factory::simpleton(world, Point{20, 5}, test::side1Id)};
+    UnitId uid{world.add(test::Factory::simpleton(world, Point{20, 5}, test::side1Id))};
     auto& unit{world[uid]};
 
     test::select(world, test::side1Id, {uid});
@@ -225,7 +240,7 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("Path around a unit") {
-      test::Factory::building(world, {24, 4}, test::side1Id);
+      world.add(test::Factory::building(world, {24, 4}, test::side1Id));
       REQUIRE(
           test::runMove(world, unit, Point{27, 5}) ==
           test::MoveStepList{
@@ -248,7 +263,7 @@ TEST_CASE("Hello world!", "[rts]") {
       ++world.time;
       WorldActionList actions{Unit::step(UnitStableRef{unit}, cworld)};
       REQUIRE(!actions.empty());
-      test::Factory::building(world, {24, 4}, test::side1Id);
+      world.add(test::Factory::building(world, {24, 4}, test::side1Id));
       world.update(actions);
       REQUIRE(unit.area.topLeft == Point{23, 5});
       REQUIRE(
@@ -263,7 +278,7 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("Path around adjacent unit") {
-      test::Factory::simpleton(world, {21, 5}, test::side1Id);
+      world.add(test::Factory::simpleton(world, {21, 5}, test::side1Id));
       REQUIRE(
           test::runMove(world, unit, Point{22, 5}) ==
           test::MoveStepList{{{20, 5}, 0}, {{21, 4}, 142}, {{22, 5}, 283}});
@@ -294,7 +309,7 @@ TEST_CASE("Hello world!", "[rts]") {
     SECTION("Blocked and unblocked") {
       forEachPoint(Rectangle{{19, 4}, {3, 3}}, [&](Point p) {
         if (p != Point{20, 5})
-          test::Factory::simpleton(world, p, test::side1Id);
+          world.add(test::Factory::simpleton(world, p, test::side1Id));
       });
       REQUIRE(
           test::runMove(world, unit, Point{23, 5}, 350) ==
@@ -304,8 +319,8 @@ TEST_CASE("Hello world!", "[rts]") {
           test::continueMove(world, unit, 550) ==
           test::MoveStepList{{{20, 5}, 350}, {{21, 5}, 501}, {{21, 5}, 550}});
       for (Coordinate y : {4, 5, 6})
-        test::Factory::simpleton(world, {22, y}, test::side1Id);
-      test::Factory::simpleton(world, {20, 5}, test::side1Id);
+        world.add(test::Factory::simpleton(world, {22, y}, test::side1Id));
+      world.add(test::Factory::simpleton(world, {20, 5}, test::side1Id));
       REQUIRE(
           test::continueMove(world, unit, 750) ==
           test::MoveStepList{{{21, 5}, 550}, {{21, 5}, 750}});
@@ -325,9 +340,9 @@ TEST_CASE("Hello world!", "[rts]") {
     auto selectedUnits = [&]() { return side1.selection().ids(world); };
     auto subgroupType = [&]() { return side1.selection().subgroupType(world); };
 
-    UnitId u1{test::Factory::simpleton(world, Point{21, 5}, test::side1Id)};
-    UnitId u2{test::Factory::simpleton(world, Point{22, 5}, test::side1Id)};
-    UnitId u3{test::Factory::simpleton(world, Point{23, 5}, test::side1Id)};
+    UnitId u1{world.add(test::Factory::simpleton(world, Point{21, 5}, test::side1Id))};
+    UnitId u2{world.add(test::Factory::simpleton(world, Point{22, 5}, test::side1Id))};
+    UnitId u3{world.add(test::Factory::simpleton(world, Point{23, 5}, test::side1Id))};
 
     REQUIRE(subgroupType() == UnitTypeId{});
 
@@ -375,8 +390,8 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(subgroupType() == test::simpletonTypeId);
 
     UnitId b1{world.units.id(*building)};
-    UnitId t1{test::Factory::thirdy(world, Point{24, 5}, test::side1Id)};
-    UnitId t2{test::Factory::thirdy(world, Point{25, 5}, test::side1Id)};
+    UnitId t1{world.add(test::Factory::thirdy(world, Point{24, 5}, test::side1Id))};
+    UnitId t2{world.add(test::Factory::thirdy(world, Point{25, 5}, test::side1Id))};
 
     test::select(world, test::side1Id, {u2, b1, t2, u1, t1});
     REQUIRE(selectedUnits() == UnitIdList{b1, u1, u2, t1, t2});
@@ -531,7 +546,7 @@ TEST_CASE("Hello world!", "[rts]") {
 
     SECTION("The engine runs and updates the world") {
       const auto side{test::side1Id};
-      const auto unit{test::Factory::simpleton(world, Point{20, 5}, side)};
+      const auto unit{world.add(test::Factory::simpleton(world, Point{20, 5}, side))};
       test::select(world, side, {unit});
 
       const GameTime frameTime{10};
@@ -570,6 +585,8 @@ TEST_CASE("Hello world!", "[rts]") {
   }
 
   SECTION("Production queue") {
+    constexpr GameTime MonitorTime{10};
+
     auto triggerSimpletonProduction = [&]() {
       test::execCommand(
           world, test::side1Id, rts::command::TriggerAbility{test::produceSimpletonAbilityId, {}});
@@ -581,9 +598,12 @@ TEST_CASE("Hello world!", "[rts]") {
     };
 
     const Rectangle buildingArea{Point{1, 1}, rts::Vector{2, 3}};
-    UnitId building{test::Factory::building(world, buildingArea.topLeft, test::side1Id)};
+    UnitId building{world.add(test::Factory::building(world, buildingArea.topLeft, test::side1Id))};
     const Unit& cb{cworld[building]};
     test::select(world, test::side1Id, {building});
+
+    expectedResources.supply.provision(test::BuildingSupplyProvision);
+    REQUIRE(test::TestResources{side1} == expectedResources);
 
     const ProductionQueue& queue{world[world[building].productionQueue]};
     auto queueWId{world.weakId(queue)};
@@ -591,17 +611,19 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(test::Ui::count["s"] == 0);
     REQUIRE(test::Ui::count["t"] == 0);
 
-    Quantity expectedGasLeft{1000};
-    REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
-
     SECTION("A unit is enqueued for production") {
       triggerSimpletonProduction();
+
+      expectedResources.gas.allocate(test::SimpletonGasCost);
+      REQUIRE(test::TestResources{side1} == expectedResources);
+
       REQUIRE(test::nextStepTime(cb) == world.time + 1);
       ++world.time;
       test::stepUpdate(world, cb);
-      expectedGasLeft -= test::SimpletonCost;
 
-      REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
+      expectedResources.supply.allocate(test::SimpletonSupplyCost);
+      REQUIRE(test::TestResources{side1} == expectedResources);
+
       REQUIRE(queue.size() == 1);
       REQUIRE(test::Ui::count["s"] == 0);
 
@@ -611,99 +633,180 @@ TEST_CASE("Hello world!", "[rts]") {
       REQUIRE(queue.size() == 0);
       REQUIRE(test::Ui::count["s"] == 1);
 
+      REQUIRE(test::TestResources{side1} == expectedResources);
+
       SECTION("Two units are enqueued for production") {
         triggerSimpletonProduction();
         triggerThirdyProduction();
-        REQUIRE(test::nextStepTime(cb) == world.time + 1);
         ++world.time;
+        REQUIRE(test::nextStepTime(cb) == world.time);
         test::stepUpdate(world, cb);
-        expectedGasLeft -= test::SimpletonCost + test::ThirdyCost;
 
-        REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
         REQUIRE(queue.size() == 2);
         REQUIRE(test::Ui::count["s"] == 1);
         REQUIRE(test::Ui::count["t"] == 0);
+        expectedResources.gas.allocate(test::SimpletonGasCost + test::ThirdyGasCost);
+        expectedResources.supply.allocate(test::SimpletonSupplyCost);
+        REQUIRE(test::TestResources{side1} == expectedResources);
 
-        REQUIRE(test::nextStepTime(cb) == world.time + test::SimpletonBuildTime);
         world.time += test::SimpletonBuildTime;
+        REQUIRE(test::nextStepTime(cb) == world.time);
         test::stepUpdate(world, cb);
+
         REQUIRE(queue.size() == 1);
         REQUIRE(test::Ui::count["s"] == 2);
         REQUIRE(test::Ui::count["t"] == 0);
+        REQUIRE(test::TestResources{side1} == expectedResources);
 
         ++world.time;
         REQUIRE(test::nextStepTime(cb) == world.time);
         test::stepUpdate(world, cb);
 
-        REQUIRE(test::nextStepTime(cb) == world.time + test::ThirdyBuildTime);
+        expectedResources.supply.allocate(test::ThirdySupplyCost);
+        REQUIRE(test::TestResources{side1} == expectedResources);
+
         world.time += test::ThirdyBuildTime;
+        REQUIRE(test::nextStepTime(cb) == world.time);
         test::stepUpdate(world, cb);
+
         REQUIRE(queue.size() == 0);
         REQUIRE(test::Ui::count["s"] == 2);
         REQUIRE(test::Ui::count["t"] == 1);
+        REQUIRE(test::TestResources{side1} == expectedResources);
       }
 
       SECTION("Units are enqueued during production") {
         triggerThirdyProduction();
-        REQUIRE(test::nextStepTime(cb) == world.time + 1);
         ++world.time;
+        REQUIRE(test::nextStepTime(cb) == world.time);
         test::stepUpdate(world, cb);
-        expectedGasLeft -= test::ThirdyCost;
 
-        REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
         REQUIRE(queue.size() == 1);
         REQUIRE(test::Ui::count["s"] == 1);
         REQUIRE(test::Ui::count["t"] == 0);
+        expectedResources.gas.allocate(test::ThirdyGasCost);
+        expectedResources.supply.allocate(test::ThirdySupplyCost);
+        REQUIRE(test::TestResources{side1} == expectedResources);
 
         REQUIRE(test::nextStepTime(cb) == world.time + test::ThirdyBuildTime);
 
         world.time += 5;
         triggerSimpletonProduction();
-        expectedGasLeft -= test::SimpletonCost;
 
-        REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
         REQUIRE(queue.size() == 2);
         REQUIRE(test::Ui::count["s"] == 1);
         REQUIRE(test::Ui::count["t"] == 0);
+        expectedResources.gas.allocate(test::SimpletonGasCost);
+        REQUIRE(test::TestResources{side1} == expectedResources);
 
-        REQUIRE(test::nextStepTime(cb) == world.time + (test::ThirdyBuildTime - 5));
         world.time += test::ThirdyBuildTime - 5;
+        REQUIRE(test::nextStepTime(cb) == world.time);
         test::stepUpdate(world, cb);
         REQUIRE(queue.size() == 1);
         REQUIRE(test::Ui::count["s"] == 1);
         REQUIRE(test::Ui::count["t"] == 1);
 
-        REQUIRE(test::nextStepTime(cb) == world.time + 1);
         ++world.time;
+        REQUIRE(test::nextStepTime(cb) == world.time);
         test::stepUpdate(world, cb);
 
-        REQUIRE(test::nextStepTime(cb) == world.time + test::SimpletonBuildTime);
+        expectedResources.supply.allocate(test::SimpletonSupplyCost);
+        REQUIRE(test::TestResources{side1} == expectedResources);
+
         world.time += test::SimpletonBuildTime;
+        REQUIRE(test::nextStepTime(cb) == world.time);
         test::stepUpdate(world, cb);
         REQUIRE(queue.size() == 0);
         REQUIRE(test::Ui::count["s"] == 2);
         REQUIRE(test::Ui::count["t"] == 1);
+        REQUIRE(test::TestResources{side1} == expectedResources);
       }
     }
 
     SECTION("Production is attempted with insufficient resources") {
-      rts::ResourceBank dummyBank;
-      world[test::side1Id].resources().tryTransferTo(dummyBank, {{test::gasResourceId, 998}});
-      expectedGasLeft = 2;
-      REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
+      REQUIRE(side1.resource(test::supplyResourceId).totalSlots() == 130);
+      side1.resources().allocate({{test::gasResourceId, 998}, {test::supplyResourceId, 127}});
+      expectedResources.gas.allocate(998);
+      expectedResources.supply.allocate(127);
+      REQUIRE(test::TestResources{side1} == expectedResources);
+      REQUIRE(side1.resource(test::supplyResourceId).freeSlots() == 3);
+      REQUIRE(side1.resource(test::supplyResourceId).totalSlots() == 130);
 
       triggerSimpletonProduction();
-      REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
+      REQUIRE(test::TestResources{side1} == expectedResources);
       REQUIRE(test::nextStepTime(cb) == GameTimeInf);
       REQUIRE(side1.messages().size() == 1);
       REQUIRE_THAT(side1.messages()[0].text, Equals("Not enough gas!"));
 
       triggerThirdyProduction();
-      expectedGasLeft = 0;
-      REQUIRE(side1.bag(test::gasResourceId).quantity() == expectedGasLeft);
+      expectedResources.gas.allocate(test::ThirdyGasCost);
+      REQUIRE(expectedResources.gas.available == 0);
+      REQUIRE(test::TestResources{side1} == expectedResources);
+
+      ++world.time;
+      REQUIRE(test::nextStepTime(cb) == world.time);
+      test::stepUpdate(world, cb);
+
+      REQUIRE(test::TestResources{side1} == expectedResources);
+      REQUIRE(test::nextStepTime(cb) == world.time + MonitorTime);
+      REQUIRE(side1.messages().size() == 2);
+      REQUIRE_THAT(side1.messages()[1].text, Equals("Not enough supply!"));
+
+      side1.resource(test::supplyResourceId).deallocate(1);
+      expectedResources.supply.restore(1);
+      REQUIRE(expectedResources.supply.available == 4);
+      REQUIRE(test::TestResources{side1} == expectedResources);
+
+      world.time += MonitorTime;
+      test::stepUpdate(world, cb);
+      expectedResources.supply.allocate(test::ThirdySupplyCost);
+      REQUIRE(expectedResources.supply.available == 0);
+      REQUIRE(test::TestResources{side1} == expectedResources);
+      REQUIRE(side1.resource(test::supplyResourceId).freeSlots() == 0);
+      REQUIRE(side1.resource(test::supplyResourceId).totalSlots() == 130);
     }
 
-    world.destroy(building);
-    REQUIRE(!world[queueWId]);
+    SECTION("Resource cap is not exceeded") {
+      side1.resources().provision({{test::supplyResourceId, 100}});
+      side1.resources().allocate({{test::supplyResourceId, 199}});
+      expectedResources.supply.allocated = 199;
+      expectedResources.supply.available = 31;
+      REQUIRE(test::TestResources{side1} == expectedResources);
+      REQUIRE(side1.resource(test::supplyResourceId).freeSlots() == 1);
+      REQUIRE(side1.resource(test::supplyResourceId).totalSlots() == 200);
+
+      triggerSimpletonProduction();
+      expectedResources.gas.allocate(test::SimpletonGasCost);
+      REQUIRE(test::TestResources{side1} == expectedResources);
+
+      ++world.time;
+      REQUIRE(test::nextStepTime(cb) == world.time);
+      test::stepUpdate(world, cb);
+
+      REQUIRE(test::TestResources{side1} == expectedResources);
+      REQUIRE(test::nextStepTime(cb) == world.time + MonitorTime);
+      REQUIRE(side1.messages().size() == 1);
+      REQUIRE_THAT(side1.messages()[0].text, Equals("Supply cap reached!"));
+    }
+
+    SECTION("The production queue is destroyed during production") {
+      triggerThirdyProduction();
+      ++world.time;
+      REQUIRE(test::nextStepTime(cb) == world.time);
+      test::stepUpdate(world, cb);
+      REQUIRE(queue.size() == 1);
+
+      expectedResources.gas.allocate(test::ThirdyGasCost);
+      expectedResources.supply.allocate(test::ThirdySupplyCost);
+      REQUIRE(test::TestResources{side1} == expectedResources);
+
+      world.destroy(building);
+      REQUIRE(!world[queueWId]);
+
+      expectedResources.gas.lose(test::ThirdyGasCost);
+      expectedResources.supply.restore(test::ThirdySupplyCost);
+      expectedResources.supply.provision(-test::BuildingSupplyProvision);
+      REQUIRE(test::TestResources{side1} == expectedResources);
+    }
   }
 }

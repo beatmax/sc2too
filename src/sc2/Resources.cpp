@@ -2,6 +2,7 @@
 
 #include "rts/World.h"
 #include "rts/constants.h"
+#include "sc2/constants.h"
 #include "sc2/ui.h"
 
 #include <array>
@@ -13,9 +14,11 @@ void sc2::Resources::init(rts::World& w) {
   supply = w.createResource(std::make_unique<ui::Supply>());
 }
 
-rts::ResourceBank sc2::Resources::initialResources() {
+rts::ResourceInitList sc2::Resources::initialResources() {
   return {
-      {mineral, 0, rts::QuantityInf}, {gas, 0, rts::QuantityInf}, {supply, 0, rts::QuantityInf}};
+      {mineral, 0, rts::QuantityInf, rts::ResourceRecoverable::No},
+      {gas, 0, rts::QuantityInf, rts::ResourceRecoverable::No},
+      {supply, 0, MaxSupplySlots, rts::ResourceRecoverable::Yes}};
 }
 
 rts::ResourceId sc2::Resources::mineral;

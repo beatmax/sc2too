@@ -9,18 +9,24 @@
 #include <string>
 
 namespace test {
+  constexpr rts::Quantity MaxSupplySlots{200};
+
   constexpr rts::AbilityInstanceIndex MoveAbilityIndex{0};
   constexpr rts::AbilityInstanceIndex ProduceSimpletonAbilityIndex{0};
   constexpr rts::AbilityInstanceIndex ProduceThirdyAbilityIndex{1};
 
-  constexpr rts::Quantity SimpletonCost{10};
+  constexpr rts::Quantity BuildingSupplyProvision{15};
+  constexpr rts::Quantity SimpletonGasCost{10};
+  constexpr rts::Quantity SimpletonSupplyCost{2};
   constexpr rts::GameTime SimpletonBuildTime{100};
-  constexpr rts::Quantity ThirdyCost{2};
+  constexpr rts::Quantity ThirdyGasCost{2};
+  constexpr rts::Quantity ThirdySupplyCost{4};
   constexpr rts::GameTime ThirdyBuildTime{20};
 
   extern const std::string map;
 
   extern rts::ResourceId gasResourceId;
+  extern rts::ResourceId supplyResourceId;
   extern rts::AbilityId moveAbilityId;
   extern rts::AbilityId produceSimpletonAbilityId;
   extern rts::AbilityId produceThirdyAbilityId;
@@ -43,6 +49,12 @@ namespace test {
 
   struct GasUi : rts::ResourceUi {
     const char* msgMoreRequired() const final { return "Not enough gas!"; }
+    const char* msgCapReached() const final { return "Gas cap reached!"; }
+  };
+
+  struct SupplyUi : rts::ResourceUi {
+    const char* msgMoreRequired() const final { return "Not enough supply!"; }
+    const char* msgCapReached() const final { return "Supply cap reached!"; }
   };
 
   struct Factory : rts::Factory {
@@ -57,7 +69,7 @@ namespace test {
 
   class MapInitializer : public rts::MapInitializer {
   public:
-    void operator()(rts::World& w, rts::Point p, char c) const final;
+    rts::Cell::Content operator()(rts::World& w, rts::Point p, char c) const final;
   };
 
   void makeSides(rts::World& w);

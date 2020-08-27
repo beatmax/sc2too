@@ -2,6 +2,7 @@
 
 #include "catch2/catch.hpp"
 #include "rts/Command.h"
+#include "rts/Side.h"
 #include "rts/Unit.h"
 #include "rts/World.h"
 #include "rts/abilities.h"
@@ -10,6 +11,36 @@
 #include <utility>
 
 using namespace rts;
+
+void test::TestAccount::allocate(rts::Quantity q) {
+  available -= q;
+  allocated += q;
+}
+
+bool test::TestAccount::operator==(const TestAccount& other) const {
+  return available == other.available && allocated == other.allocated;
+}
+
+test::TestResources::TestResources(const rts::Side& s) {
+  auto& sGas{s.resources()[gasResourceId]};
+  auto& sSupply{s.resources()[supplyResourceId]};
+  gas.available = sGas.available();
+  gas.allocated = sGas.allocated();
+  supply.available = sSupply.available();
+  supply.allocated = sSupply.allocated();
+}
+
+bool test::TestResources::operator==(const TestResources& other) const {
+  return gas == other.gas && supply == other.supply;
+}
+
+std::ostream& test::operator<<(std::ostream& os, const TestAccount& a) {
+  return os << "available=" << a.available << " allocated=" << a.allocated;
+}
+
+std::ostream& test::operator<<(std::ostream& os, const TestResources& r) {
+  return os << "gas:{" << r.gas << "}, supply:{" << r.supply << "}";
+}
 
 GameTime test::nextStepTime(const Unit& u) {
   return Unit::nextStepTime(UnitStableRef{u});

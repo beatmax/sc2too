@@ -32,6 +32,10 @@ namespace rts {
     struct TriggerDefaultAbility {
       Point target;
     };
+
+    struct Debug {
+      enum Action { Destroy } action;
+    };
   }
 
   using Command = std::variant<
@@ -39,7 +43,8 @@ namespace rts {
       command::Selection,
       command::SelectionSubgroup,
       command::TriggerAbility,
-      command::TriggerDefaultAbility>;
+      command::TriggerDefaultAbility,
+      command::Debug>;
 
   struct SideCommand {
     SideId side;

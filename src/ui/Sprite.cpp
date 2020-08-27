@@ -3,6 +3,7 @@
 #include "SpriteMatrix.h"
 #include "dim.h"
 #include "graph.h"
+#include "util/algorithm.h"
 #include "util/fs.h"
 
 #include <cassert>
@@ -54,12 +55,10 @@ namespace {
     }
 
     for (it = colorLines.begin(); it < colorLines.end(); ++it) {
-      LineColors lineColors;
-      lineColors.reserve(it->size());
-      for (auto c : *it) {
+      LineColors lineColors{util::transform(*it, [&](wchar_t c) {
         auto itMap = colorMap.find(c);
-        lineColors.push_back(itMap != colorMap.end() ? itMap->second : defaultColor);
-      }
+        return itMap != colorMap.end() ? itMap->second : defaultColor;
+      })};
       colors.push_back(std::move(lineColors));
     }
 

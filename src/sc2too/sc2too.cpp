@@ -15,9 +15,10 @@
 namespace {
   std::vector<rts::SideId> makeSides(rts::World& w) {
     std::vector<rts::SideId> sides;
-    const auto& resources = sc2::Resources::initialResources();
-    for (int n = 0; n <= 1; ++n)
-      sides.push_back(w.createSide(resources, std::make_unique<ui::SideUi>(n)));
+    for (int n = 0; n <= 1; ++n) {
+      sides.push_back(
+          w.createSide(sc2::Resources::initialResources(), std::make_unique<ui::SideUi>(n)));
+    }
     return sides;
   }
 }
@@ -33,8 +34,8 @@ int main() try {
   world.map.load(world, sc2::Assets::mapInitializer(), std::ifstream{"data/maps/ascii_jungle.txt"});
   ui::Player player{sides[0], ui::Camera{{0, 0}, {world.map.maxX(), world.map.maxY()}}};
 
-  forEachPoint(rts::Rectangle{{20, 11}, {6, 6}}, [&](rts::Point p) {
-    sc2::Factory::probe(world, p, sides[0]);
+  forEachPoint(rts::Rectangle{{20, 11}, {4, 3}}, [&](rts::Point p) {
+    world.addForFree(sc2::Factory::probe(world, p, sides[0]));
   });
 
   rts::Engine engine{world};

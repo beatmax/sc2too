@@ -10,11 +10,13 @@
 
 void sc2::UnitTypes::init(rts::World& w) {
   nexus = w.createUnitType(
-      rts::ResourceQuantityList{{Resources::mineral, NexusMineralCost}}, NexusBuildTime,
+      rts::ResourceQuantityList{{Resources::mineral, NexusMineralCost}},
+      rts::ResourceQuantityList{{Resources::supply, NexusSupplyProvision}}, NexusBuildTime,
       std::make_unique<ui::NexusType>());
   probe = w.createUnitType(
-      rts::ResourceQuantityList{{Resources::mineral, ProbeMineralCost}}, ProbeBuildTime,
-      std::make_unique<ui::ProbeType>());
+      rts::ResourceQuantityList{
+          {Resources::mineral, ProbeMineralCost}, {Resources::supply, ProbeSupplyCost}},
+      rts::ResourceQuantityList{}, ProbeBuildTime, std::make_unique<ui::ProbeType>());
   {
     auto& nexusType{w.unitTypes[nexus]};
     nexusType.addAbility(

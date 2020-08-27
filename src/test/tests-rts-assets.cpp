@@ -22,6 +22,7 @@ const std::string test::map{
 };
 
 rts::ResourceId test::gasResourceId;
+rts::ResourceId test::supplyResourceId;
 rts::AbilityId test::moveAbilityId;
 rts::AbilityId test::produceSimpletonAbilityId;
 rts::AbilityId test::produceThirdyAbilityId;
@@ -35,6 +36,7 @@ std::map<std::string, int> test::Ui::count;
 
 void test::Factory::init(rts::World& w) {
   gasResourceId = w.createResource(std::make_unique<GasUi>());
+  supplyResourceId = w.createResource(std::make_unique<SupplyUi>());
 
   moveAbilityId = w.createAbility(rts::Ability::TargetType::Any, std::make_unique<Ui>("move"));
   produceSimpletonAbilityId =
@@ -42,14 +44,18 @@ void test::Factory::init(rts::World& w) {
   produceThirdyAbilityId =
       w.createAbility(rts::Ability::TargetType::None, std::make_unique<Ui>("p.t"));
 
-  buildingTypeId =
-      w.createUnitType(rts::ResourceQuantityList{}, rts::GameTimeSecond, std::make_unique<Ui>("B"));
+  buildingTypeId = w.createUnitType(
+      rts::ResourceQuantityList{},
+      rts::ResourceQuantityList{{supplyResourceId, BuildingSupplyProvision}}, rts::GameTimeSecond,
+      std::make_unique<Ui>("B"));
   simpletonTypeId = w.createUnitType(
-      rts::ResourceQuantityList{{gasResourceId, SimpletonCost}}, SimpletonBuildTime,
-      std::make_unique<Ui>("S"));
+      rts::ResourceQuantityList{
+          {gasResourceId, SimpletonGasCost}, {supplyResourceId, SimpletonSupplyCost}},
+      rts::ResourceQuantityList{}, SimpletonBuildTime, std::make_unique<Ui>("S"));
   thirdyTypeId = w.createUnitType(
-      rts::ResourceQuantityList{{gasResourceId, ThirdyCost}}, ThirdyBuildTime,
-      std::make_unique<Ui>("T"));
+      rts::ResourceQuantityList{
+          {gasResourceId, ThirdyGasCost}, {supplyResourceId, ThirdySupplyCost}},
+      rts::ResourceQuantityList{}, ThirdyBuildTime, std::make_unique<Ui>("T"));
 
   w.unitTypes[buildingTypeId].addAbility(
       ProduceSimpletonAbilityIndex,
@@ -72,43 +78,45 @@ rts::UnitId test::Factory::create(rts::World& w, rts::UnitTypeId t, rts::Point p
 }
 
 rts::UnitId test::Factory::building(rts::World& w, rts::Point p, rts::SideId sd) {
-  return w.createUnit(
+  return w.units.emplace(
       p, rts::Vector{2, 3}, buildingTypeId, sd, std::make_unique<Ui>("b"), 0,
       w.createProductionQueue(sd));
 }
 
 rts::UnitId test::Factory::simpleton(rts::World& w, rts::Point p, rts::SideId sd) {
-  return w.createUnit(p, rts::Vector{1, 1}, simpletonTypeId, sd, std::make_unique<Ui>("s"));
+  return w.units.emplace(p, rts::Vector{1, 1}, simpletonTypeId, sd, std::make_unique<Ui>("s"));
 }
 
 rts::UnitId test::Factory::thirdy(rts::World& w, rts::Point p, rts::SideId sd) {
-  return w.createUnit(p, rts::Vector{1, 1}, thirdyTypeId, sd, std::make_unique<Ui>("t"));
+  return w.units.emplace(p, rts::Vector{1, 1}, thirdyTypeId, sd, std::make_unique<Ui>("t"));
 }
 
 rts::ResourceFieldId test::Factory::geyser(rts::World& w, rts::Point p) {
-  return w.createResourceField(p, rts::Vector{2, 2}, gasResourceId, 100, std::make_unique<Ui>("g"));
+  return w.resourceFields.emplace(
+      p, rts::Vector{2, 2}, gasResourceId, 100, std::make_unique<Ui>("g"));
 }
 
 rts::BlockerId test::Factory::rock(rts::World& w, rts::Point p) {
-  return w.createBlocker(p, rts::Vector{1, 1}, std::make_unique<Ui>("r"));
+  return w.blockers.emplace(p, rts::Vector{1, 1}, std::make_unique<Ui>("r"));
 }
 
-void test::MapInitializer::operator()(rts::World& w, rts::Point p, char c) const {
+rts::Cell::Content test::MapInitializer::operator()(rts::World& w, rts::Point p, char c) const {
   switch (c) {
     case 'b':
-      Factory::building(w, p, side1Id);
-      break;
+      return Factory::building(w, p, side1Id);
     case 'g':
-      Factory::geyser(w, p);
-      break;
+      return Factory::geyser(w, p);
     case 'r':
-      Factory::rock(w, p);
-      break;
+      return Factory::rock(w, p);
+    default:
+      return rts::Cell::Empty{};
   }
 }
 
 void test::makeSides(rts::World& w) {
-  const rts::ResourceBank resources{{gasResourceId, 1000, rts::QuantityInf}};
+  const rts::ResourceInitList resources{
+      {gasResourceId, 1000, rts::QuantityInf, rts::ResourceRecoverable::No},
+      {supplyResourceId, 0, MaxSupplySlots, rts::ResourceRecoverable::Yes}};
   side1Id = w.createSide(resources, std::make_unique<Ui>("1"));
   side2Id = w.createSide(resources, std::make_unique<Ui>("2"));
 }

@@ -97,7 +97,6 @@ rts::AbilityStepResult rts::abilities::state::Gather::init(const World& w, const
   if (!rf)
     return GameTime{0};
   targetField_ = w.weakId(*rf);
-  resource_ = rf->bag.resource();
   targetGroup_ = rf->group;
 
   state_ = State::MovingToTarget;
@@ -141,7 +140,7 @@ rts::AbilityStepAction rts::abilities::state::Gather::finishGathering() {
 
 rts::AbilityStepAction rts::abilities::state::Gather::finishDelivering() {
   return [this](World& w, Unit& u) {
-    u.bag.transferAllTo(w[u.side].bag(resource_));
+    u.bag.transferAllTo(w[u.side].resources());
     state_ = State::DeliveringDone;
     return 1;
   };

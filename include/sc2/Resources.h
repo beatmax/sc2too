@@ -6,7 +6,7 @@
 namespace sc2 {
   struct Resources {
     static void init(rts::World& w);
-    static rts::ResourceBank initialResources();
+    static rts::ResourceInitList initialResources();
 
     static rts::ResourceId mineral;
     static rts::ResourceId gas;

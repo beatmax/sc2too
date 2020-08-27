@@ -52,6 +52,12 @@ std::optional<rts::Command> ui::Player::doProcessInput(
     case InputType::Unknown:
       break;
     case InputType::KeyPress:
+#ifndef NDEBUG
+      if (event.symbol == InputKeySym::X && (event.state & ControlPressed)) {
+        using DebugCmd = rts::command::Debug;
+        return DebugCmd{DebugCmd::Destroy};
+      }
+#endif
       if (event.symbol == InputKeySym::Tab) {
         return SelectionSubgroupCmd{
             (event.state & ShiftPressed) ? SelectionSubgroupCmd::Previous

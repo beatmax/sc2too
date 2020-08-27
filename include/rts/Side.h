@@ -15,8 +15,8 @@
 namespace rts {
   class Side {
   public:
-    explicit Side(ResourceBank resources, UiUPtr ui)
-      : resources_{std::move(resources)}, ui_{std::move(ui)} {}
+    explicit Side(ResourceInitList resources, UiUPtr ui)
+      : resources_{resources}, ui_{std::move(ui)} {}
 
     WorldActionList exec(const World& w, const Command& cmd) __attribute__((warn_unused_result));
     Selection& selection() { return selection_; }
@@ -24,8 +24,8 @@ namespace rts {
     const Group& group(ControlGroupId group) const { return groups_[group]; }
     ResourceBank& resources() { return resources_; }
     const ResourceBank& resources() const { return resources_; }
-    ResourceBag& bag(ResourceId r) { return resources_[r]; }
-    const ResourceBag& bag(ResourceId r) const { return resources_[r]; }
+    ResourceAccount& resource(ResourceId r) { return resources_[r]; }
+    const ResourceAccount& resource(ResourceId r) const { return resources_[r]; }
     MessageList& messages() { return messages_; }
     const MessageList& messages() const { return messages_; }
     const Ui& ui() const { return *ui_; }
@@ -38,6 +38,7 @@ namespace rts {
     void exec(const World& w, WorldActionList& actions, const command::SelectionSubgroup& cmd);
     void exec(const World& w, WorldActionList& actions, const command::TriggerAbility& cmd);
     void exec(const World& w, WorldActionList& actions, const command::TriggerDefaultAbility& cmd);
+    void exec(const World& w, WorldActionList& actions, const command::Debug& cmd);
 
     ResourceBank resources_;
     Selection selection_;

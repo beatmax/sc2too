@@ -33,7 +33,6 @@ namespace rts::abilities::state {
     UnitWId base_;
     ResourceFieldWId targetField_;
     SemaphoreLock<ResourceField> targetFieldLock_;
-    ResourceId resource_{};
     ResourceGroupId targetGroup_{};
   };
 }

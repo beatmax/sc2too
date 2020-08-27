@@ -31,7 +31,7 @@ namespace Catch {
   struct StringMaker<std::pair<T1, T2>> {
     using Pair = std::pair<T1, T2>;
     static std::string convert(const Pair& p) {
-      return "{" + StringMaker<T1>::convert(p.first) + ", " + StringMaker<T1>::convert(p.second) +
+      return "{" + StringMaker<T1>::convert(p.first) + ", " + StringMaker<T2>::convert(p.second) +
           "}";
     }
   };

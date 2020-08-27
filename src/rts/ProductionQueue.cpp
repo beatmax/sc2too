@@ -9,12 +9,15 @@ bool rts::ProductionQueue::add(World& w, UnitTypeId type) {
   auto& s{w[side_]};
   if (size() < MaxProductionQueueSize) {
     const auto& t{w[type]};
-    if (auto [ok, lackingResource] = s.resources().tryTransferTo(resources_, t.cost); ok) {
+    if (auto [result, failedResource] =
+            s.resources().allocateTo(resources_, t.cost, AllocFilter::Unrecoverable);
+        result == AllocResult::Success) {
       queue_.push(type);
       return true;
     }
     else {
-      s.messages().add(w, w[lackingResource].ui().msgMoreRequired());
+      auto& ui{w[failedResource].ui()};
+      s.messages().add(w, result == AllocResult::Lack ? ui.msgMoreRequired() : ui.msgCapReached());
     }
   }
   else {
@@ -23,8 +26,23 @@ bool rts::ProductionQueue::add(World& w, UnitTypeId type) {
   return false;
 }
 
-bool rts::ProductionQueue::startProduction(World& w) {
-  return true;
+void rts::ProductionQueue::onDestroy(World& w) {
+  w[side_].resources().deallocateFrom(resources_);
+}
+
+bool rts::ProductionQueue::startProduction(World& w, bool retrying) {
+  auto& s{w[side_]};
+  const auto& t{w[top()]};
+  if (auto [result, failedResource] =
+          s.resources().allocateTo(resources_, t.cost, AllocFilter::Recoverable);
+      result == AllocResult::Success) {
+    return true;
+  }
+  else if (!retrying) {
+    auto& ui{w[failedResource].ui()};
+    s.messages().add(w, result == AllocResult::Lack ? ui.msgMoreRequired() : ui.msgCapReached());
+  }
+  return false;
 }
 
 bool rts::ProductionQueue::finishProduction(World& w, const Unit& parent) {
@@ -32,7 +50,9 @@ bool rts::ProductionQueue::finishProduction(World& w, const Unit& parent) {
   if (auto p{w.emptyCellAround(parent.area)}) {
     create(w, top(), *p);
     queue_.pop();
-    assert(!empty() || resources_.depleted());
+    assert(!empty() || std::all_of(resources_.begin(), resources_.end(), [](const auto& b) {
+      return b.empty();
+    }));
     return true;
   }
   else {
@@ -46,9 +66,6 @@ rts::GameTime rts::ProductionQueue::buildTime(const World& w) const {
 }
 
 void rts::ProductionQueue::create(World& w, UnitTypeId type, Point p) {
-  const auto& t{w[type]};
-  ResourceBank tmpBank;
-  bool transferOk{resources_.tryTransferTo(tmpBank, t.cost).first};
-  assert(transferOk);
-  w.factory->create(w, type, p, side_);
+  w[side_].resources().restoreFrom(resources_, w[type].cost);
+  w.createUnit(type, p, side_);
 }

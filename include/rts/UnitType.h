@@ -13,11 +13,12 @@ namespace rts {
     std::array<abilities::Instance, MaxUnitAbilities> abilities{};
     std::array<AbilityId, size_t(RelativeContent::Count)> defaultAbility{};
     ResourceQuantityList cost;
+    ResourceQuantityList provision;
     GameTime buildTime;
     UiUPtr ui;
 
-    UnitType(ResourceQuantityList c, GameTime bt, UiUPtr ui)
-      : cost{std::move(c)}, buildTime{bt}, ui{std::move(ui)} {}
+    UnitType(ResourceQuantityList c, ResourceQuantityList p, GameTime bt, UiUPtr ui)
+      : cost{std::move(c)}, provision{std::move(p)}, buildTime{bt}, ui{std::move(ui)} {}
 
     template<typename D>
     void addAbility(AbilityInstanceIndex index, const D& desc) {

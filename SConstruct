@@ -11,7 +11,7 @@ env.MergeFlags('-Wall -std=c++17')
 if env['DEBUG']:
     env.MergeFlags('-g')
 else:
-    env.Append(CXXFLAGS = '-O2')
+    env.Append(CXXFLAGS = ['-O2', '-DNDEBUG'])
 
 Decider('MD5-timestamp')
 

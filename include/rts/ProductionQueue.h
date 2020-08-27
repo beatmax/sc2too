@@ -10,9 +10,10 @@ namespace rts {
   class ProductionQueue {
   public:
     explicit ProductionQueue(SideId side) : side_{side} {};
+    void onDestroy(World& w);
 
     bool add(World& w, UnitTypeId type);
-    bool startProduction(World& w);
+    bool startProduction(World& w, bool retrying);
     bool finishProduction(World& w, const Unit& parent);
 
     SideId side() const { return side_; }
@@ -27,6 +28,6 @@ namespace rts {
 
     util::CircularBuffer<UnitTypeId, MaxProductionQueueSize> queue_;
     SideId side_;
-    ResourceBank resources_;
+    ResourceBagArray resources_;
   };
 }

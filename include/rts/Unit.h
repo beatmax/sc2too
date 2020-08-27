@@ -18,7 +18,7 @@ namespace rts {
 
     UnitTypeId type;
     SideId side;
-    ResourceBag bag;
+    ResourceFlexBag bag;
     ProductionQueueId productionQueue;
 
     Unit(
@@ -29,6 +29,7 @@ namespace rts {
         UiUPtr ui,
         Quantity cargoCapacity = 0,
         ProductionQueueId pq = {});
+    void onCreate(World& w);
     void onDestroy(World& w);
 
     void trigger(

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "algorithm.h"
+
 #include <array>
 #include <cassert>
 #include <cstdint>
@@ -43,10 +45,15 @@ namespace util {
       Iterator(AIt end) : it_{end}, end_{end} {}
 
       auto& operator*() { return it_->value; }
-      auto* operator-> () { return &it_->value; }
+      auto* operator->() { return &it_->value; }
       Iterator& operator++() {
         advance();
         return *this;
+      }
+      Iterator operator++(int) {
+        auto it{*this};
+        advance();
+        return it;
       }
       bool operator==(Iterator other) const { return it_ == other.it_; }
       bool operator!=(Iterator other) const { return it_ != other.it_; }
@@ -64,6 +71,8 @@ namespace util {
 
   template<typename T>
   struct PoolObjectId {
+    static constexpr PoolObjectId Min{1};
+
     detail::pool::Index idx{};
 
     explicit operator bool() const { return idx != 0; }
@@ -71,6 +80,10 @@ namespace util {
     bool operator!=(PoolObjectId other) const { return idx != other.idx; }
     bool operator<(PoolObjectId other) const { return idx < other.idx; }
     bool operator<=(PoolObjectId other) const { return idx <= other.idx; }
+    bool operator>(PoolObjectId other) const { return idx > other.idx; }
+    bool operator>=(PoolObjectId other) const { return idx >= other.idx; }
+    PoolObjectId& operator++() { return ++idx, *this; }
+    PoolObjectId& operator--() { return --idx, *this; }
   };
 
   template<typename T>
@@ -107,6 +120,7 @@ namespace util {
     using IdList = std::vector<Id>;
     using PtrList = std::vector<Value*>;
     using CPtrList = std::vector<const Value*>;
+    using value_type = T;
     using iterator = detail::pool::Iterator<Value, N, typename Array::iterator>;
     using const_iterator = detail::pool::Iterator<Value, N, typename Array::const_iterator>;
 
@@ -203,20 +217,12 @@ namespace util {
 
   template<typename T, uint32_t N>
   auto Pool<T, N>::operator[](const IdList& ids) -> PtrList {
-    PtrList ptrs;
-    ptrs.reserve(ids.size());
-    for (auto id : ids)
-      ptrs.push_back(&(*this)[id]);
-    return ptrs;
+    return util::transform(ids, [this](Id id) { return &(*this)[id]; });
   }
 
   template<typename T, uint32_t N>
   auto Pool<T, N>::operator[](const IdList& ids) const -> CPtrList {
-    CPtrList ptrs;
-    ptrs.reserve(ids.size());
-    for (auto id : ids)
-      ptrs.push_back(&(*this)[id]);
-    return ptrs;
+    return util::transform(ids, [this](Id id) { return &(*this)[id]; });
   }
 
   template<typename Pool, typename Compare = std::less<typename Pool::Value>>

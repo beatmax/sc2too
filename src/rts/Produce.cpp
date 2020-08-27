@@ -19,8 +19,12 @@ void rts::abilities::state::Produce::trigger(
 
   assert(pq.size() == 0 || as);
 
-  if (pq.add(w, desc.type) && !as)
-    as = std::make_unique<Produce>();
+  if (pq.add(w, desc.type)) {
+    if (!as)
+      as = std::make_unique<Produce>();
+    else
+      static_cast<Produce&>(*as).unblock();
+  }
 }
 
 rts::AbilityStepResult rts::abilities::state::Produce::step(const World& w, UnitStableRef u) {
@@ -30,6 +34,7 @@ rts::AbilityStepResult rts::abilities::state::Produce::step(const World& w, Unit
 
   switch (state_) {
     case State::Idle:
+    case State::Blocked:
       return startProduction();
     case State::Producing:
       return finishProduction();
@@ -37,15 +42,21 @@ rts::AbilityStepResult rts::abilities::state::Produce::step(const World& w, Unit
   return GameTime{0};
 }
 
+void rts::abilities::state::Produce::unblock() {
+  if (state_ == State::Blocked)
+    state_ = State::Idle;
+}
+
 rts::AbilityStepAction rts::abilities::state::Produce::startProduction() {
   return [this](World& w, Unit& u) -> GameTime {
     auto& pq{w[u.productionQueue]};
     if (pq.empty())
       return 0;
-    if (pq.startProduction(w)) {
+    if (pq.startProduction(w, state_ == State::Blocked)) {
       state_ = State::Producing;
       return pq.buildTime(w);
     }
+    state_ = State::Blocked;
     return MonitorTime;
   };
 }

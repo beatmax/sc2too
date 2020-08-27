@@ -18,16 +18,20 @@ namespace sc2::ui {
   struct Mineral : ::ui::ResourceUi {
     const ::ui::Icon& icon() const final;
     const char* msgMoreRequired() const final;
+    const char* msgCapReached() const final { return ""; }
   };
 
   struct Gas : ::ui::ResourceUi {
     const ::ui::Icon& icon() const final;
     const char* msgMoreRequired() const final;
+    const char* msgCapReached() const final { return ""; }
   };
 
   struct Supply : ::ui::ResourceUi {
+    Supply() : ::ui::ResourceUi{::ui::ResourceUi::Display::Allocated} {}
     const ::ui::Icon& icon() const final;
     const char* msgMoreRequired() const final;
+    const char* msgCapReached() const final;
   };
 
   struct Geyser : ::ui::SpriteUi<rts::ResourceField> {

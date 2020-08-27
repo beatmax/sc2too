@@ -3,7 +3,8 @@
 #include "rts/Factory.h"
 
 namespace sc2 {
-  struct Factory : public rts::Factory {
+  class Factory : public rts::Factory {
+  public:
     void init(rts::World& w) final;
     rts::UnitId create(rts::World& w, rts::UnitTypeId t, rts::Point p, rts::SideId sd) final;
 

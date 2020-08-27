@@ -21,7 +21,7 @@ namespace rts::abilities {
   };
 
   enum class MoveState { Moving };
-  enum class ProduceState { Idle, Producing };
+  enum class ProduceState { Idle, Blocked, Producing };
 
   template<typename State>
   inline constexpr Kind kind() {
