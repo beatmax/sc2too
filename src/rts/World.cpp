@@ -19,6 +19,13 @@ namespace rts {
     }
 
     WorldObject* objectPtr(World&, Cell::Empty) { return nullptr; }
+
+    Direction direction(const Vector& v) {
+      return v.x < 0
+          ? Direction::Left
+          : v.x > 0 ? Direction::Right
+                    : v.y < 0 ? Direction::Up : v.y > 0 ? Direction::Down : Direction::Right;
+    }
   }
 }
 
@@ -68,6 +75,7 @@ void rts::World::move(Unit& u, Point p) {
   assert(u.area.size == Vector({1, 1}));  // no need to move big units so far
   assert(map[p].empty());
   auto& epos = u.area.topLeft;
+  u.direction = direction(p - epos);
   map.setContent(epos, Cell::Empty{});
   map.setContent(p, id(u));
   epos = p;

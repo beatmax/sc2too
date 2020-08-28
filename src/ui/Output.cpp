@@ -92,7 +92,7 @@ namespace ui {
         bool displayAlloc{ui.display == ResourceUi::Display::Allocated};
         x -= displayAlloc ? 13 : 9;
         wattrset(win.w, graph::white());
-        graph::drawSprite(win, ui.icon(), {{x, 0}, {1, 1}}, {0, 0});
+        graph::drawFrame(win, ui.icon().frame(), {{x, 0}, {1, 1}}, {0, 0});
         if (displayAlloc) {
           if (acc.allocated() > acc.totalSlots())
             wattrset(win.w, graph::red() | A_BOLD);
@@ -156,7 +156,7 @@ namespace ui {
         graph::drawRect(win, boundingBox(rect));
         if (i < pq.size()) {
           wattrset(win.w, blocked ? graph::darkGrey() : sideColor);
-          graph::drawSprite(win, getIcon(w[pq.type(i)]), rect, {0, 0});
+          graph::drawFrame(win, getIcon(w[pq.type(i)]).frame(), rect, {0, 0});
         }
 
         if (i == 0) {
@@ -196,7 +196,7 @@ namespace ui {
         graph::drawRect(win, boundingBox(rect));
         (e->type == subgroupType) ? wattrset(win.w, graph::lightGreen())
                                   : wattrset(win.w, graph::darkGreen());
-        graph::drawSprite(win, getIcon(w[e->type]), rect, {0, 0});
+        graph::drawFrame(win, getIcon(w[e->type]).frame(), rect, {0, 0});
         rect.topLeft.x += dim::cellWidth + 1;
         ++col;
       }
@@ -218,7 +218,7 @@ namespace ui {
             ScreenRect rect{
                 {79 + col * (dim::cellWidth + 2), 2 + row * (dim::cellHeight + 1)},
                 {dim::cellWidth + 1, dim::cellHeight}};
-            ScreenRect spriteRect{
+            ScreenRect iconRect{
                 rect.topLeft + rts::Vector{1, 0}, {dim::cellWidth, dim::cellHeight}};
             wattrset(win.w, graph::lightGreen());
             graph::drawRect(win, boundingBox(rect));
@@ -227,7 +227,7 @@ namespace ui {
                 a == player.selectingAbilityTarget ? (graph::white() | A_BOLD) : graph::white());
             mvwaddch(win.w, rect.topLeft.y, rect.topLeft.x, ui::Layout::abilityKey(ai));
             wattrset(win.w, graph::green());
-            graph::drawSprite(win, getIcon(w[a]), spriteRect, {0, 0});
+            graph::drawFrame(win, getIcon(w[a]).frame(), iconRect, {0, 0});
           }
         }
       }

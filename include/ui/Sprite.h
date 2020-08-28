@@ -2,6 +2,7 @@
 
 #include "rts/WorldObject.h"
 #include "rts/types.h"
+#include "types.h"
 
 #include <array>
 #include <iosfwd>
@@ -13,7 +14,7 @@ namespace ui::detail {
 }
 
 namespace ui {
-  class SpriteMatrix;
+  class Frame;
 
   class Sprite {
   public:
@@ -23,11 +24,17 @@ namespace ui {
     explicit Sprite(std::vector<std::wstring>&& lines);
     ~Sprite();
 
-    const SpriteMatrix& matrix() const { return *matrix_; }
+    const Frame& frame(FrameIndex frame = 0, rts::Direction direction = rts::Direction(0)) const;
+    FrameIndex frameCount() const { return frameCount_; }
+    rts::GameTime frameDuration() const { return frameDuration_; }
+    bool directional() const { return directional_; }
     rts::Rectangle area(rts::Point topLeft) const;
 
   private:
-    std::unique_ptr<SpriteMatrix> matrix_;
+    std::vector<std::unique_ptr<Frame>> frames_;
+    FrameIndex frameCount_;
+    rts::GameTime frameDuration_{0};
+    bool directional_{false};
   };
 
   class Icon : public Sprite {
@@ -36,18 +43,45 @@ namespace ui {
 
   class SpriteUiBase : public rts::Ui {
   public:
-    virtual const Sprite& spriteBase(const rts::World& w, const rts::WorldObject&) const = 0;
-    virtual int defaultColorBase(const rts::WorldObject&) const = 0;
+    void update(const rts::World& w, const rts::WorldObject& obj);
+
+    const Sprite& spritePublic() const { return *sprite_; }
+    const Frame& frame(rts::Direction direction) const {
+      return sprite_->frame(frameIndex_, direction);
+    }
+    virtual int defaultColorPublic(const rts::WorldObject&) const = 0;
+
+  protected:
+    virtual const Sprite& spriteProtected(const rts::World&, const rts::WorldObject&) const = 0;
+
+  private:
+    const Sprite* sprite_{};
+    FrameIndex frameIndex_{};
+    rts::GameTime nextFrameTime_{};
+  };
+
+  class SpriteUiFacade {
+  public:
+    explicit SpriteUiFacade(SpriteUiBase& ui, const rts::World& w, const rts::WorldObject& obj)
+      : ui_{ui} {
+      ui_.update(w, obj);
+    }
+    const Sprite& sprite() const { return ui_.spritePublic(); }
+    const Frame& frame(rts::Direction direction) const { return ui_.frame(direction); }
+    int defaultColor(const rts::WorldObject& obj) const { return ui_.defaultColorPublic(obj); }
+
+  private:
+    SpriteUiBase& ui_;
   };
 
   template<typename T>
   class SpriteUi : public SpriteUiBase {
   public:
-    const Sprite& spriteBase(const rts::World& w, const rts::WorldObject& object) const final {
-      return sprite(w, rts::StableRef<T>{static_cast<const T&>(object)});
+    const Sprite& spriteProtected(const rts::World& w, const rts::WorldObject& obj) const final {
+      return sprite(w, rts::StableRef<T>{static_cast<const T&>(obj)});
     }
-    int defaultColorBase(const rts::WorldObject& object) const final {
-      return defaultColor(rts::StableRef<T>{static_cast<const T&>(object)});
+    int defaultColorPublic(const rts::WorldObject& obj) const final {
+      return defaultColor(rts::StableRef<T>{static_cast<const T&>(obj)});
     }
 
   private:
@@ -61,16 +95,12 @@ namespace ui {
     virtual const Icon& icon() const = 0;
   };
 
-  inline const Sprite& getSprite(const rts::World& w, const rts::WorldObject& object) {
-    return static_cast<const SpriteUiBase&>(*object.ui).spriteBase(w, object);
-  }
-
-  inline int getDefaultColor(const rts::WorldObject& object) {
-    return static_cast<const SpriteUiBase&>(*object.ui).defaultColorBase(object);
+  inline SpriteUiFacade getUpdatedSpriteUi(const rts::World& w, const rts::WorldObject& obj) {
+    return SpriteUiFacade{static_cast<SpriteUiBase&>(*obj.ui), w, obj};
   }
 
   template<typename T>
-  inline const Icon& getIcon(const T& object) {
-    return static_cast<const IconUi<T>&>(*object.ui).icon();
+  inline const Icon& getIcon(const T& obj) {
+    return static_cast<const IconUi<T>&>(*obj.ui).icon();
   }
 }

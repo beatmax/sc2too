@@ -50,9 +50,9 @@ namespace ui::graph {
   void drawHLine(const Window& win, ScreenPoint p, int width);
   void drawVLine(const Window& win, ScreenPoint p, int height);
   void drawRect(const Window& win, const ScreenRect& rect);
-  void drawSprite(
+  void drawFrame(
       const Window& win,
-      const Sprite& sprite,
+      const Frame& frame,
       const ScreenRect& drawRect,
-      const ScreenVector& topLeftInSprite);
+      const ScreenVector& topLeftInFrame);
 }

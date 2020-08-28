@@ -30,17 +30,19 @@ namespace ui {
         const Camera& camera,
         const rts::World& w,
         const rts::WorldObject& object) {
-      // default for color pair 0 (e.g. unit's side color)
-      wattrset(win.w, getDefaultColor(object));
+      const auto& spriteUi{getUpdatedSpriteUi(w, object)};
 
-      const Sprite& sprite{getSprite(w, object)};
+      // default for color pair 0 (e.g. unit's side color)
+      wattrset(win.w, spriteUi.defaultColor(object));
+
+      const Sprite& sprite{spriteUi.sprite()};
       assert(sprite.area(object.area.topLeft) == object.area);
 
       const rts::Rectangle visibleArea{intersection(object.area, camera.area())};
       const ScreenRect drawRect{toScreenRect(camera, visibleArea)};
       const ScreenVector topLeftInSprite{toScreenVector(visibleArea.topLeft - object.area.topLeft)};
 
-      graph::drawSprite(win, sprite, drawRect, topLeftInSprite);
+      graph::drawFrame(win, spriteUi.frame(object.direction), drawRect, topLeftInSprite);
     }
   }
 }

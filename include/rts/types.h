@@ -98,6 +98,7 @@ namespace rts {
   using util::geo::Rectangle;
   using util::geo::Vector;
 
+  enum class Direction : size_t { Left, Right, Up, Down };
   enum class RelativeContent : size_t { Friend, Foe, Ground, Resource, Count };
 
   class Ui {

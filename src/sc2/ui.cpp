@@ -61,9 +61,12 @@ const ::ui::Icon& sc2::ui::ProbeType::icon() const {
   return icon;
 }
 
-const ::ui::Sprite& sc2::ui::Nexus::sprite(const rts::World&, rts::UnitStableRef) const {
+const ::ui::Sprite& sc2::ui::Nexus::sprite(const rts::World& w, rts::UnitStableRef u) const {
+  using ProduceState = rts::abilities::ProduceState;
   static const auto& sprite{Assets::getSprite("nexus")};
-  return sprite;
+  static const auto& spriteProducing{Assets::getSprite("nexus_producing")};
+  return (rts::Unit::state<ProduceState>(u, w) == ProduceState::Producing) ? spriteProducing
+                                                                           : sprite;
 }
 
 const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::World& w, rts::UnitStableRef u) const {

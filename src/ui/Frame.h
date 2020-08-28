@@ -9,7 +9,7 @@
 #endif
 
 namespace ui {
-  class SpriteMatrix : public util::Matrix<cchar_t, int> {
+  class Frame : public util::Matrix<cchar_t, int> {
   public:
     using util::Matrix<cchar_t, int>::Matrix;
   };

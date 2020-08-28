@@ -7,6 +7,7 @@
 namespace rts {
   struct WorldObject {
     Rectangle area;
+    Direction direction{Direction::Right};
     UiUPtr ui;
 
   protected:
