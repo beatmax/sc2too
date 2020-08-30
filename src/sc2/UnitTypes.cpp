@@ -33,8 +33,8 @@ void sc2::UnitTypes::init(rts::World& w) {
 
     using RC = rts::RelativeContent;
     for (auto rc : {RC::Friend, RC::Foe, RC::Ground})
-      probeType.defaultAbility[size_t(rc)] = Abilities::move;
-    probeType.defaultAbility[size_t(RC::Resource)] = Abilities::gather;
+      probeType.defaultAbility[uint32_t(rc)] = Abilities::move;
+    probeType.defaultAbility[uint32_t(RC::Resource)] = Abilities::gather;
   }
 }
 

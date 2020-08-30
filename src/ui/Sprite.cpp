@@ -8,6 +8,7 @@
 #include "util/fs.h"
 
 #include <cassert>
+#include <cstdlib>
 #include <cwchar>
 #include <limits>
 #include <map>
@@ -133,7 +134,7 @@ ui::Sprite::~Sprite() = default;
 
 const ui::Frame& ui::Sprite::frame(FrameIndex frame, rts::Direction direction) const {
   if (directional_)
-    frame += size_t(direction) * frameCount();
+    frame += uint32_t(direction) * frameCount();
   assert(frame < frames_.size());
   return *frames_[frame];
 }
@@ -155,8 +156,9 @@ void ui::SpriteUiBase::update(const rts::World& w, const rts::WorldObject& obj) 
   }
   else if (w.time >= nextFrameTime_) {
     assert(sprite_->frameCount() > 0);
-    if (++frameIndex_ == sprite_->frameCount())
-      frameIndex_ = 0;
-    nextFrameTime_ = w.time + sprite_->frameDuration();
+    assert(sprite_->frameDuration() > 0);
+    ldiv_t d{ldiv(w.time - nextFrameTime_, sprite_->frameDuration())};
+    frameIndex_ = (frameIndex_ + 1 + d.quot) % sprite_->frameCount();
+    nextFrameTime_ = w.time + sprite_->frameDuration() - d.rem;
   }
 }

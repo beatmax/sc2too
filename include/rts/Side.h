@@ -15,7 +15,7 @@
 namespace rts {
   class Side {
   public:
-    explicit Side(ResourceInitList resources, UiUPtr ui)
+    explicit Side(const ResourceInitList& resources, UiUPtr ui)
       : resources_{resources}, ui_{std::move(ui)} {}
 
     WorldActionList exec(const World& w, const Command& cmd) __attribute__((warn_unused_result));

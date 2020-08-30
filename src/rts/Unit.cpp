@@ -21,12 +21,6 @@ rts::Unit::Unit(
     productionQueue{pq} {
 }
 
-void rts::Unit::onCreate(World& w) {
-  const auto& t{w[type]};
-  auto& res{w[side].resources()};
-  res.provision(t.provision);
-}
-
 void rts::Unit::onDestroy(World& w) {
   cancelAll(w);
   if (productionQueue)

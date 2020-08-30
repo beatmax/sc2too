@@ -122,12 +122,12 @@ namespace rts {
     AllocResult allocate(
         const ResourceQuantityList& quantities,
         AllocFilter filter = AllocFilter::Any,
-        bool negativeOk = false);
+        bool check = true);
     AllocResult allocateTo(
         ResourceBagArray& bags,
         const ResourceQuantityList& quantities,
         AllocFilter filter = AllocFilter::Any,
-        bool negativeOk = false);
+        bool check = true);
     void deallocate(const ResourceQuantityList& quantities);
     void deallocateFrom(ResourceBagArray& bags);
     void restoreFrom(ResourceBagArray& bags, const ResourceQuantityList& quantities);

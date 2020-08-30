@@ -79,17 +79,17 @@ void rts::ResourceBank::deprovision(const ResourceQuantityList& quantities, Allo
 }
 
 rts::AllocResult rts::ResourceBank::allocate(
-    const ResourceQuantityList& quantities, AllocFilter filter, bool negativeOk) {
+    const ResourceQuantityList& quantities, AllocFilter filter, bool check) {
   ResourceBagArray bags;
-  return allocateTo(bags, quantities, filter, negativeOk);
+  return allocateTo(bags, quantities, filter, check);
 }
 
 rts::AllocResult rts::ResourceBank::allocateTo(
     ResourceBagArray& bags,
     const ResourceQuantityList& quantities,
     AllocFilter filter,
-    bool negativeOk) {
-  if (!negativeOk) {
+    bool check) {
+  if (check) {
     for (auto& [r, q] : quantities) {
       const auto& a{accounts_[r]};
       if (a.match(filter)) {

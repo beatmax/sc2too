@@ -29,7 +29,6 @@ namespace rts {
         UiUPtr ui,
         Quantity cargoCapacity = 0,
         ProductionQueueId pq = {});
-    void onCreate(World& w);
     void onDestroy(World& w);
 
     void trigger(

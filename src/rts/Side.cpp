@@ -74,7 +74,7 @@ void rts::Side::exec(
       auto& unit{w[u]};
       const auto& unitType{w.unitTypes[unit.type]};
       auto rc{w.relativeContent(side, target)};
-      if (auto a{unitType.defaultAbility[size_t(rc)]})
+      if (auto a{unitType.defaultAbility[uint32_t(rc)]})
         unit.trigger(a, w, target);
     }
   };

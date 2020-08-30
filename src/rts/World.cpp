@@ -50,14 +50,15 @@ void rts::World::update(const WorldActionList& actions) {
     action(*this);
 }
 
-rts::UnitId rts::World::add(UnitId id, bool negativeOk) {
+rts::UnitId rts::World::add(UnitId id, bool allocCheck) {
   auto& obj{(*this)[id]};
   map.setContent(obj.area, id);
-  AllocResult ar{
-      sides[obj.side].resources().allocate(unitTypes[obj.type].cost, AllocFilter::Any, negativeOk)};
+  auto& res{sides[obj.side].resources()};
+  const auto& t{unitTypes[obj.type]};
+  res.provision(t.provision);
+  AllocResult ar{res.allocate(t.cost, AllocFilter::Any, allocCheck)};
   if (ar.result != AllocResult::Success)
     throw std::runtime_error{"adding unit: resource allocation failed (use addForFree()?)"};
-  obj.onCreate(*this);
   return id;
 }
 
@@ -66,7 +67,7 @@ rts::UnitId rts::World::addForFree(UnitId id) {
   auto& res{sides[obj.side].resources()};
   const auto& cost{unitTypes[obj.type].cost};
   res.provision(cost);
-  add(id, true);
+  add(id, false);
   res.deprovision(cost, AllocFilter::Recoverable);
   return id;
 }

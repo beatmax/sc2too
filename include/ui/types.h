@@ -8,11 +8,13 @@
 
 #include "util/geo.h"
 
+#include <cstdint>
+
 namespace ui {
   class Frame;
   class Sprite;
 
-  using FrameIndex = size_t;
+  using FrameIndex = uint32_t;
   using ScreenPoint = util::geo::Point;
   using ScreenVector = util::geo::Vector;
   using ScreenRect = util::geo::Rectangle;
@@ -23,7 +25,7 @@ namespace ui {
     int beginY{}, beginX{};
   };
 
-  using ScrollDirection = unsigned int;
+  using ScrollDirection = uint32_t;
   constexpr ScrollDirection ScrollDirectionLeft{0b0001};
   constexpr ScrollDirection ScrollDirectionRight{0b0010};
   constexpr ScrollDirection ScrollDirectionUp{0b0100};

@@ -88,7 +88,7 @@ namespace rts {
       map.setContent(obj.area, id);
       return id;
     }
-    UnitId add(UnitId id, bool negativeOk = false);
+    UnitId add(UnitId id, bool allocCheck = true);
     void add(Cell::Empty) {}
 
     template<typename Id>
