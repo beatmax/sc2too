@@ -100,7 +100,8 @@ rts::BlockerId test::Factory::rock(rts::World& w, rts::Point p) {
   return w.blockers.emplace(p, rts::Vector{1, 1}, std::make_unique<Ui>("r"));
 }
 
-rts::Cell::Content test::MapInitializer::operator()(rts::World& w, rts::Point p, char c) const {
+rts::Cell::Content test::MapInitializer::operator()(
+    rts::World& w, rts::Point p, char c, const std::vector<std::string>& lines) const {
   switch (c) {
     case 'b':
       return Factory::building(w, p, side1Id);

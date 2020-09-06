@@ -13,6 +13,6 @@ namespace sc2 {
     static rts::ResourceFieldId geyser(rts::World& w, rts::Point p);
     static rts::ResourceFieldId mineralPatch(
         rts::World& w, rts::Point p, rts::ResourceGroupId group);
-    static rts::BlockerId rock(rts::World& w, rts::Point p);
+    static rts::BlockerId rock(rts::World& w, rts::Point p, rts::Vector size);
   };
 }

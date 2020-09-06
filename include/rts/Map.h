@@ -50,6 +50,7 @@ namespace rts {
   class MapInitializer {
   public:
     virtual ~MapInitializer() = default;
-    virtual Cell::Content operator()(World& w, Point p, char c) const = 0;
+    virtual Cell::Content operator()(
+        World& w, Point p, char c, const std::vector<std::string>& lines) const = 0;
   };
 }

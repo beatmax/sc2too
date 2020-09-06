@@ -5,7 +5,8 @@
 
 #include <cassert>
 
-rts::Cell::Content sc2::MapInitializer::operator()(rts::World& w, rts::Point p, char c) const {
+rts::Cell::Content sc2::MapInitializer::operator()(
+    rts::World& w, rts::Point p, char c, const std::vector<std::string>& lines) const {
   static auto sideIt = w.sides.begin();
   switch (c) {
     case 'g':
@@ -17,7 +18,14 @@ rts::Cell::Content sc2::MapInitializer::operator()(rts::World& w, rts::Point p, 
         sideIt = w.sides.begin();
       return Factory::nexus(w, p, w.sides.id(*sideIt++));
     case 'r':
-      return Factory::rock(w, p);
+      if (allInPoints(rts::Rectangle{p, {2, 2}}, [&](rts::Point q) {
+            return rts::Coordinate(lines.size()) > q.y &&
+                rts::Coordinate(lines[q.y].size()) > q.x && lines[q.y][q.x] == 'r' &&
+                w.map[q].empty();
+          }))
+        return Factory::rock(w, p, {2, 2});
+      else
+        return Factory::rock(w, p, {1, 1});
     default:
       return rts::Cell::Empty{};
   }

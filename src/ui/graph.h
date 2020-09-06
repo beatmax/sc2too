@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace ui::graph {
-  enum class ColorPair : int {
+  enum class Color : int {
     Red = 1,
     Green,
     Yellow,
@@ -15,19 +15,22 @@ namespace ui::graph {
     White,
     LightGreen = 10,
     DarkGreen = 22,
-    DarkGrey = 237
+    DarkGrey = 237,
+    Default = -1
   };
 
-  inline int red() { return COLOR_PAIR(ColorPair::Red); }
-  inline int green() { return COLOR_PAIR(ColorPair::Green); }
-  inline int yellow() { return COLOR_PAIR(ColorPair::Yellow); }
-  inline int blue() { return COLOR_PAIR(ColorPair::Blue); }
-  inline int magenta() { return COLOR_PAIR(ColorPair::Magenta); }
-  inline int cyan() { return COLOR_PAIR(ColorPair::Cyan); }
-  inline int white() { return COLOR_PAIR(ColorPair::White); }
-  inline int lightGreen() { return COLOR_PAIR(ColorPair::LightGreen); }
-  inline int darkGreen() { return COLOR_PAIR(ColorPair::DarkGreen); }
-  inline int darkGrey() { return COLOR_PAIR(ColorPair::DarkGrey); }
+  int colorPair(int fg, int bg);
+  inline int colorPair(Color fg, Color bg) { return colorPair(int(fg), int(bg)); }
+  inline int red() { return COLOR_PAIR(colorPair(Color::Red, Color::Default)); }
+  inline int green() { return COLOR_PAIR(colorPair(Color::Green, Color::Default)); }
+  inline int yellow() { return COLOR_PAIR(colorPair(Color::Yellow, Color::Default)); }
+  inline int blue() { return COLOR_PAIR(colorPair(Color::Blue, Color::Default)); }
+  inline int magenta() { return COLOR_PAIR(colorPair(Color::Magenta, Color::Default)); }
+  inline int cyan() { return COLOR_PAIR(colorPair(Color::Cyan, Color::Default)); }
+  inline int white() { return COLOR_PAIR(colorPair(Color::White, Color::Default)); }
+  inline int lightGreen() { return COLOR_PAIR(colorPair(Color::LightGreen, Color::Default)); }
+  inline int darkGreen() { return COLOR_PAIR(colorPair(Color::DarkGreen, Color::Default)); }
+  inline int darkGrey() { return COLOR_PAIR(colorPair(Color::DarkGrey, Color::Default)); }
 
   enum class BoxSegment : int {
     None = 0b0000,

@@ -36,7 +36,7 @@ void rts::Map::load(World& w, const MapInitializer& init, const std::vector<std:
     for (Coordinate x = 0; x < cols; ++x) {
       Point p{x, y};
       if ((*this)[p].empty())
-        std::visit([&w](auto id) { w.addForFree(id); }, init(w, p, line[x]));
+        std::visit([&w](auto id) { w.addForFree(id); }, init(w, p, line[x], lines));
     }
   }
 }

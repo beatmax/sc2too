@@ -80,9 +80,10 @@ const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::World& w, rts::UnitStableR
       : (rts::Unit::state<GatherState>(u, w) == GatherState::Gathering) ? spriteGather : sprite;
 }
 
-const ::ui::Sprite& sc2::ui::Rock::sprite(const rts::World&, rts::BlockerStableRef) const {
+const ::ui::Sprite& sc2::ui::Rock::sprite(const rts::World&, rts::BlockerStableRef b) const {
   static const auto& sprite{Assets::getSprite("rock")};
-  return sprite;
+  static const auto& sprite2x2{Assets::getSprite("rock2x2")};
+  return b->area.size == rts::Vector{2, 2} ? sprite2x2 : sprite;
 }
 
 const ::ui::Icon& sc2::ui::GatherAbility::icon() const {

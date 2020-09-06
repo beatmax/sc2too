@@ -3,20 +3,20 @@
 #include "Frame.h"
 
 #include <cassert>
+#include <stdexcept>
+#include <unordered_map>
 
 namespace ui::graph {
   namespace {
-    void initColors() {
-      if (has_colors()) {
-        start_color();
-        use_default_colors();
-
-        for (int i = 1; i < COLORS; ++i) {
-          assert(i < COLOR_PAIRS);
-          init_pair(i, i, -1);
-        }
+    struct PairHash {
+      template<class T1, class T2>
+      size_t operator()(const std::pair<T1, T2>& p) const {
+        return (std::hash<T1>()(p.first) << 8) ^ std::hash<T2>()(p.second);
       }
-    }
+    };
+
+    std::unordered_map<std::pair<int, int>, int, PairHash> colorPairs;
+    int nextColorPair = 1;
 
     void drawBordersNoBottom(const Window& win, int ulChar, int urChar) {
       mvaddch(win.beginY - 1, win.beginX - 1, ulChar);
@@ -93,13 +93,29 @@ namespace ui::graph {
   }
 }
 
+int ui::graph::colorPair(int fg, int bg) {
+  auto it{colorPairs.find({fg, bg})};
+  if (it != colorPairs.end())
+    return it->second;
+
+  assert(nextColorPair < COLOR_PAIRS);
+  init_pair(nextColorPair, fg, bg);
+  colorPairs.emplace(std::make_pair(fg, bg), nextColorPair);
+  return nextColorPair++;
+}
+
 void ui::graph::init() {
   initscr();
 
+  if (!has_colors())
+    throw std::runtime_error{"terminal does not support colors"};
+
   noecho();
   curs_set(0);
+  start_color();
+  use_default_colors();
 
-  initColors();
+  colorPairs.emplace(std::make_pair(0, int(Color::Default)), 0);
 }
 
 void ui::graph::drawBorders(const std::vector<const Window*>& windows) {

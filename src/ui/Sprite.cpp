@@ -16,10 +16,10 @@
 #include <utility>
 
 namespace {
-  using LineColors = std::vector<int>;
+  using LineColors = std::vector<std::pair<int, int>>;
   using Parts = std::pair<std::vector<std::vector<std::wstring>>, std::vector<LineColors>>;
 
-  constexpr int defaultColor = 15;
+  constexpr std::pair<int, int> defaultColor{15, -1};
 
   Parts parse(std::vector<std::wstring>&& lines, rts::GameTime& frameDuration, bool& directional) {
     Parts result;
@@ -74,13 +74,17 @@ namespace {
     if (it != lines.end())
       ++it;
 
-    std::map<wchar_t, int> colorMap;
+    std::map<wchar_t, std::pair<int, int>> colorMap;
     for (int n = 0; n <= 9; ++n)
-      colorMap[L'0' + n] = n;
+      colorMap[L'0' + n] = {n, -1};
     for (; it != lines.end(); ++it) {
       const std::wstring& mapLine{*it};
       assert(mapLine.size() > 2 && mapLine[1] == L':');
-      colorMap[mapLine[0]] = std::wcstol(mapLine.c_str() + 2, nullptr, 10);
+      int fg = std::wcstol(mapLine.c_str() + 2, nullptr, 10);
+      auto bgPos = mapLine.find(',');
+      int bg =
+          (bgPos == std::string::npos) ? -1 : std::wcstol(mapLine.c_str() + bgPos + 1, nullptr, 10);
+      colorMap[mapLine[0]] = {fg, bg};
     }
 
     for (it = colorLines.begin(); it != colorLines.end(); ++it) {
@@ -118,10 +122,11 @@ ui::Sprite::Sprite(std::vector<std::wstring>&& lines) {
       assert(line.size() == size_t(frame.cols()));
       for (int x = 0; x < frame.cols(); ++x) {
         wchar_t wch[]{line[x], L'\0'};
-        const int color = (lineColors != colors.end() && x < int(lineColors->size()))
-            ? (*lineColors)[x]
-            : defaultColor;
-        setcchar(&frame(y, x), wch, 0, color, nullptr);
+        const auto* color = (lineColors != colors.end() && x < int(lineColors->size()))
+            ? &(*lineColors)[x]
+            : nullptr;
+        const int colorPair = color ? graph::colorPair(color->first, color->second) : 0;
+        setcchar(&frame(y, x), wch, 0, colorPair, nullptr);
       }
       if (lineColors != colors.end())
         ++lineColors;

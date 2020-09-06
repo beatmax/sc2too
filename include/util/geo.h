@@ -79,6 +79,15 @@ namespace util::geo {
     return std::nullopt;
   }
 
+  template<typename F>
+  bool allInPoints(const Rectangle& rect, F&& pred) {
+    for (auto x = rect.topLeft.x; x < rect.topLeft.x + rect.size.x; ++x)
+      for (auto y = rect.topLeft.y; y < rect.topLeft.y + rect.size.y; ++y)
+        if (Point p{x, y}; !pred(p))
+          return false;
+    return true;
+  }
+
   bool intersect(const Rectangle& r1, const Rectangle& r2);
   Rectangle intersection(const Rectangle& r1, const Rectangle& r2);
 

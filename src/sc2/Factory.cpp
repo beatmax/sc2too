@@ -48,6 +48,6 @@ rts::ResourceFieldId sc2::Factory::mineralPatch(
       std::make_unique<ui::MineralPatch>(), group);
 }
 
-rts::BlockerId sc2::Factory::rock(rts::World& w, rts::Point p) {
-  return w.blockers.emplace(p, rts::Vector{1, 1}, std::make_unique<ui::Rock>());
+rts::BlockerId sc2::Factory::rock(rts::World& w, rts::Point p, rts::Vector size) {
+  return w.blockers.emplace(p, size, std::make_unique<ui::Rock>());
 }
