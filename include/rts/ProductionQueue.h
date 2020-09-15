@@ -6,6 +6,8 @@
 #include "types.h"
 #include "util/CircularBuffer.h"
 
+#include <optional>
+
 namespace rts {
   class ProductionQueue {
   public:
@@ -23,11 +25,15 @@ namespace rts {
     UnitTypeId type(size_t index) const { return queue_[index]; }
     GameTime buildTime(const World& w) const;
 
+    void setRallyPoint(Point p) { rallyPoint_ = p; }
+    const std::optional<Point>& rallyPoint() const { return rallyPoint_; }
+
   private:
     void create(World& w, UnitTypeId type, Point p);
 
     util::CircularBuffer<UnitTypeId, MaxProductionQueueSize> queue_;
     SideId side_;
     ResourceBagArray resources_;
+    std::optional<Point> rallyPoint_;
   };
 }

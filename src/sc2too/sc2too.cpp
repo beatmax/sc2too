@@ -32,11 +32,10 @@ int main() try {
 
   const auto sides{makeSides(world)};
   world.map.load(world, sc2::Assets::mapInitializer(), std::ifstream{"data/maps/ascii_jungle.txt"});
-  ui::Player player{sides[0], ui::Camera{{0, 0}, {world.map.maxX(), world.map.maxY()}}};
+  ui::Player player{sides[0], ui::Camera{{0, 0}, world.map.area()}};
 
-  forEachPoint(rts::Rectangle{{20, 11}, {4, 3}}, [&](rts::Point p) {
+  for (rts::Point p : rts::Rectangle{{20, 11}, {4, 3}}.points())
     world.addForFree(sc2::Factory::probe(world, p, sides[0]));
-  });
 
   rts::Engine engine{world};
   engine.gameSpeed(4 * rts::GameSpeedNormal);

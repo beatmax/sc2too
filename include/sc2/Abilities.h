@@ -8,10 +8,12 @@ namespace sc2 {
 
     static rts::AbilityId gather;
     static rts::AbilityId move;
+    static rts::AbilityId setRallyPoint;
     static rts::AbilityId warpInProbe;
 
     static constexpr rts::AbilityInstanceIndex GatherIndex{5};
     static constexpr rts::AbilityInstanceIndex MoveIndex{0};
+    static constexpr rts::AbilityInstanceIndex SetRallyPointIndex{9};
     static constexpr rts::AbilityInstanceIndex WarpInProbeIndex{0};
   };
 }

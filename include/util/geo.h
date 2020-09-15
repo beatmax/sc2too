@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <functional>
 #include <iosfwd>
+#include <iterator>
+#include <limits>
 #include <optional>
 #include <sys/types.h>
 
@@ -40,53 +42,88 @@ namespace util::geo {
     Point topLeft;
     Vector size;
 
+    Point bottomRight() const { return topLeft + size - Vector{1, 1}; }
+    Point bottomRightOut() const { return topLeft + size; }
+    Point center() const { return topLeft + (size - Vector{1, 1}) / 2; }
+
     bool operator==(const Rectangle& other) const {
       return topLeft == other.topLeft && size == other.size;
     }
     bool operator!=(const Rectangle& other) const { return !(*this == other); }
 
     bool contains(const Point& p) const {
-      return p.x >= topLeft.x && p.y >= topLeft.y && p.x < (topLeft.x + size.x) &&
-          p.y < (topLeft.y + size.y);
+      const auto& bro{bottomRightOut()};
+      return p.x >= topLeft.x && p.y >= topLeft.y && p.x < bro.x && p.y < bro.y;
     }
-    Point center() const { return topLeft + size / 2; }
+
+    struct PointIterator {
+      using iterator_category = std::forward_iterator_tag;
+      using value_type = Point;
+      using difference_type = void;
+      using pointer = const Point*;
+      using reference = const Point&;
+
+      Point p;
+      Coordinate left, right;
+
+      Point operator*() { return p; }
+      const Point* operator->() { return &p; }
+      PointIterator& operator++() {
+        if (++p.x == right) {
+          p.x = left;
+          ++p.y;
+        }
+        return *this;
+      }
+      bool operator==(const PointIterator& other) const { return p == other.p; }
+      bool operator!=(const PointIterator& other) const { return p != other.p; }
+    };
+
+    struct OuterPointIterator {
+      using iterator_category = std::forward_iterator_tag;
+      using value_type = Point;
+      using difference_type = void;
+      using pointer = const Point*;
+      using reference = const Point&;
+
+      PointIterator pit;
+      Coordinate top, bottom;
+
+      Point operator*() { return pit.p; }
+      const Point* operator->() { return &pit.p; }
+      OuterPointIterator& operator++() {
+        if (pit.p.x == pit.left && pit.p.y != top && pit.p.y != bottom &&
+            (pit.right - pit.left) > 1)
+          pit.p.x = pit.right - 1;
+        else
+          ++pit;
+        return *this;
+      }
+      bool operator==(const OuterPointIterator& other) const { return pit == other.pit; }
+      bool operator!=(const OuterPointIterator& other) const { return pit != other.pit; }
+    };
+
+    struct PointRange {
+      explicit PointRange(const Rectangle& r)
+        : b{r.topLeft, r.topLeft.x, r.topLeft.x + r.size.x},
+          e{r.topLeft + Vector{0, r.size.y}, 0, 0} {}
+      PointIterator b, e;
+      PointIterator begin() const { return b; }
+      PointIterator end() const { return e; }
+    };
+
+    struct OuterPointRange {
+      explicit OuterPointRange(const Rectangle& r)
+        : pr{r}, top{r.topLeft.y}, bottom{r.topLeft.y + r.size.y - 1} {}
+      PointRange pr;
+      Coordinate top, bottom;
+      OuterPointIterator begin() const { return {pr.begin(), top, bottom}; }
+      OuterPointIterator end() const { return {pr.end(), 0, 0}; }
+    };
+
+    PointRange points() const { return PointRange{*this}; }
+    OuterPointRange outerPoints() const { return OuterPointRange{*this}; }
   };
-
-  template<typename F>
-  void forEachPoint(const Rectangle& rect, F&& f) {
-    for (auto x = rect.topLeft.x; x < rect.topLeft.x + rect.size.x; ++x)
-      for (auto y = rect.topLeft.y; y < rect.topLeft.y + rect.size.y; ++y)
-        f(Point{x, y});
-  }
-
-  template<typename F>
-  std::optional<Point> findInPoints(const Rectangle& rect, F&& pred) {
-    for (auto x = rect.topLeft.x; x < rect.topLeft.x + rect.size.x; ++x)
-      for (auto y = rect.topLeft.y; y < rect.topLeft.y + rect.size.y; ++y)
-        if (Point p{x, y}; pred(p))
-          return p;
-    return std::nullopt;
-  }
-
-  template<typename F>
-  std::optional<Point> findInOuterPoints(const Rectangle& rect, F&& pred) {
-    Coordinate mx{rect.size.x - 1}, my{rect.size.y - 1};
-    for (Coordinate x{0}; x <= mx; ++x)
-      for (Coordinate y{0}; y <= my; ++y)
-        if (x == 0 || x == mx || y == 0 || y == my)
-          if (Point p{x, y}; pred(p))
-            return p;
-    return std::nullopt;
-  }
-
-  template<typename F>
-  bool allInPoints(const Rectangle& rect, F&& pred) {
-    for (auto x = rect.topLeft.x; x < rect.topLeft.x + rect.size.x; ++x)
-      for (auto y = rect.topLeft.y; y < rect.topLeft.y + rect.size.y; ++y)
-        if (Point p{x, y}; !pred(p))
-          return false;
-    return true;
-  }
 
   bool intersect(const Rectangle& r1, const Rectangle& r2);
   Rectangle intersection(const Rectangle& r1, const Rectangle& r2);

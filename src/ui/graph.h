@@ -53,6 +53,7 @@ namespace ui::graph {
   void drawHLine(const Window& win, ScreenPoint p, int width);
   void drawVLine(const Window& win, ScreenPoint p, int height);
   void drawRect(const Window& win, const ScreenRect& rect);
+  void drawRectNoCorners(const Window& win, const ScreenRect& rect);
   void drawFrame(
       const Window& win,
       const Frame& frame,

@@ -169,6 +169,25 @@ namespace ui {
       }
     }
 
+    void drawRallyPoints(
+        const IOState& ios,
+        const rts::World& w,
+        const Camera& camera,
+        const rts::Selection& selection) {
+      for (auto* u : selection.items(w)) {
+        if (u->productionQueue) {
+          const rts::ProductionQueue& pq{w[u->productionQueue]};
+          if (auto p{pq.rallyPoint()}) {
+            auto color{graph::yellow()};
+            if (auto* obj{w.object(*p)})
+              highlight(ios.renderWin, camera, obj->area, color);
+            else
+              highlight(ios.renderWin, camera, *p, color);
+          }
+        }
+      }
+    }
+
     void drawSelection(
         const IOState& ios,
         const rts::World& w,
@@ -181,9 +200,9 @@ namespace ui {
       ScreenRect rect{{left, 2}, {dim::cellWidth, dim::cellHeight}};
 
       const rts::Unit* last;
-      for (auto* e : selection.items(w)) {
+      for (auto* u : selection.items(w)) {
         ++cnt;
-        last = e;
+        last = u;
 
         if (col == 8) {
           col = 0;
@@ -194,9 +213,9 @@ namespace ui {
         }
         wattrset(win.w, graph::green());
         graph::drawRect(win, boundingBox(rect));
-        (e->type == subgroupType) ? wattrset(win.w, graph::lightGreen())
+        (u->type == subgroupType) ? wattrset(win.w, graph::lightGreen())
                                   : wattrset(win.w, graph::darkGreen());
-        graph::drawFrame(win, getIcon(w[e->type]).frame(), rect, {0, 0});
+        graph::drawFrame(win, getIcon(w[u->type]).frame(), rect, {0, 0});
         rect.topLeft.x += dim::cellWidth + 1;
         ++col;
       }
@@ -287,6 +306,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
       ios_.renderWin, camera, ios_.clickedTarget,
       ios_.mouseButtons ? graph::red() : graph::yellow());
   render(ios_.renderWin, w, camera, side.selection());
+  drawRallyPoints(ios_, w, camera, side.selection());
   if (player.selectionBox)
     drawBoundingBox(ios_.renderWin, camera, *player.selectionBox, graph::green());
   if (player.selectingAbilityTarget)

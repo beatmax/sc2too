@@ -142,7 +142,7 @@ void ui::graph::drawHLine(const Window& win, ScreenPoint p, int width) {
     auto begin{std::max(0, int(p.x))};
     auto end{std::min(int(p.x + width), win.maxX)};
     for (auto x{begin}; x < end; ++x)
-      graph::drawBoxSegment(win, p.y, x, graph::BoxSegment::HLine);
+      drawBoxSegment(win, p.y, x, BoxSegment::HLine);
   }
 }
 
@@ -151,26 +151,34 @@ void ui::graph::drawVLine(const Window& win, ScreenPoint p, int height) {
     auto begin{std::max(0, int(p.y))};
     auto end{std::min(int(p.y + height), win.maxY)};
     for (auto y{begin}; y < end; ++y)
-      graph::drawBoxSegment(win, y, p.x, graph::BoxSegment::VLine);
+      drawBoxSegment(win, y, p.x, BoxSegment::VLine);
   }
 }
 
 void ui::graph::drawRect(const Window& win, const ScreenRect& rect) {
-  const ScreenPoint bottomRight{rect.topLeft + rect.size - ScreenVector{1, 1}};
   const auto& [xLeft, yTop] = rect.topLeft;
-  const auto& [xRight, yBottom] = bottomRight;
+  const auto& [xRight, yBottom] = rect.bottomRight();
   if (yTop >= 0) {
     if (xLeft >= 0)
-      graph::drawBoxSegment(win, yTop, xLeft, graph::BoxSegment::ULCorner);
+      drawBoxSegment(win, yTop, xLeft, BoxSegment::ULCorner);
     if (xRight < win.maxX)
-      graph::drawBoxSegment(win, yTop, xRight, graph::BoxSegment::URCorner);
+      drawBoxSegment(win, yTop, xRight, BoxSegment::URCorner);
   }
   if (yBottom < win.maxY) {
     if (xLeft >= 0)
-      graph::drawBoxSegment(win, yBottom, xLeft, graph::BoxSegment::LLCorner);
+      drawBoxSegment(win, yBottom, xLeft, BoxSegment::LLCorner);
     if (xRight < win.maxX)
-      graph::drawBoxSegment(win, yBottom, xRight, graph::BoxSegment::LRCorner);
+      drawBoxSegment(win, yBottom, xRight, BoxSegment::LRCorner);
   }
+  drawHLine(win, {xLeft + 1, yTop}, rect.size.x - 2);
+  drawHLine(win, {xLeft + 1, yBottom}, rect.size.x - 2);
+  drawVLine(win, {xLeft, yTop + 1}, rect.size.y - 2);
+  drawVLine(win, {xRight, yTop + 1}, rect.size.y - 2);
+}
+
+void ui::graph::drawRectNoCorners(const Window& win, const ScreenRect& rect) {
+  const auto& [xLeft, yTop] = rect.topLeft;
+  const auto& [xRight, yBottom] = rect.bottomRight();
   drawHLine(win, {xLeft + 1, yTop}, rect.size.x - 2);
   drawHLine(win, {xLeft + 1, yBottom}, rect.size.x - 2);
   drawVLine(win, {xLeft, yTop + 1}, rect.size.y - 2);

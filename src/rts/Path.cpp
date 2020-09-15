@@ -8,9 +8,9 @@
 
 namespace rts {
   namespace {
-    using util::geo::DirD;
     using util::geo::DiagD;
     using util::geo::diagonalDistance;
+    using util::geo::DirD;
 
     const std::pair<Vector, float> NeighborVectors[]{
         {{-1, -1}, DiagD}, {{0, -1}, DirD},  {{1, -1}, DiagD}, {{-1, 0}, DirD},
@@ -31,12 +31,8 @@ namespace rts {
       Graph(const World& w, Point start)
         : map{w.map}, adjacentObjectsPoints(calcAdjacentObjectsPoints(w, start)) {}
 
-      size_t size() const { return map.size(); }
-
-      bool inBounds(Point p) const {
-        return p.x >= 0 && p.x < map.maxX() && p.y >= 0 && p.y < map.maxY();
-      }
-
+      size_t size() const { return map.cellCount(); }
+      bool inBounds(Point p) const { return map.area().contains(p); }
       int neighbors(Point p, std::pair<Point, float> result[]) const;
 
     private:
@@ -61,8 +57,10 @@ namespace rts {
       for (auto [v, d] : NeighborVectors) {
         auto np{start + v};
         if (inBounds(np) && !w[np].contains(Cell::Blocker)) {
-          if (auto object{w.object(np)})
-            forEachPoint(object->area, [&points](Point p) { points.insert(p); });
+          if (auto object{w.object(np)}) {
+            for (Point p : object->area.points())
+              points.insert(p);
+          }
         }
       }
 
@@ -85,9 +83,8 @@ std::pair<rts::Path, bool> rts::findPath(const World& w, Point start, Point goal
 
 #ifdef MAP_DEBUG
   auto& m{const_cast<Map&>(w.map)};
-  forEachPoint(Rectangle{{0, 0}, {m.maxX(), m.maxY()}}, [&](Point p) {
-    m[p].debug.color = state.count(p) ? 4 : 0;
-  });
+  for (Point p : m.area().points())
+    m[p].debug.highlight = state.count(p);
 #endif
 
   auto path{util::reconstructPath<Path>(state, start, closest)};

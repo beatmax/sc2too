@@ -115,16 +115,16 @@ rts::WorldObject* rts::World::object(const Cell& c) {
 
 std::set<rts::WorldObjectCPtr> rts::World::objectsInArea(const Rectangle& area) const {
   std::set<WorldObjectCPtr> result;
-  forEachPoint(area, [&](Point p) {
+  for (Point p : area.points()) {
     if (auto obj{object(p)})
       result.insert(obj);
-  });
+  }
   return result;
 }
 
 rts::UnitIdList rts::World::unitsInArea(const Rectangle& area, SideId side, UnitTypeId type) const {
   UnitIdList result;
-  forEachPoint(area, [&](Point p) {
+  for (Point p : area.points()) {
     if (auto uId{unitId(p)}) {
       if (!util::contains(result, uId)) {
         const auto& u{units[uId]};
@@ -132,7 +132,7 @@ rts::UnitIdList rts::World::unitsInArea(const Rectangle& area, SideId side, Unit
           result.push_back(uId);
       }
     }
-  });
+  }
   return result;
 }
 
@@ -166,6 +166,12 @@ const rts::ResourceField* rts::World::closestResourceField(
   return closest;
 }
 
-std::optional<rts::Point> rts::World::emptyCellAround(const Rectangle& area) const {
-  return findInOuterPoints(util::geo::boundingBox(area), [&](Point p) { return map[p].empty(); });
+std::optional<rts::Point> rts::World::emptyCellAround(const Rectangle& area, Point towards) const {
+  auto points{util::geo::boundingBox(area).outerPoints()};
+  auto it{util::minElementBy(points, [&](Point p) {
+    return map[p].empty() ? diagonalDistance(p, towards) : std::numeric_limits<float>::max();
+  })};
+  if (it != points.end() && map[*it].empty())
+    return *it;
+  return std::nullopt;
 }

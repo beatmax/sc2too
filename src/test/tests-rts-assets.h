@@ -14,6 +14,7 @@ namespace test {
   constexpr rts::AbilityInstanceIndex MoveAbilityIndex{0};
   constexpr rts::AbilityInstanceIndex ProduceSimpletonAbilityIndex{0};
   constexpr rts::AbilityInstanceIndex ProduceThirdyAbilityIndex{1};
+  constexpr rts::AbilityInstanceIndex SetRallyPointAbilityIndex{2};
 
   constexpr rts::Quantity BuildingSupplyProvision{15};
   constexpr rts::Quantity SimpletonGasCost{10};
@@ -30,6 +31,7 @@ namespace test {
   extern rts::AbilityId moveAbilityId;
   extern rts::AbilityId produceSimpletonAbilityId;
   extern rts::AbilityId produceThirdyAbilityId;
+  extern rts::AbilityId setRallyPointAbilityId;
   extern rts::UnitTypeId buildingTypeId;
   extern rts::UnitTypeId simpletonTypeId;
   extern rts::UnitTypeId thirdyTypeId;

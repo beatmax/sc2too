@@ -6,20 +6,20 @@
 #include <ostream>
 
 bool util::geo::intersect(const Rectangle& r1, const Rectangle& r2) {
-  const auto& br1{r1.topLeft + r1.size};
-  const auto& br2{r2.topLeft + r2.size};
+  const auto& bro1{r1.bottomRightOut()};
+  const auto& bro2{r2.bottomRightOut()};
   Point topLeft{std::max(r1.topLeft.x, r2.topLeft.x), std::max(r1.topLeft.y, r2.topLeft.y)};
-  Point bottomRight{std::min(br1.x, br2.x), std::min(br1.y, br2.y)};
-  const auto size = bottomRight - topLeft;
+  Point bottomRightOut{std::min(bro1.x, bro2.x), std::min(bro1.y, bro2.y)};
+  const auto size = bottomRightOut - topLeft;
   return size.x > 0 && size.y > 0;
 }
 
 auto util::geo::intersection(const Rectangle& r1, const Rectangle& r2) -> Rectangle {
-  const auto& br1{r1.topLeft + r1.size};
-  const auto& br2{r2.topLeft + r2.size};
+  const auto& bro1{r1.bottomRightOut()};
+  const auto& bro2{r2.bottomRightOut()};
   Point topLeft{std::max(r1.topLeft.x, r2.topLeft.x), std::max(r1.topLeft.y, r2.topLeft.y)};
-  Point bottomRight{std::min(br1.x, br2.x), std::min(br1.y, br2.y)};
-  const auto size = bottomRight - topLeft;
+  Point bottomRightOut{std::min(bro1.x, bro2.x), std::min(bro1.y, bro2.y)};
+  const auto size = bottomRightOut - topLeft;
   assert(size.x >= 0);
   assert(size.y >= 0);
   return {topLeft, size};

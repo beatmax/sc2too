@@ -37,8 +37,7 @@ TEST_CASE("Hello world!", "[rts]") {
 
   world.map.load(world, test::MapInitializer{}, std::istringstream{test::map});
 
-  REQUIRE(cworld.map.maxX() == 40);
-  REQUIRE(cworld.map.maxY() == 10);
+  REQUIRE(cworld.map.size() == rts::Vector{40, 10});
   REQUIRE(cworld.map(9, 1).empty());
   REQUIRE(cworld.map(10, 1).contains(Cell::Blocker));
   REQUIRE(cworld.map(11, 1).contains(Cell::Blocker));
@@ -51,11 +50,11 @@ TEST_CASE("Hello world!", "[rts]") {
   Unit* building{world.unit(buildingArea.topLeft)};
   REQUIRE(building->area == buildingArea);
   REQUIRE(test::repr(building->ui) == "b");
-  forEachPoint(buildingArea, [&](Point p) {
+  for (Point p : buildingArea.points()) {
     auto* u{cworld.unit(p)};
     REQUIRE(u != nullptr);
     REQUIRE(u == building);
-  });
+  }
 
   const Rectangle geyserArea{Point{30, 0}, rts::Vector{2, 2}};
   REQUIRE(cworld[geyserArea.topLeft].contains(Cell::ResourceField));
@@ -63,11 +62,11 @@ TEST_CASE("Hello world!", "[rts]") {
   REQUIRE(geyser != nullptr);
   REQUIRE(geyser->area == geyserArea);
   REQUIRE(test::repr(geyser->ui) == "g");
-  forEachPoint(geyserArea, [&](Point p) {
+  for (Point p : geyserArea.points()) {
     auto* rf{cworld.resourceField(p)};
     REQUIRE(rf != nullptr);
     REQUIRE(rf == geyser);
-  });
+  }
 
   side1.resources().provision({{test::supplyResourceId, 100}});
 
@@ -170,17 +169,18 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(test::Ui::count["b"] == 2);
 
     const Rectangle outRect{area.topLeft - rts::Vector{1, 1}, area.size + rts::Vector{2, 2}};
-    forEachPoint(outRect, [&](Point p) {
+    for (Point p : outRect.points()) {
       if (area.contains(p))
         REQUIRE(cworld.unit(p) == &cu);
       else
         REQUIRE(cworld[p].empty());
-    });
+    }
 
     SECTION("The multi-cell unit is destroyed") {
       world.destroy(uid);
       REQUIRE(test::Ui::count["b"] == 1);
-      forEachPoint(area, [&](Point p) { (cworld[p].empty()); });
+      for (Point p : area.points())
+        REQUIRE(cworld[p].empty());
     }
   }
 
@@ -307,10 +307,10 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("Blocked and unblocked") {
-      forEachPoint(Rectangle{{19, 4}, {3, 3}}, [&](Point p) {
+      for (Point p : Rectangle{{19, 4}, {3, 3}}.points()) {
         if (p != Point{20, 5})
           world.add(test::Factory::simpleton(world, p, test::side1Id));
-      });
+      }
       REQUIRE(
           test::runMove(world, unit, Point{23, 5}, 350) ==
           test::MoveStepList{{{20, 5}, 0}, {{20, 5}, 350}});
@@ -597,6 +597,11 @@ TEST_CASE("Hello world!", "[rts]") {
           world, test::side1Id, rts::command::TriggerAbility{test::produceThirdyAbilityId, {}});
     };
 
+    auto triggerSetRallyPoint = [&](Point p) {
+      test::execCommand(
+          world, test::side1Id, rts::command::TriggerAbility{test::setRallyPointAbilityId, p});
+    };
+
     const Rectangle buildingArea{Point{1, 1}, rts::Vector{2, 3}};
     UnitId building{world.add(test::Factory::building(world, buildingArea.topLeft, test::side1Id))};
     const Unit& cb{cworld[building]};
@@ -617,8 +622,8 @@ TEST_CASE("Hello world!", "[rts]") {
       expectedResources.gas.allocate(test::SimpletonGasCost);
       REQUIRE(test::TestResources{side1} == expectedResources);
 
-      REQUIRE(test::nextStepTime(cb) == world.time + 1);
       ++world.time;
+      REQUIRE(test::nextStepTime(cb) == world.time);
       test::stepUpdate(world, cb);
 
       expectedResources.supply.allocate(test::SimpletonSupplyCost);
@@ -627,8 +632,8 @@ TEST_CASE("Hello world!", "[rts]") {
       REQUIRE(queue.size() == 1);
       REQUIRE(test::Ui::count["s"] == 0);
 
-      REQUIRE(test::nextStepTime(cb) == world.time + test::SimpletonBuildTime);
       world.time += test::SimpletonBuildTime;
+      REQUIRE(test::nextStepTime(cb) == world.time);
       test::stepUpdate(world, cb);
       REQUIRE(queue.size() == 0);
       REQUIRE(test::Ui::count["s"] == 1);
@@ -807,6 +812,36 @@ TEST_CASE("Hello world!", "[rts]") {
       expectedResources.supply.restore(test::ThirdySupplyCost);
       expectedResources.supply.provision(-test::BuildingSupplyProvision);
       REQUIRE(test::TestResources{side1} == expectedResources);
+    }
+
+    SECTION("The rally point is set during production") {
+      triggerSimpletonProduction();
+      ++world.time;
+      REQUIRE(test::nextStepTime(cb) == world.time);
+      test::stepUpdate(world, cb);
+
+      REQUIRE(queue.size() == 1);
+      REQUIRE(test::Ui::count["s"] == 0);
+
+      triggerSetRallyPoint({29, 1});
+      REQUIRE(queue.rallyPoint() == Point{29, 1});
+
+      world.time += test::SimpletonBuildTime;
+      REQUIRE(test::nextStepTime(cb) == world.time);
+      test::stepUpdate(world, cb);
+      REQUIRE(queue.size() == 0);
+      REQUIRE(test::Ui::count["s"] == 1);
+
+      const Unit* u{cworld.unit({3, 1})};
+      REQUIRE(u);
+      REQUIRE(u->type == test::simpletonTypeId);
+
+      ++world.time;
+      REQUIRE(test::nextStepTime(*u) == world.time);
+      test::stepUpdate(world, *u);
+      REQUIRE(
+          Unit::state<abilities::MoveState>(UnitStableRef{*u}, cworld) ==
+          abilities::MoveState::Moving);
     }
   }
 }

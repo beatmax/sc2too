@@ -12,8 +12,8 @@ void ui::Camera::update() {
   if (area_.topLeft.y < 0)
     area_.topLeft.y = 0;
   const auto& br{bottomRight()};
-  if (br.x >= maxBottomRight_.x)
-    area_.topLeft.x = maxBottomRight_.x - area_.size.x;
-  if (br.y >= maxBottomRight_.y)
-    area_.topLeft.y = maxBottomRight_.y - area_.size.y;
+  if (br.x >= bottomRightOut_.x)
+    area_.topLeft.x = bottomRightOut_.x - area_.size.x;
+  if (br.y >= bottomRightOut_.y)
+    area_.topLeft.y = bottomRightOut_.y - area_.size.y;
 }

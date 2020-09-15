@@ -8,10 +8,13 @@ void sc2::Abilities::init(rts::World& w) {
   gather =
       w.createAbility(rts::Ability::TargetType::Resource, std::make_unique<ui::GatherAbility>());
   move = w.createAbility(rts::Ability::TargetType::Any, std::make_unique<ui::MoveAbility>());
+  setRallyPoint =
+      w.createAbility(rts::Ability::TargetType::Any, std::make_unique<ui::SetRallyPointAbility>());
   warpInProbe =
       w.createAbility(rts::Ability::TargetType::None, std::make_unique<ui::WarpInProbeAbility>());
 }
 
 rts::AbilityId sc2::Abilities::gather;
 rts::AbilityId sc2::Abilities::move;
+rts::AbilityId sc2::Abilities::setRallyPoint;
 rts::AbilityId sc2::Abilities::warpInProbe;

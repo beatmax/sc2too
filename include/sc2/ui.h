@@ -72,6 +72,10 @@ namespace sc2::ui {
     const ::ui::Icon& icon() const final;
   };
 
+  struct SetRallyPointAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
   struct WarpInProbeAbility : ::ui::IconUi<rts::Ability> {
     const ::ui::Icon& icon() const final;
   };

@@ -13,6 +13,7 @@ namespace ui {
       const Camera& camera,
       const rts::Selection& selection);
   void highlight(const Window& win, const Camera& camera, rts::Point cell, int color);
+  void highlight(const Window& win, const Camera& camera, const rts::Rectangle& area, int color);
   void drawBoundingBox(
       const Window& win, const Camera& camera, const rts::Rectangle& area, int color);
 

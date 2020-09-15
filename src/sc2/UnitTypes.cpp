@@ -9,6 +9,8 @@
 #include "sc2/ui.h"
 
 void sc2::UnitTypes::init(rts::World& w) {
+  using RC = rts::RelativeContent;
+
   nexus = w.createUnitType(
       rts::ResourceQuantityList{{Resources::mineral, NexusMineralCost}},
       rts::ResourceQuantityList{{Resources::supply, NexusSupplyProvision}}, NexusBuildTime,
@@ -20,7 +22,12 @@ void sc2::UnitTypes::init(rts::World& w) {
   {
     auto& nexusType{w.unitTypes[nexus]};
     nexusType.addAbility(
+        Abilities::SetRallyPointIndex, rts::abilities::SetRallyPoint{Abilities::setRallyPoint});
+    nexusType.addAbility(
         Abilities::WarpInProbeIndex, rts::abilities::Produce{Abilities::warpInProbe, probe});
+
+    for (auto rc : {RC::Friend, RC::Foe, RC::Ground, RC::Resource})
+      nexusType.defaultAbility[uint32_t(rc)] = Abilities::setRallyPoint;
   }
   {
     auto& probeType{w.unitTypes[probe]};
@@ -31,7 +38,6 @@ void sc2::UnitTypes::init(rts::World& w) {
     probeType.addAbility(
         Abilities::MoveIndex, rts::abilities::Move{Abilities::move, rts::Speed{4}});
 
-    using RC = rts::RelativeContent;
     for (auto rc : {RC::Friend, RC::Foe, RC::Ground})
       probeType.defaultAbility[uint32_t(rc)] = Abilities::move;
     probeType.defaultAbility[uint32_t(RC::Resource)] = Abilities::gather;

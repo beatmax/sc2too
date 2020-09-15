@@ -179,7 +179,7 @@ namespace rts {
     UnitIdList unitsInArea(const Rectangle& area, SideId side = {}, UnitTypeId type = {}) const;
     const Unit* closestUnit(Point p, SideId side, UnitTypeId type) const;
     const ResourceField* closestResourceField(Point p, ResourceGroupId group, bool blockedOk) const;
-    std::optional<Point> emptyCellAround(const Rectangle& area) const;
+    std::optional<Point> emptyCellAround(const Rectangle& area, Point towards) const;
 
   private:
     template<typename P, typename... Args>

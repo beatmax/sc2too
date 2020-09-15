@@ -96,6 +96,11 @@ const ::ui::Icon& sc2::ui::MoveAbility::icon() const {
   return icon;
 }
 
+const ::ui::Icon& sc2::ui::SetRallyPointAbility::icon() const {
+  static const auto& icon{Assets::getIcon("rally")};
+  return icon;
+}
+
 const ::ui::Icon& sc2::ui::WarpInProbeAbility::icon() const {
   static const auto& icon{Assets::getIcon("probe")};
   return icon;

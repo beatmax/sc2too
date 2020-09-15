@@ -43,15 +43,26 @@ namespace rts {
     virtual int state() const = 0;
   };
 
+  class StatelessAbilityState {};
+
   template<typename Derived>
   class ActiveAbilityStateTpl : public ActiveAbilityState {
   public:
-    using ActiveAbilityState::ActiveAbilityState;
-
     template<typename D>
     static auto makeTrigger(const D& desc) {
       return [desc](World& w, Unit& u, ActiveAbilityStateUPtr& as, Point target) {
         Derived::trigger(w, u, as, desc, target);
+      };
+    }
+  };
+
+  template<typename Derived>
+  class StatelessAbilityStateTpl : public StatelessAbilityState {
+  public:
+    template<typename D>
+    static auto makeTrigger(const D& desc) {
+      return [desc](World& w, Unit& u, ActiveAbilityStateUPtr&, Point target) {
+        Derived::trigger(w, u, desc, target);
       };
     }
   };

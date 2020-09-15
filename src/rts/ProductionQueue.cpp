@@ -47,7 +47,8 @@ bool rts::ProductionQueue::startProduction(World& w, bool retrying) {
 
 bool rts::ProductionQueue::finishProduction(World& w, const Unit& parent) {
   assert(!empty());
-  if (auto p{w.emptyCellAround(parent.area)}) {
+  auto towards{rallyPoint_ ? *rallyPoint_ : w.map.center()};
+  if (auto p{w.emptyCellAround(parent.area, towards)}) {
     create(w, top(), *p);
     queue_.pop();
     assert(!empty() || std::all_of(resources_.begin(), resources_.end(), [](const auto& b) {
@@ -67,5 +68,13 @@ rts::GameTime rts::ProductionQueue::buildTime(const World& w) const {
 
 void rts::ProductionQueue::create(World& w, UnitTypeId type, Point p) {
   w[side_].resources().restoreFrom(resources_, w[type].cost);
-  w.createUnit(type, p, side_);
+  auto& unit{w[w.createUnit(type, p, side_)]};
+  if (rallyPoint_) {
+    const auto& unitType{w.unitTypes[unit.type]};
+    auto rc{
+        w[*rallyPoint_].contains(Cell::ResourceField) ? RelativeContent::Resource
+                                                      : RelativeContent::Ground};
+    if (auto a{unitType.defaultAbility[uint32_t(rc)]})
+      unit.trigger(a, w, *rallyPoint_);
+  }
 }

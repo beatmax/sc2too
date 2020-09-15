@@ -22,9 +22,10 @@ namespace rts {
     Map(const Map&) = delete;
     Map& operator=(const Map&) = delete;
 
-    Coordinate maxX() const { return cells_.cols(); }
-    Coordinate maxY() const { return cells_.rows(); }
-    size_t size() const { return cells_.size(); }
+    Vector size() const { return {cells_.cols(), cells_.rows()}; }
+    Rectangle area() const { return Rectangle{{0, 0}, size()}; }
+    Point center() const { return area().center(); }
+    size_t cellCount() const { return cells_.size(); }
 
     Cell& operator[](Point p) { return (*this)(p.x, p.y); }
     const Cell& operator[](Point p) const { return (*this)(p.x, p.y); }
@@ -38,7 +39,8 @@ namespace rts {
 
     template<typename T>
     void setContent(const Rectangle& area, const T& o) {
-      forEachPoint(area, [this, &o](Point p) { cells_(p.y, p.x).content = o; });
+      for (Point p : area.points())
+        cells_(p.y, p.x).content = o;
     }
 
   private:

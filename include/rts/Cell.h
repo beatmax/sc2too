@@ -31,7 +31,7 @@ namespace rts {
 
 #ifdef MAP_DEBUG
     struct {
-      int color{0};
+      bool highlight{false};
     } debug;
 #endif
   };

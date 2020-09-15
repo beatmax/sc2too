@@ -26,6 +26,7 @@ rts::ResourceId test::supplyResourceId;
 rts::AbilityId test::moveAbilityId;
 rts::AbilityId test::produceSimpletonAbilityId;
 rts::AbilityId test::produceThirdyAbilityId;
+rts::AbilityId test::setRallyPointAbilityId;
 rts::UnitTypeId test::buildingTypeId;
 rts::UnitTypeId test::simpletonTypeId;
 rts::UnitTypeId test::thirdyTypeId;
@@ -35,6 +36,8 @@ rts::SideId test::side2Id;
 std::map<std::string, int> test::Ui::count;
 
 void test::Factory::init(rts::World& w) {
+  using RC = rts::RelativeContent;
+
   gasResourceId = w.createResource(std::make_unique<GasUi>());
   supplyResourceId = w.createResource(std::make_unique<SupplyUi>());
 
@@ -43,6 +46,8 @@ void test::Factory::init(rts::World& w) {
       w.createAbility(rts::Ability::TargetType::None, std::make_unique<Ui>("p.s"));
   produceThirdyAbilityId =
       w.createAbility(rts::Ability::TargetType::None, std::make_unique<Ui>("p.t"));
+  setRallyPointAbilityId =
+      w.createAbility(rts::Ability::TargetType::None, std::make_unique<Ui>("p.r"));
 
   buildingTypeId = w.createUnitType(
       rts::ResourceQuantityList{},
@@ -62,9 +67,13 @@ void test::Factory::init(rts::World& w) {
       rts::abilities::Produce{produceSimpletonAbilityId, simpletonTypeId});
   w.unitTypes[buildingTypeId].addAbility(
       ProduceThirdyAbilityIndex, rts::abilities::Produce{produceThirdyAbilityId, thirdyTypeId});
+  w.unitTypes[buildingTypeId].addAbility(
+      SetRallyPointAbilityIndex, rts::abilities::SetRallyPoint{setRallyPointAbilityId});
+
   w.unitTypes[simpletonTypeId].addAbility(
       MoveAbilityIndex,
       rts::abilities::Move{moveAbilityId, rts::CellDistance / rts::GameTimeSecond});
+  w.unitTypes[simpletonTypeId].defaultAbility[uint32_t(RC::Ground)] = moveAbilityId;
 }
 
 rts::UnitId test::Factory::create(rts::World& w, rts::UnitTypeId t, rts::Point p, rts::SideId sd) {

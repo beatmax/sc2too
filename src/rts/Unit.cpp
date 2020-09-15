@@ -42,8 +42,9 @@ void rts::Unit::trigger(AbilityId ability, World& w, Point target, CancelOthers 
   AbilityState& abilityState{abilityStates_[abilityInstance.stateIndex]};
 
   if (cancelOthers == CancelOthers::Yes) {
-    for (auto& as : abilityStates_) {
-      if (&as != &abilityState && as.active())
+    for (const auto& otherInstance : unitType.abilities) {
+      auto& as{abilityStates_[otherInstance.stateIndex]};
+      if (&as != &abilityState && as.active() && mutualCancelling(abilityInstance, otherInstance))
         as.cancel(w);
     }
   }

@@ -2,6 +2,7 @@
 
 #include "rts/World.h"
 #include "sc2/Factory.h"
+#include "util/algorithm.h"
 
 #include <cassert>
 
@@ -18,7 +19,7 @@ rts::Cell::Content sc2::MapInitializer::operator()(
         sideIt = w.sides.begin();
       return Factory::nexus(w, p, w.sides.id(*sideIt++));
     case 'r':
-      if (allInPoints(rts::Rectangle{p, {2, 2}}, [&](rts::Point q) {
+      if (util::allOf(rts::Rectangle{p, {2, 2}}.points(), [&](rts::Point q) {
             return rts::Coordinate(lines.size()) > q.y &&
                 rts::Coordinate(lines[q.y].size()) > q.x && lines[q.y][q.x] == 'r' &&
                 w.map[q].empty();
@@ -32,7 +33,7 @@ rts::Cell::Content sc2::MapInitializer::operator()(
 }
 
 rts::ResourceGroupId sc2::MapInitializer::mineralGroup(const rts::World& w, rts::Point p) const {
-  auto rp{findInPoints(boundingBox(p), [&w](rts::Point q) {
+  auto rp{util::findIfOpt(boundingBox(p).points(), [&w](rts::Point q) {
     if (auto* rf{w.resourceField(q)})
       return rf->group != 0;
     return false;
