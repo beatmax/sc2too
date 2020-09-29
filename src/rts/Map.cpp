@@ -9,12 +9,18 @@
 namespace rts {
   namespace {
     std::vector<std::string> expand(std::vector<std::string> lines) {
-      if (!lines.empty() && lines.back() == "@MIRROR-VH") {
+      std::string op;
+      if (!lines.empty() && lines.back().rfind("@MIRROR", 0) == 0) {
+        op = lines.back();
         lines.pop_back();
+      }
+      if (op == "@MIRROR-V" || op == "@MIRROR-VH") {
         auto mirror = lines;
         std::reverse(mirror.begin(), mirror.end());
-        for (auto& line : mirror)
-          std::reverse(line.begin(), line.end());
+        if (op == "@MIRROR-VH") {
+          for (auto& line : mirror)
+            std::reverse(line.begin(), line.end());
+        }
         lines.insert(lines.end(), mirror.begin(), mirror.end());
       }
       return lines;

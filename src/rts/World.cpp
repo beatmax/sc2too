@@ -136,10 +136,10 @@ rts::UnitIdList rts::World::unitsInArea(const Rectangle& area, SideId side, Unit
   return result;
 }
 
-const rts::Unit* rts::World::closestUnit(Point p, SideId side, UnitTypeId type) const {
-  const Unit* closest{nullptr};
+rts::Unit* rts::World::closestUnit(Point p, SideId side, UnitTypeId type) {
+  Unit* closest{nullptr};
   float closestDistance{std::numeric_limits<float>::infinity()};
-  for (const auto& u : units) {
+  for (auto& u : units) {
     if (u.side == side && u.type == type) {
       if (float d{diagonalDistance(p, u.area.center())}; d < closestDistance) {
         closestDistance = d;
@@ -157,6 +157,20 @@ const rts::ResourceField* rts::World::closestResourceField(
   float closestDistance{std::numeric_limits<float>::infinity()};
   for (const auto& rf : resourceFields) {
     if (rf.group == group && (blockedOk || !rf.sem.blocked())) {
+      if (float d{diagonalDistance(p, rf.area.center())}; d < closestDistance) {
+        closestDistance = d;
+        closest = &rf;
+      }
+    }
+  }
+  return closest;
+}
+
+const rts::ResourceField* rts::World::closestResourceField(Point p, ResourceId r) const {
+  const ResourceField* closest{nullptr};
+  float closestDistance{std::numeric_limits<float>::infinity()};
+  for (const auto& rf : resourceFields) {
+    if (rf.bag.resource == r) {
       if (float d{diagonalDistance(p, rf.area.center())}; d < closestDistance) {
         closestDistance = d;
         closest = &rf;

@@ -1,21 +1,71 @@
-        mmm  rr                                         
- nnnnn  mm  rrr                                         
- nnnnn     rrr                                          
- nnnnn    rrrr                                          
- nnnnn   rrr                                            
- nnnnn   rr                                             
-                                                        
-                                                        
-                 r                   rr                 
- ggg             r                    r                 
- ggg             r                    r                 
- ggg             r                    r                 
-                 r                    r                 
-                 r                    r                 
-                 r                    r                 
-      mmmmmmm    r                    r                 
-                 r                    r                 
-                 r                    r                 
-                 r                    r                 
-                 r                    r                 
+rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr                       rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr                           rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr       ggg mm  mm            rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr       ggg  mm  mm           rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+rrrrr                         rr                ggg         mm        r                   rrrrrrrrrrrrrrrrrr
+rrrr                           rr                                     r                      rrrrrrrrrrrrrrr
+rrr                             rr                           mm       r                        rrrrrrrrrrrrr
+rr            ggg                rr rr                                r                          rrrrrrrrrrr
+r          mm ggg                 rrr                        mm       r                            rrrrrrrrr
+          mm  ggg                  r                          mm      r                             rrrrrrrr
+       mm                               rr                            r                              rrrrrrr
+      mm                               rr                    ggg      r                               rrrrrr
+     mm                               rr                     ggg      r                               rrrrrr
+           nnnnn                       rr                    ggg      r                               rrrrrr
+      mm   nnnnn                        rr                           rrr                              rrrrrr
+     mm    nnnnn                         rr                         rr rr                             rrrrrr
+           nnnnn                         rrrrrrrrrrrrrrrrrrrrrrrrrrrr   rrrrrrrrrrrrr                rrrrrrr
+r     mm   nnnnn                        rr  rrrrrrrrrrrrrrrrrrrrr            rrrrrrrrrrrrr       rrrrrrrrrrr
+rr                                     rr                                           rr   rr       rr      rr
+rrr   ggg                             rr                                           rr     rr       rr      r
+rrr   ggg                              rr                                          rr                       
+rrr   ggg                               rr                                         rr                       
+rrr                                r                                              rr                        
+rrr                               rrr                                             rr                        
+rrr                              rr rr                                            rr                        
+rrr                             rr                                                rr                        
+rrr                            rr                                                 rr                        
+rrr                           rr                                                 rr                         
+rrrr                         rr                                                  rr                         
+rrrrr                       rr                                                   rr                         
+rrrrrrrrrrrrrrrrrrrrrrrrrrrrr                                                    rr                         
+rrrrrrrrrrrrrrrrrrrrrrrrrrrr                                                    rr                    ggg   
+                                                                                rr                    ggg   
+                                                                                rr                    ggg   
+                                                                                rr                          
+                                                                                rr                    mm    
+                                                                                rr                     mm   
+                                        rrrrrrr      rr                         rr                          
+                                     rrrrrrrrrrrr   rr                          rr                   mm     
+                                 rrrrr          rrrrr     rr                     rr                   mm    
+                             rrrrr      mm  mm           rr                      rr                    mm   
+                            rr       mm  mm  mm         rr                       rr                         
+                           rr    ggg  mm  mm  mm ggg     rr                      rr                    mm   
+                           rr    ggg             ggg      rr                      rr                        
+                            rr   ggg             ggg      rr                      rr                   mm   
+                             rr                           rr                      rr                  mm    
+                              rr                          rr                      rr                        
+                               rr                          rr                      rr                 ggg   
+                                rr                          rr                     rr                 ggg   
+                                 rr                          rr                     rr                ggg   
+                                 rr                           rr                   rr                       
+                                  rr                           rr                 rr                        
+           rr        rr           rr                           rr                rr                         
+          rr        rr           rr                             rr                                          
+       rrrr        rr           rr    rr                        rr                     rr                   
+  rrrrrrrr          rr               rrrr                        rr                   rrr                   
+rrrr                 rr             rr rr                        rr                  rr rr                  
+rr                    rr               rr                         rr                     rr                 
+rr                    rr                rr                        rr                      rr                
+rr                     rr               rr                         rr                     rr                
+rrr                    rr               rr                         rr                     rr                
+rrr                    rr               rr                          rr                    rr                
+rrr                    rr               rr                          rr                   rr                 
+rrrr                    rr              rr                          rr                   rr                 
+rrrr                    rr              rr                          rr                  rr                 r
+rrrr                    rr              rr        rr                rr                 rr                 rr
+rrrrr                   rr              rr       rrrrr             rr                 rr                  rr
+rrrrrr                  rr               rr       rrrrr            rr               rrr                  rrr
+rrrrrrr                 rr               rr        rrrrr          rr               rr                 rrrrrr
+rrrrrrrr                rr               rr         rrrr         rr               rrr               rrrrrrrr
 @MIRROR-VH

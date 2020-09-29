@@ -177,8 +177,12 @@ namespace rts {
 
     std::set<WorldObjectCPtr> objectsInArea(const Rectangle& area) const;
     UnitIdList unitsInArea(const Rectangle& area, SideId side = {}, UnitTypeId type = {}) const;
-    const Unit* closestUnit(Point p, SideId side, UnitTypeId type) const;
+    Unit* closestUnit(Point p, SideId side, UnitTypeId type);
+    const Unit* closestUnit(Point p, SideId side, UnitTypeId type) const {
+      return const_cast<World&>(*this).closestUnit(p, side, type);
+    }
     const ResourceField* closestResourceField(Point p, ResourceGroupId group, bool blockedOk) const;
+    const ResourceField* closestResourceField(Point p, ResourceId r) const;
     std::optional<Point> emptyCellAround(const Rectangle& area, Point towards) const;
 
   private:
