@@ -71,6 +71,14 @@ std::optional<rts::Command> ui::Player::doProcessInput(
                                                                 : ControlGroupCmd::Select,
             bool(event.state & AltPressed), rts::ControlGroupId(digit)};
       }
+      else if (int fkey{getFunctionKeyNumber(event.symbol)};
+               fkey > 0 && fkey <= int(MaxCameraPositions)) {
+        --fkey;
+        if (event.state & (ControlPressed | AltPressed | ShiftPressed))
+          cameraPositions_[fkey] = camera.topLeft();
+        else if (cameraPositions_[fkey])
+          camera.setTopLeft(*cameraPositions_[fkey]);
+      }
       else if ((selectionBox || selectingAbilityTarget) && Layout::cancel(event.symbol)) {
         selectionBox.reset();
         selectingAbilityTarget.reset();

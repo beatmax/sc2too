@@ -86,6 +86,12 @@ namespace ui {
         : -1;
   }
 
+  inline int getFunctionKeyNumber(InputKeySym symbol) {
+    return (symbol >= InputKeySym::F1 && symbol <= InputKeySym::F12)
+        ? 1 + int(symbol) - int(InputKeySym::F1)
+        : -1;
+  }
+
   using InputState = unsigned int;
   constexpr InputState ShiftPressed{0b0001};
   constexpr InputState ControlPressed{0b0100};

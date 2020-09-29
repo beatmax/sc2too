@@ -14,8 +14,9 @@ namespace ui {
     const rts::Rectangle& area() const { return area_; }
     const rts::Point topLeft() const { return area_.topLeft; }
     const rts::Point bottomRight() const { return area_.bottomRight(); }
-
     const rts::Vector& moveDirection() const { return moveDirection_; }
+
+    void setTopLeft(rts::Point topLeft) { area_.topLeft = topLeft; }
     void setMoveDirection(const rts::Vector& v) { moveDirection_ = v; }
     void update();
 
