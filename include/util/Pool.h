@@ -75,6 +75,8 @@ namespace util {
 
     detail::pool::Index idx{};
 
+    constexpr PoolObjectId() = default;
+    constexpr explicit PoolObjectId(detail::pool::Index i) : idx{i} {}
     explicit operator bool() const { return idx != 0; }
     bool operator==(PoolObjectId other) const { return idx == other.idx; }
     bool operator!=(PoolObjectId other) const { return idx != other.idx; }
@@ -100,11 +102,11 @@ namespace util {
     template<typename Pool>
     PoolObjectId<T> lock(const Pool& pool) {
       auto& item{pool.items_[idx]};
-      return {item.gen == gen ? idx : 0};
+      return PoolObjectId<T>{item.gen == gen ? idx : 0};
     }
 
     explicit operator bool() const { return idx != 0; }
-    explicit operator PoolObjectId<T>() const { return {idx}; }
+    explicit operator PoolObjectId<T>() const { return PoolObjectId<T>{idx}; }
   };
 
   template<typename T, uint32_t N>
