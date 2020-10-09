@@ -55,11 +55,9 @@ int main() try {
 
   rts::Engine engine{world};
   engine.gameSpeed(2 * rts::GameSpeedNormal);
-  engine.targetFps(100);
+  engine.targetFps(60);
 
-  auto processInput = [&](const rts::World& w, rts::SideCommandList& cmds) {
-    io.input.process(engine, w, player, cmds);
-  };
+  auto processInput = [&](const rts::World& w) { return io.input.process(engine, w, player); };
   auto updateOutput = [&](const rts::World& w) { io.output.update(engine, w, player); };
 
   engine.run(io, processInput, updateOutput);

@@ -40,9 +40,8 @@ rts::World::~World() {
     destroy(rf);
 }
 
-void rts::World::exec(const SideCommandList& commands) {
-  for (const auto& cmd : commands)
-    update(sides[cmd.side].exec(*this, cmd.command));
+void rts::World::exec(const SideCommand& cmd) {
+  update(sides[cmd.side].exec(*this, cmd.command));
 }
 
 void rts::World::update(const WorldActionList& actions) {

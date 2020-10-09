@@ -49,7 +49,7 @@ namespace rts {
     World(const World&) = delete;
     World& operator=(const World&) = delete;
 
-    void exec(const SideCommandList& commands);
+    void exec(const SideCommand& cmd);
     void update(const WorldActionList& actions);
 
     template<typename... Args>

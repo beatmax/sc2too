@@ -58,7 +58,6 @@ namespace rts {
   void EngineBase<Clock>::run(const C& controller, FI processInput, FO updateOutput) {
     resetTimer();
     bool paused{false};
-    SideCommandList commands;
 
     while (!controller.quit()) {
       if (paused != controller.paused()) {
@@ -67,9 +66,8 @@ namespace rts {
           resetTimer();
       }
 
-      processInput(world_, commands);
-      world_.exec(commands);
-      commands.clear();
+      if (auto cmd{processInput(world_)})
+        world_.exec(*cmd);
 
       if (!paused)
         advanceFrame();

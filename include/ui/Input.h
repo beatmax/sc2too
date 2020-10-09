@@ -5,6 +5,8 @@
 #include "rts/Command.h"
 #include "rts/types.h"
 
+#include <optional>
+
 namespace ui {
   struct IOState;
 
@@ -14,14 +16,13 @@ namespace ui {
 
     void init();
     void finish();
-    void process(
-        rts::Engine& engine, const rts::World& w, Player& player, rts::SideCommandList& commands);
+    std::optional<rts::SideCommand> process(
+        rts::Engine& engine, const rts::World& w, Player& player);
 
   private:
     bool processKbInput(rts::Engine& engine, const InputEvent& event);
     bool processMouseInput(const InputEvent& event);
     InputEvent nextMouseEvent(const Camera& camera);
-    InputEvent xMouseEvent();
     InputEvent edgeScrollEvent();
 
     IOState& ios_;

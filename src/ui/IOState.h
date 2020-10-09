@@ -15,6 +15,7 @@ namespace ui {
     bool quit{false};
     rts::Point clickedTarget{-1, -1};
     rts::Point mousePosition{-1, -1};
+    unsigned clicks{0};
     unsigned mouseButtons{0};
   };
 }

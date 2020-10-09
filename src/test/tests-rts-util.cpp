@@ -51,7 +51,7 @@ void test::stepUpdate(World& w, const Unit& u) {
 }
 
 void test::execCommand(World& w, SideId side, Command command) {
-  w.exec({{side, std::move(command)}});
+  w.exec({side, std::move(command)});
 }
 
 void test::select(World& w, SideId side, UnitIdList units, command::Selection::Action action) {

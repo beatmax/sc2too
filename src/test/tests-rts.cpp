@@ -560,16 +560,17 @@ TEST_CASE("Hello world!", "[rts]") {
       test::FakeController controller;
       int inputCalls{0}, outputCalls{0};
 
-      auto processInput = [&](const World& w, rts::SideCommandList& cmds) {
+      auto processInput = [&](const World& w) -> std::optional<SideCommand> {
         ++inputCalls;
         if (inputCalls == 1)
-          addCommand(cmds, side, rts::command::TriggerAbility{test::moveAbilityId, targetPos});
+          return SideCommand{side, rts::command::TriggerAbility{test::moveAbilityId, targetPos}};
         else if (inputCalls == 100)
           controller.paused_ = true;
         else if (inputCalls == 100 + pausedFrames)
           controller.paused_ = false;
         else if (w.time >= finalGameTime - 1)
           controller.quit_ = true;
+        return std::nullopt;
       };
 
       auto updateOutput = [&](const World&) { ++outputCalls; };

@@ -20,26 +20,16 @@ namespace {
   ui::InputState buttons{};
   std::optional<rts::Point> mouseCell;
   ui::ScrollDirection edgeScrollDirection{};
-  bool motionReportingEnabled{false};
 
   void initMouse() {
     mouseinterval(0);
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
+
+    // enable mouse motion reporting
+    printf("\033[?1002h\n");
   }
 
-  void initMouseMotionReporting() {
-    printf("\033[?1003h\n");
-    motionReportingEnabled = true;
-  }
-
-  void finishMouseMotionReporting() {
-    if (motionReportingEnabled) {
-      printf("\033[?1003l\n");
-      motionReportingEnabled = false;
-    }
-  }
-
-  void finishMouse() { finishMouseMotionReporting(); }
+  void finishMouse() { printf("\033[?1002l\n"); }
 
   rts::Point getTarget(const std::optional<rts::Command>& cmd) {
     if (cmd) {
@@ -69,8 +59,8 @@ void ui::Input::finish() {
   X::releaseInput();
 }
 
-void ui::Input::process(
-    rts::Engine& engine, const rts::World& w, Player& player, rts::SideCommandList& commands) {
+std::optional<rts::SideCommand> ui::Input::process(
+    rts::Engine& engine, const rts::World& w, Player& player) {
   if (ios_.menu.active()) {
     nodelay(stdscr, false);
     MenuImpl::processInput(ios_.menu, ios_.quit);
@@ -79,12 +69,18 @@ void ui::Input::process(
       X::grabInput();
       nodelay(stdscr, true);
     }
-    return;
+    return std::nullopt;
   }
 
-  auto addCommand = [&](std::optional<rts::Command>&& cmd) {
+  auto sideCommand = [&](std::optional<rts::Command>&& cmd) -> std::optional<rts::SideCommand> {
     ios_.clickedTarget = getTarget(cmd);
-    rts::addCommand(commands, player.side, std::move(cmd));
+    if (cmd) {
+      player.camera.update();
+      return rts::SideCommand{player.side, std::move(*cmd)};
+    }
+    else {
+      return std::nullopt;
+    }
   };
 
   int c;
@@ -93,36 +89,34 @@ void ui::Input::process(
       InputEvent event{nextMouseEvent(player.camera)};
       if (event.type != InputType::Unknown) {
         if (!processMouseInput(event))
-          addCommand(player.processInput(w, event));
+          if (auto sc{sideCommand(player.processInput(w, event))})
+            return sc;
       }
     }
   }
 
   X::updatePointerState();
 
-  // use X to generate button events missed by ncurses
-  while (InputEvent event{xMouseEvent()}) {
-    if (!processMouseInput(event))
-      addCommand(player.processInput(w, event));
-  }
-
   if (InputEvent event{edgeScrollEvent()})
-    addCommand(player.processInput(w, event));
+    if (auto sc{sideCommand(player.processInput(w, event))})
+      return sc;
 
   while (X::pendingEvent()) {
     InputEvent event{X::nextEvent()};
     if (processKbInput(engine, event)) {
       if (ios_.menu.active()) {
         X::finish();
-        return;
+        return std::nullopt;
       }
     }
     else {
-      addCommand(player.processInput(w, event));
+      if (auto sc{sideCommand(player.processInput(w, event))})
+        return sc;
     }
   }
 
   player.camera.update();
+  return std::nullopt;
 }
 
 bool ui::Input::processKbInput(rts::Engine& engine, const InputEvent& event) {
@@ -147,14 +141,10 @@ bool ui::Input::processKbInput(rts::Engine& engine, const InputEvent& event) {
 
 bool ui::Input::processMouseInput(const InputEvent& event) {
   ios_.mouseButtons = buttons >> 8;
+  if (event.type != InputType::MousePosition)
+    ++ios_.clicks;
   if (event.mouseCell)
     ios_.mousePosition = *event.mouseCell;
-
-  if (!motionReportingEnabled && event.type == InputType::MousePress) {
-    // on some terminals ncurses gets stuck if motion reporting is enabled before a click;
-    // do not disable it on MouseRelease (has strange effects on some other terminals)
-    initMouseMotionReporting();
-  }
 
   return false;
 }
@@ -218,38 +208,6 @@ ui::InputEvent ui::Input::nextMouseEvent(const Camera& camera) {
   return ievent;
 }
 
-ui::InputEvent ui::Input::xMouseEvent() {
-  InputEvent ievent;
-
-  auto diff{buttons ^ (X::inputState & ButtonMask)};
-
-  if (diff) {
-    if (diff & Button1Pressed) {
-      diff = Button1Pressed;
-      ievent.mouseButton = InputButton::Button1;
-    }
-    else if (diff & Button2Pressed) {
-      diff = Button2Pressed;
-      ievent.mouseButton = InputButton::Button2;
-    }
-    else {
-      assert(diff & Button3Pressed);
-      diff = Button3Pressed;
-      ievent.mouseButton = InputButton::Button3;
-    }
-
-    buttons ^= diff;
-    ievent.type = (X::inputState & diff) ? InputType::MousePress : InputType::MouseRelease;
-    ievent.mouseCell = mouseCell;
-    ievent.state = X::inputState;
-  }
-  else {
-    ievent.type = InputType::Unknown;
-  }
-
-  return ievent;
-}
-
 ui::InputEvent ui::Input::edgeScrollEvent() {
   InputEvent ievent;
   ievent.type = InputType::Unknown;
@@ -259,10 +217,10 @@ ui::InputEvent ui::Input::edgeScrollEvent() {
 
   auto x = X::pointerX;
   auto y = X::pointerY;
-  auto hDirection{(x == 0) ? ScrollDirectionLeft
-                           : (x == int(X::displayWidth - 1)) ? ScrollDirectionRight : 0};
-  auto vDirection{(y == 0) ? ScrollDirectionUp
-                           : (y == int(X::displayHeight - 1)) ? ScrollDirectionDown : 0};
+  auto hDirection{
+      (x == 0) ? ScrollDirectionLeft : (x == int(X::displayWidth - 1)) ? ScrollDirectionRight : 0};
+  auto vDirection{
+      (y == 0) ? ScrollDirectionUp : (y == int(X::displayHeight - 1)) ? ScrollDirectionDown : 0};
   ScrollDirection direction{hDirection | vDirection};
 
   if (edgeScrollDirection != direction) {

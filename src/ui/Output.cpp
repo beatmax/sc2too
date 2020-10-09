@@ -342,9 +342,9 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   else {
     mvwprintw(ios_.headerWin.w, 0, 0, "F10:menu");
     mvwprintw(
-        ios_.headerWin.w, 0, 32, "(%d, %d) - (%d, %d) : (%d, %d) : %d", camera.topLeft().x,
+        ios_.headerWin.w, 0, 32, "(%d, %d) - (%d, %d) : (%d, %d) : %u : %u", camera.topLeft().x,
         camera.topLeft().y, camera.bottomRight().x, camera.bottomRight().y, ios_.mousePosition.x,
-        ios_.mousePosition.y, ios_.mouseButtons);
+        ios_.mousePosition.y, ios_.mouseButtons, ios_.clicks);
   }
 
   for (const Window* win : allWins)
