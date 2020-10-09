@@ -280,7 +280,6 @@ ui::Output::~Output() {
 
 void ui::Output::init() {
   initWinch();
-  graph::init();
   initWins(ios_);
 }
 

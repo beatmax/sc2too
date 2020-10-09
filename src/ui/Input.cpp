@@ -24,10 +24,9 @@ namespace {
   void initMouse() {
     mouseinterval(0);
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
-
-    // enable mouse motion reporting
-    printf("\033[?1002h\n");
   }
+
+  void initMouseMotionReporting() { printf("\033[?1002h\n"); }
 
   void finishMouse() { printf("\033[?1002l\n"); }
 
@@ -43,6 +42,13 @@ namespace {
 }
 
 ui::Input::Input(IOState& ios) : ios_{ios} {
+}
+
+void ui::Input::preInit() {
+  // initialize mouse motion reporting before ncurses has been initialized
+  // because the printf() call messes up the output (noticeable when the
+  // terminal has just the minimum accepted size)
+  initMouseMotionReporting();
 }
 
 void ui::Input::init() {

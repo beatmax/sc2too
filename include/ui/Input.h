@@ -14,6 +14,7 @@ namespace ui {
   public:
     explicit Input(IOState& ioState);
 
+    void preInit();
     void init();
     void finish();
     std::optional<rts::SideCommand> process(
