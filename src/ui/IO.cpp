@@ -32,7 +32,6 @@ ui::IO::IO() : state_{std::make_unique<IOState>()}, input{*state_}, output{*stat
   std::locale utf8loc{"en_US.UTF-8"};
   std::locale::global(std::locale{utf8loc, new std::codecvt_utf8<wchar_t>});
   X::init();
-  input.preInit();
   graph::init();
   output.init();
   input.init();

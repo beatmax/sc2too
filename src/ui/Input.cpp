@@ -19,16 +19,28 @@
 namespace {
   ui::InputState buttons{};
   std::optional<rts::Point> mouseCell;
+  bool mouseCellUpdated{false};
   ui::ScrollDirection edgeScrollDirection{};
+  bool motionReportingEnabled{false};
 
   void initMouse() {
     mouseinterval(0);
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
   }
 
-  void initMouseMotionReporting() { printf("\033[?1002h\n"); }
+  void initMouseMotionReporting() {
+    printf("\033[?1003h\n");
+    motionReportingEnabled = true;
+  }
 
-  void finishMouse() { printf("\033[?1002l\n"); }
+  void finishMouseMotionReporting() {
+    if (motionReportingEnabled) {
+      printf("\033[?1003l\n");
+      motionReportingEnabled = false;
+    }
+  }
+
+  void finishMouse() { finishMouseMotionReporting(); }
 
   rts::Point getTarget(const std::optional<rts::Command>& cmd) {
     if (cmd) {
@@ -42,13 +54,6 @@ namespace {
 }
 
 ui::Input::Input(IOState& ios) : ios_{ios} {
-}
-
-void ui::Input::preInit() {
-  // initialize mouse motion reporting before ncurses has been initialized
-  // because the printf() call messes up the output (noticeable when the
-  // terminal has just the minimum accepted size)
-  initMouseMotionReporting();
 }
 
 void ui::Input::init() {
@@ -89,19 +94,22 @@ std::optional<rts::SideCommand> ui::Input::process(
     }
   };
 
+  mouseCellUpdated = false;
+
   int c;
   while ((c = getch()) != ERR) {
-    if (c == KEY_MOUSE) {
-      InputEvent event{nextMouseEvent(player.camera)};
-      if (event.type != InputType::Unknown) {
-        if (!processMouseInput(event))
-          if (auto sc{sideCommand(player.processInput(w, event))})
-            return sc;
-      }
-    }
+    if (c == KEY_MOUSE)
+      updateMouseCell(player.camera);
   }
 
   X::updatePointerState();
+
+  while (InputEvent event{nextMouseEvent()}) {
+    if (!processMouseInput(event)) {
+      if (auto sc{sideCommand(player.processInput(w, event))})
+        return sc;
+    }
+  }
 
   if (InputEvent event{edgeScrollEvent()})
     if (auto sc{sideCommand(player.processInput(w, event))})
@@ -152,17 +160,20 @@ bool ui::Input::processMouseInput(const InputEvent& event) {
   if (event.mouseCell)
     ios_.mousePosition = *event.mouseCell;
 
+  if (!motionReportingEnabled && event.type == InputType::MousePress) {
+    // on some terminals ncurses gets stuck if motion reporting is enabled before a click;
+    // do not disable it on MouseRelease (has strange effects on some other terminals)
+    initMouseMotionReporting();
+  }
+
   return false;
 }
 
-ui::InputEvent ui::Input::nextMouseEvent(const Camera& camera) {
+void ui::Input::updateMouseCell(const Camera& camera) {
   MEVENT event;
-  InputEvent ievent;
 
-  if (getmouse(&event) != OK) {
-    ievent.type = InputType::Unknown;
-    return ievent;
-  }
+  if (getmouse(&event) != OK)
+    return;
 
   if (wenclose(ios_.renderWin.w, event.y, event.x) &&
       wmouse_trafo(ios_.renderWin.w, &event.y, &event.x, false)) {
@@ -173,42 +184,44 @@ ui::InputEvent ui::Input::nextMouseEvent(const Camera& camera) {
     mouseCell.reset();
   }
 
+  mouseCellUpdated = true;
+}
+
+ui::InputEvent ui::Input::nextMouseEvent() {
+  InputEvent ievent;
   ievent.mouseCell = mouseCell;
   ievent.state = X::inputState;
 
-  if (event.bstate & BUTTON1_PRESSED) {
-    ievent.type = InputType::MousePress;
-    ievent.mouseButton = InputButton::Button1;
-    buttons |= Button1Pressed;
+  // use button state from X to generate mouse events; ncurses misses events
+  // sometimes, and has many issues when motion reporting is enabled
+
+  auto diff{buttons ^ (X::inputState & ButtonMask)};
+
+  if (diff) {
+    if (diff & Button1Pressed) {
+      diff = Button1Pressed;
+      ievent.mouseButton = InputButton::Button1;
+    }
+    else if (diff & Button2Pressed) {
+      diff = Button2Pressed;
+      ievent.mouseButton = InputButton::Button2;
+    }
+    else {
+      assert(diff & Button3Pressed);
+      diff = Button3Pressed;
+      ievent.mouseButton = InputButton::Button3;
+    }
+
+    buttons ^= diff;
+    ievent.type = (X::inputState & diff) ? InputType::MousePress : InputType::MouseRelease;
   }
-  else if (event.bstate & BUTTON2_PRESSED) {
-    ievent.type = InputType::MousePress;
-    ievent.mouseButton = InputButton::Button2;
-    buttons |= Button2Pressed;
-  }
-  else if (event.bstate & BUTTON3_PRESSED) {
-    ievent.type = InputType::MousePress;
-    ievent.mouseButton = InputButton::Button3;
-    buttons |= Button3Pressed;
-  }
-  else if (event.bstate & BUTTON1_RELEASED) {
-    ievent.type = InputType::MouseRelease;
-    ievent.mouseButton = InputButton::Button1;
-    buttons &= ~Button1Pressed;
-  }
-  else if (event.bstate & BUTTON2_RELEASED) {
-    ievent.type = InputType::MouseRelease;
-    ievent.mouseButton = InputButton::Button2;
-    buttons &= ~Button2Pressed;
-  }
-  else if (event.bstate & BUTTON3_RELEASED) {
-    ievent.type = InputType::MouseRelease;
-    ievent.mouseButton = InputButton::Button3;
-    buttons &= ~Button3Pressed;
-  }
-  else {
+  else if (mouseCellUpdated) {
+    mouseCellUpdated = false;
     ievent.type = InputType::MousePosition;
     ievent.mouseButton = InputButton::Unknown;
+  }
+  else {
+    ievent.type = InputType::Unknown;
   }
 
   return ievent;

@@ -14,7 +14,6 @@ namespace ui {
   public:
     explicit Input(IOState& ioState);
 
-    void preInit();
     void init();
     void finish();
     std::optional<rts::SideCommand> process(
@@ -23,7 +22,8 @@ namespace ui {
   private:
     bool processKbInput(rts::Engine& engine, const InputEvent& event);
     bool processMouseInput(const InputEvent& event);
-    InputEvent nextMouseEvent(const Camera& camera);
+    void updateMouseCell(const Camera& camera);
+    InputEvent nextMouseEvent();
     InputEvent edgeScrollEvent();
 
     IOState& ios_;
