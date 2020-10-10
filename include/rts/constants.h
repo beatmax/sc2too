@@ -13,7 +13,10 @@ namespace rts {
   constexpr static size_t MaxSideUnits{1000};
   constexpr static size_t MaxUnits{MaxSideUnits * MaxSides};
   constexpr static size_t MaxUnitTypes{150};
-  constexpr static size_t MaxUnitAbilities{15};
+  constexpr static size_t MaxUnitAbilityPages{3};
+  constexpr static size_t MaxUnitAbilitiesPerPage{15};
+  constexpr static size_t MaxUnitAbilities{MaxUnitAbilityPages * MaxUnitAbilitiesPerPage};
+  constexpr static size_t MaxUnitAbilityStates{5};
   constexpr static size_t MaxAbilities{1500};
   constexpr static size_t MaxBlockers{10000};
   constexpr static size_t MaxResourceFields{1000};

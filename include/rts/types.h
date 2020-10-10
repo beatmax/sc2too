@@ -37,12 +37,13 @@ namespace rts {
   template<typename Tag>
   class NamedIndex {
   public:
+    constexpr NamedIndex() = default;
     explicit constexpr NamedIndex(size_t i) : i_{i} {}
     static constexpr NamedIndex None{std::numeric_limits<size_t>::max()};
     operator size_t() const { return i_; }
 
   private:
-    size_t i_;
+    size_t i_{std::numeric_limits<size_t>::max()};
   };
 
   // const reference to object whose mutable members are only modified by the current thread
@@ -60,6 +61,7 @@ namespace rts {
 
   using AbilityId = util::PoolObjectId<Ability>;
   using AbilityInstanceIndex = NamedIndex<struct AbilityInstanceIndexTag>;
+  using AbilityPage = size_t;
   using AbilityStateIndex = NamedIndex<struct AbilityStateIndexTag>;
   using BlockerId = util::PoolObjectId<Blocker>;
   using BlockerStableRef = StableRef<Blocker>;
@@ -98,6 +100,7 @@ namespace rts {
   using util::geo::Rectangle;
   using util::geo::Vector;
 
+  using AbilityTarget = std::variant<Point, UnitId>;
   enum class Direction : uint32_t { Left, Right, Up, Down };
   enum class RelativeContent : uint32_t { Friend, Foe, Ground, Resource, Count };
 

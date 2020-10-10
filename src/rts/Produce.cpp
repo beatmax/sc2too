@@ -13,7 +13,7 @@ namespace rts {
 }
 
 void rts::abilities::state::Produce::trigger(
-    World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, Point) {
+    World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, const AbilityTarget&) {
   assert(u.productionQueue);
   auto& pq{w[u.productionQueue]};
 

@@ -24,25 +24,6 @@ namespace ui {
           ScreenPoint{0, 0} + toScreenVector(relativeTopLeft),
           toScreenVector(area.size) - ScreenVector{1, 1}};
     }
-
-    void draw(
-        const Window& win,
-        const Camera& camera,
-        const rts::World& w,
-        const rts::WorldObject& object) {
-      const auto& spriteUi{getUpdatedSpriteUi(w, object)};
-
-      // default for color pair 0 (e.g. unit's side color)
-      wattrset(win.w, spriteUi.defaultColor(object));
-
-      assert(spriteUi.sprite().area(object.area.topLeft) == object.area);
-
-      const rts::Rectangle visibleArea{intersection(object.area, camera.area())};
-      const ScreenRect drawRect{toScreenRect(camera, visibleArea)};
-      const ScreenVector topLeftInSprite{toScreenVector(visibleArea.topLeft - object.area.topLeft)};
-
-      graph::drawFrame(win, spriteUi.frame(object.direction), drawRect, topLeftInSprite);
-    }
   }
 }
 
@@ -66,14 +47,55 @@ void ui::grid(const Window& win) {
 }
 
 void ui::render(
-    const Window& win, const rts::World& w, const Camera& camera, const rts::Selection& selection) {
+    const Window& win,
+    const rts::World& w,
+    const rts::Map& m,
+    const Camera& camera,
+    const rts::Selection& selection) {
   auto selectedItems{selection.items(w)};
   const std::set<rts::WorldObjectCPtr> selectedObjects{selectedItems.begin(), selectedItems.end()};
 
-  for (rts::WorldObjectCPtr obj : w.objectsInArea(camera.area())) {
-    draw(win, camera, w, *obj);
+  for (rts::WorldObjectCPtr obj : w.objectsInArea(camera.area(), m)) {
+    render(win, w, camera, *obj);
     if (selectedObjects.find(obj) != selectedObjects.end())
       drawBoundingBox(win, camera, obj->area, graph::green());
+  }
+}
+
+void ui::render(
+    const Window& win, const rts::World& w, const Camera& camera, const rts::WorldObject& object) {
+  const auto& spriteUi{getUpdatedSpriteUi(w, object)};
+
+  // default for color pair 0 (e.g. unit's side color)
+  wattrset(win.w, spriteUi.defaultColor(object));
+
+  assert(spriteUi.sprite().area(object.area.topLeft) == object.area);
+
+  const rts::Rectangle visibleArea{intersection(object.area, camera.area())};
+  const ScreenRect drawRect{toScreenRect(camera, visibleArea)};
+  const ScreenVector topLeftInSprite{toScreenVector(visibleArea.topLeft - object.area.topLeft)};
+
+  graph::drawFrame(win, spriteUi.frame(object.direction), drawRect, topLeftInSprite);
+}
+
+void ui::render(
+    const Window& win,
+    const rts::World& w,
+    const Camera& camera,
+    const rts::WorldObject& object,
+    rts::Point center) {
+  const auto& spriteUi{getUpdatedSpriteUi(w, object)};
+
+  // default for color pair 0 (e.g. unit's side color)
+  wattrset(win.w, spriteUi.defaultColor(object));
+
+  auto area{rectangleCenteredAt(center, object.area.size, w.map.area())};
+  assert(spriteUi.sprite().area(area.topLeft) == area);
+
+  if (auto visibleArea{maybeIntersection(area, camera.area())}) {
+    const ScreenRect drawRect{toScreenRect(camera, *visibleArea)};
+    const ScreenVector topLeftInSprite{toScreenVector(visibleArea->topLeft - area.topLeft)};
+    graph::drawFrame(win, spriteUi.frame(object.direction), drawRect, topLeftInSprite);
   }
 }
 

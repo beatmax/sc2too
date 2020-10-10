@@ -35,22 +35,22 @@ int main() try {
 
   const auto sides{makeSides(world)};
   const auto side{sides[0]};
-  world.map.load(world, sc2::Assets::mapInitializer(), std::ifstream{"data/maps/ascii_jungle.txt"});
+  world.loadMap(sc2::Assets::mapInitializer(), std::ifstream{"data/maps/ascii_jungle.txt"});
   ui::Player player{side, ui::Camera{{2, 6}, world.map.area()}};
 
   auto* nexus{world.closestUnit(player.camera.area().center(), side, sc2::UnitTypes::nexus)};
   assert(nexus);
   auto* closestMineral{world.closestResourceField(nexus->area.center(), sc2::Resources::mineral)};
   assert(closestMineral);
-  nexus->trigger(sc2::Abilities::setRallyPoint, world, closestMineral->area.topLeft);
+  nexus->trigger(sc2::Abilities::SetRallyPointIndex, world, closestMineral->area.topLeft);
 
   for (int i = 0; i < 12; ++i) {
     auto p{world.emptyCellAround(nexus->area, closestMineral->area.center())};
     assert(p);
-    auto probe{world.addForFree(sc2::Factory::probe(world, *p, side))};
+    auto probe{world.addForFree(sc2::Factory::probe(world, side), *p)};
     auto* mineral{world.closestResourceField(*p, sc2::Resources::mineral)};
     assert(mineral);
-    world[probe].trigger(sc2::Abilities::gather, world, mineral->area.topLeft);
+    world[probe].trigger(sc2::Abilities::GatherIndex, world, mineral->area.topLeft);
   }
 
   rts::Engine engine{world};

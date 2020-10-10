@@ -74,6 +74,7 @@ namespace rts {
   };
 
   enum class AllocFilter { Any, Recoverable, Unrecoverable };
+  enum class AllocMode { NoCheck, Check, CheckOnly };
 
   class ResourceAccount {
   public:
@@ -94,6 +95,7 @@ namespace rts {
     void allocateTo(ResourceBag& bag, Quantity q);
     void deallocate(Quantity q);
     void deallocateFrom(ResourceBag& bag);
+    void restore(Quantity q);
     void restoreFrom(ResourceBag& bag, Quantity q);
 
   private:
@@ -122,14 +124,15 @@ namespace rts {
     AllocResult allocate(
         const ResourceQuantityList& quantities,
         AllocFilter filter = AllocFilter::Any,
-        bool check = true);
+        AllocMode mode = AllocMode::Check);
     AllocResult allocateTo(
         ResourceBagArray& bags,
         const ResourceQuantityList& quantities,
         AllocFilter filter = AllocFilter::Any,
-        bool check = true);
+        AllocMode mode = AllocMode::Check);
     void deallocate(const ResourceQuantityList& quantities);
     void deallocateFrom(ResourceBagArray& bags);
+    void restore(const ResourceQuantityList& quantities);
     void restoreFrom(ResourceBagArray& bags, const ResourceQuantityList& quantities);
 
   private:

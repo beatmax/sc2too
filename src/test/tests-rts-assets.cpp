@@ -24,6 +24,7 @@ const std::string test::map{
 rts::ResourceId test::gasResourceId;
 rts::ResourceId test::supplyResourceId;
 rts::AbilityId test::moveAbilityId;
+rts::AbilityId test::buildAbilityId;
 rts::AbilityId test::produceSimpletonAbilityId;
 rts::AbilityId test::produceThirdyAbilityId;
 rts::AbilityId test::setRallyPointAbilityId;
@@ -41,17 +42,16 @@ void test::Factory::init(rts::World& w) {
   gasResourceId = w.createResource(std::make_unique<GasUi>());
   supplyResourceId = w.createResource(std::make_unique<SupplyUi>());
 
-  moveAbilityId = w.createAbility(rts::Ability::TargetType::Any, std::make_unique<Ui>("move"));
-  produceSimpletonAbilityId =
-      w.createAbility(rts::Ability::TargetType::None, std::make_unique<Ui>("p.s"));
-  produceThirdyAbilityId =
-      w.createAbility(rts::Ability::TargetType::None, std::make_unique<Ui>("p.t"));
-  setRallyPointAbilityId =
-      w.createAbility(rts::Ability::TargetType::None, std::make_unique<Ui>("p.r"));
+  moveAbilityId = w.createAbility(std::make_unique<Ui>("move"));
+  buildAbilityId = w.createAbility(std::make_unique<Ui>("build"));
+
+  produceSimpletonAbilityId = w.createAbility(std::make_unique<Ui>("p.s"));
+  produceThirdyAbilityId = w.createAbility(std::make_unique<Ui>("p.t"));
+  setRallyPointAbilityId = w.createAbility(std::make_unique<Ui>("p.r"));
 
   buildingTypeId = w.createUnitType(
-      rts::ResourceQuantityList{},
-      rts::ResourceQuantityList{{supplyResourceId, BuildingSupplyProvision}}, rts::GameTimeSecond,
+      rts::ResourceQuantityList{{gasResourceId, BuildingGasCost}},
+      rts::ResourceQuantityList{{supplyResourceId, BuildingSupplyProvision}}, BuildingBuildTime,
       std::make_unique<Ui>("B"));
   simpletonTypeId = w.createUnitType(
       rts::ResourceQuantityList{
@@ -73,51 +73,52 @@ void test::Factory::init(rts::World& w) {
   w.unitTypes[simpletonTypeId].addAbility(
       MoveAbilityIndex,
       rts::abilities::Move{moveAbilityId, rts::CellDistance / rts::GameTimeSecond});
-  w.unitTypes[simpletonTypeId].defaultAbility[uint32_t(RC::Ground)] = moveAbilityId;
+  w.unitTypes[simpletonTypeId].addAbility(
+      BuildAbilityIndex, rts::abilities::Build{buildAbilityId, buildingTypeId});
+  w.unitTypes[simpletonTypeId].defaultAbility[uint32_t(RC::Ground)] = MoveAbilityIndex;
 }
 
-rts::UnitId test::Factory::create(rts::World& w, rts::UnitTypeId t, rts::Point p, rts::SideId sd) {
+rts::UnitId test::Factory::create(rts::World& w, rts::UnitTypeId t, rts::SideId sd) {
   if (t == buildingTypeId)
-    return building(w, p, sd);
+    return building(w, sd);
   if (t == simpletonTypeId)
-    return simpleton(w, p, sd);
+    return simpleton(w, sd);
   if (t == thirdyTypeId)
-    return thirdy(w, p, sd);
+    return thirdy(w, sd);
   return {};
 }
 
-rts::UnitId test::Factory::building(rts::World& w, rts::Point p, rts::SideId sd) {
+rts::UnitId test::Factory::building(rts::World& w, rts::SideId sd) {
   return w.units.emplace(
-      p, rts::Vector{2, 3}, buildingTypeId, sd, std::make_unique<Ui>("b"), 0,
+      rts::Vector{2, 3}, buildingTypeId, sd, std::make_unique<Ui>("b"), 0,
       w.createProductionQueue(sd));
 }
 
-rts::UnitId test::Factory::simpleton(rts::World& w, rts::Point p, rts::SideId sd) {
-  return w.units.emplace(p, rts::Vector{1, 1}, simpletonTypeId, sd, std::make_unique<Ui>("s"));
+rts::UnitId test::Factory::simpleton(rts::World& w, rts::SideId sd) {
+  return w.units.emplace(rts::Vector{1, 1}, simpletonTypeId, sd, std::make_unique<Ui>("s"));
 }
 
-rts::UnitId test::Factory::thirdy(rts::World& w, rts::Point p, rts::SideId sd) {
-  return w.units.emplace(p, rts::Vector{1, 1}, thirdyTypeId, sd, std::make_unique<Ui>("t"));
+rts::UnitId test::Factory::thirdy(rts::World& w, rts::SideId sd) {
+  return w.units.emplace(rts::Vector{1, 1}, thirdyTypeId, sd, std::make_unique<Ui>("t"));
 }
 
-rts::ResourceFieldId test::Factory::geyser(rts::World& w, rts::Point p) {
-  return w.resourceFields.emplace(
-      p, rts::Vector{2, 2}, gasResourceId, 100, std::make_unique<Ui>("g"));
+rts::ResourceFieldId test::Factory::geyser(rts::World& w) {
+  return w.resourceFields.emplace(rts::Vector{2, 2}, gasResourceId, 100, std::make_unique<Ui>("g"));
 }
 
-rts::BlockerId test::Factory::rock(rts::World& w, rts::Point p) {
-  return w.blockers.emplace(p, rts::Vector{1, 1}, std::make_unique<Ui>("r"));
+rts::BlockerId test::Factory::rock(rts::World& w) {
+  return w.blockers.emplace(rts::Vector{1, 1}, std::make_unique<Ui>("r"));
 }
 
 rts::Cell::Content test::MapInitializer::operator()(
     rts::World& w, rts::Point p, char c, const std::vector<std::string>& lines) const {
   switch (c) {
     case 'b':
-      return Factory::building(w, p, side1Id);
+      return Factory::building(w, side1Id);
     case 'g':
-      return Factory::geyser(w, p);
+      return Factory::geyser(w);
     case 'r':
-      return Factory::rock(w, p);
+      return Factory::rock(w);
     default:
       return rts::Cell::Empty{};
   }

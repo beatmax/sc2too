@@ -143,7 +143,7 @@ namespace ui {
     void drawProductionQueue(const IOState& ios, const rts::World& w, rts::UnitStableRef unit) {
       using ProduceState = rts::abilities::ProduceState;
       const rts::ProductionQueue& pq{w[unit->productionQueue]};
-      const bool blocked{rts::Unit::state<ProduceState>(unit, w) == ProduceState::Blocked};
+      const bool blocked{rts::Unit::abilityState<ProduceState>(unit, w) == ProduceState::Blocked};
 
       const auto& win{ios.controlWin};
       const auto left{40};
@@ -231,7 +231,8 @@ namespace ui {
 
       for (int row{0}; row < 3; ++row) {
         for (int col{0}; col < 5; ++col) {
-          rts::AbilityInstanceIndex ai(row * 5 + col);
+          rts::AbilityInstanceIndex ai(
+              player.abilityPage * rts::MaxUnitAbilitiesPerPage + row * 5 + col);
           assert(ai < rts::MaxUnitAbilities);
           if (auto a{type.abilities[ai].abilityId}) {
             ScreenRect rect{
@@ -243,7 +244,9 @@ namespace ui {
             graph::drawRect(win, boundingBox(rect));
             wattrset(
                 win.w,
-                a == player.selectingAbilityTarget ? (graph::white() | A_BOLD) : graph::white());
+                (player.selectingAbilityTarget && ai == player.selectingAbilityTarget->abilityIndex)
+                    ? (graph::white() | A_BOLD)
+                    : graph::white());
             mvwaddch(win.w, rect.topLeft.y, rect.topLeft.x, ui::Layout::abilityKey(ai));
             wattrset(win.w, graph::green());
             graph::drawFrame(win, getIcon(w[a]).frame(), iconRect, {0, 0});
@@ -304,11 +307,14 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   highlight(
       ios_.renderWin, camera, ios_.clickedTarget,
       ios_.mouseButtons ? graph::red() : graph::yellow());
-  render(ios_.renderWin, w, camera, side.selection());
+  render(ios_.renderWin, w, side.prototypeMap(), camera, side.selection());
+  render(ios_.renderWin, w, w.map, camera, side.selection());
   drawRallyPoints(ios_, w, camera, side.selection());
   if (player.selectionBox)
     drawBoundingBox(ios_.renderWin, camera, *player.selectionBox, graph::green());
-  if (player.selectingAbilityTarget)
+  if (side.prototype())
+    render(ios_.renderWin, w, camera, w[side.prototype()], ios_.mousePosition);
+  else if (player.selectingAbilityTarget)
     highlight(ios_.renderWin, camera, ios_.mousePosition, graph::lightGreen());
 
   drawResourceQuantities(ios_, w, side);

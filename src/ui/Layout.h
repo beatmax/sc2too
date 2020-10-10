@@ -10,6 +10,7 @@ namespace ui {
     static bool cancel(InputKeySym symbol);
     static ScrollDirection scrollDirection(InputKeySym symbol);
     static rts::AbilityInstanceIndex abilityIndex(InputKeySym symbol);
+    static rts::AbilityInstanceIndex abilityIndex(InputKeySym symbol, rts::AbilityPage page);
     static char abilityKey(rts::AbilityInstanceIndex ai);
   };
 }

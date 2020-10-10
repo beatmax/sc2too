@@ -10,7 +10,7 @@ env = DefaultEnvironment(variables=vars, CPPPATH=['#/include'], ENV={'PATH': os.
 env.MergeFlags('-Wall -std=c++17')
 
 if env['DEBUG']:
-    env.MergeFlags('-g')
+    env.MergeFlags('-Werror -g')
 else:
     env.Append(CXXFLAGS = ['-O2', '-DNDEBUG'])
 

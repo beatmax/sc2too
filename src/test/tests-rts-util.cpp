@@ -59,7 +59,7 @@ void test::select(World& w, SideId side, UnitIdList units, command::Selection::A
 }
 
 test::MoveStepList test::runMove(World& w, Unit& unit, Point target, GameTime timeout) {
-  execCommand(w, unit.side, command::TriggerAbility{moveAbilityId, target});
+  execCommand(w, unit.side, command::TriggerAbility{MoveAbilityIndex, target});
   return continueMove(w, unit, timeout);
 }
 

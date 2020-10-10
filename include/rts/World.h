@@ -16,6 +16,7 @@
 #include "types.h"
 #include "util/Pool.h"
 
+#include <iosfwd>
 #include <memory>
 #include <optional>
 #include <set>
@@ -49,6 +50,7 @@ namespace rts {
     World(const World&) = delete;
     World& operator=(const World&) = delete;
 
+    void loadMap(const MapInitializer& init, std::istream&& is);
     void exec(const SideCommand& cmd);
     void update(const WorldActionList& actions);
 
@@ -74,7 +76,7 @@ namespace rts {
 
     template<typename... Args>
     UnitId createUnit(Args&&... args) {
-      return add(factory->create(*this, std::forward<Args>(args)...));
+      return factory->create(*this, std::forward<Args>(args)...);
     }
 
     template<typename... Args>
@@ -82,21 +84,26 @@ namespace rts {
       return productionQueues.emplace(std::forward<Args>(args)...);
     }
 
+    void place(Unit& u);
+    bool tryPlace(Unit& u);
+    void remove(Unit& u);
+
     template<typename Id>
-    Id add(Id id) {
+    Id add(Id id, Point p) {
       auto& obj{(*this)[id]};
+      obj.area.topLeft = p;
       map.setContent(obj.area, id);
       return id;
     }
-    UnitId add(UnitId id, bool allocCheck = true);
+    UnitId add(UnitId id, Point p, bool allocCheck = true);
     void add(Cell::Empty) {}
 
     template<typename Id>
-    Id addForFree(Id id) {
-      return add(id);
+    Id addForFree(Id id, Point p) {
+      return add(id, p);
     }
-    UnitId addForFree(UnitId id);
-    void addForFree(Cell::Empty) {}
+    UnitId addForFree(UnitId id, Point p);
+    void addForFree(Cell::Empty, Point) {}
 
     void move(Unit& u, Point p);
 
@@ -176,6 +183,7 @@ namespace rts {
     const WorldObject* object(Point p) const { return object(map[p]); }
 
     std::set<WorldObjectCPtr> objectsInArea(const Rectangle& area) const;
+    std::set<WorldObjectCPtr> objectsInArea(const Rectangle& area, const Map& m) const;
     UnitIdList unitsInArea(const Rectangle& area, SideId side = {}, UnitTypeId type = {}) const;
     Unit* closestUnit(Point p, SideId side, UnitTypeId type);
     const Unit* closestUnit(Point p, SideId side, UnitTypeId type) const {

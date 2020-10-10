@@ -1,5 +1,7 @@
 #include "Layout.h"
 
+#include "rts/constants.h"
+
 #include <cassert>
 
 bool ui::Layout::cancel(InputKeySym symbol) {
@@ -58,8 +60,15 @@ rts::AbilityInstanceIndex ui::Layout::abilityIndex(InputKeySym symbol) {
   }
 }
 
+rts::AbilityInstanceIndex ui::Layout::abilityIndex(InputKeySym symbol, rts::AbilityPage page) {
+  auto idx{abilityIndex(symbol)};
+  if (idx != rts::AbilityInstanceIndex::None)
+    idx = rts::AbilityInstanceIndex{size_t(idx) + page * rts::MaxUnitAbilitiesPerPage};
+  return idx;
+}
+
 char ui::Layout::abilityKey(rts::AbilityInstanceIndex ai) {
-  assert(ai < 15);
+  static_assert(rts::MaxUnitAbilitiesPerPage == 15);
   static char key[15]{'Q', 'W', 'E', 'R', 'T', 'A', 'S', 'D', 'F', 'G', 'Z', 'X', 'C', 'V', 'B'};
-  return key[ai];
+  return key[ai % 15];
 }

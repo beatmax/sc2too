@@ -8,5 +8,6 @@ namespace sc2 {
 
     static rts::UnitTypeId nexus;
     static rts::UnitTypeId probe;
+    static rts::UnitTypeId pylon;
   };
 }

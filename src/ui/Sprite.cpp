@@ -135,6 +135,11 @@ ui::Sprite::Sprite(std::vector<std::wstring>&& lines) {
   frameCount_ = directional_ ? frames_.size() / 4 : frames_.size();
 }
 
+ui::Sprite::Sprite(std::unique_ptr<Frame> frame) {
+  frames_.push_back(std::move(frame));
+  frameCount_ = 1;
+}
+
 ui::Sprite::~Sprite() = default;
 
 const ui::Frame& ui::Sprite::frame(FrameIndex frame, rts::Direction direction) const {

@@ -2,13 +2,17 @@
 
 #include "types.h"
 
-#include <optional>
 #include <variant>
-#include <vector>
 
 namespace rts {
 
   namespace command {
+    struct BuildPrototype {
+      UnitTypeId unitType;
+    };
+
+    struct Cancel {};
+
     struct ControlGroup {
       enum Action { Select, Set, Add } action;
       bool exclusive;
@@ -25,7 +29,7 @@ namespace rts {
     };
 
     struct TriggerAbility {
-      AbilityId ability;
+      AbilityInstanceIndex abilityIndex;
       Point target;
     };
 
@@ -39,6 +43,8 @@ namespace rts {
   }
 
   using Command = std::variant<
+      command::BuildPrototype,
+      command::Cancel,
       command::ControlGroup,
       command::Selection,
       command::SelectionSubgroup,
@@ -50,11 +56,4 @@ namespace rts {
     SideId side;
     Command command;
   };
-
-  using SideCommandList = std::vector<SideCommand>;
-
-  inline void addCommand(SideCommandList& commands, SideId side, std::optional<Command>&& cmd) {
-    if (cmd)
-      commands.push_back(SideCommand{side, std::move(*cmd)});
-  }
 }

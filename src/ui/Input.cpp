@@ -83,6 +83,8 @@ std::optional<rts::SideCommand> ui::Input::process(
     return std::nullopt;
   }
 
+  player.update(w);
+
   auto sideCommand = [&](std::optional<rts::Command>&& cmd) -> std::optional<rts::SideCommand> {
     ios_.clickedTarget = getTarget(cmd);
     if (cmd) {

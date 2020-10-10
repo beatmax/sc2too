@@ -7,6 +7,6 @@
 namespace rts {
   class Blocker : public WorldObject {
   public:
-    Blocker(Point p, Vector s, UiUPtr ui) : WorldObject{p, s, std::move(ui)} {}
+    Blocker(Vector s, UiUPtr ui) : WorldObject{{-1, -1}, s, std::move(ui)} {}
   };
 }

@@ -22,6 +22,7 @@ namespace ui {
     explicit Sprite(const std::wstring& s);
     explicit Sprite(std::wistream&& is);
     explicit Sprite(std::vector<std::wstring>&& lines);
+    explicit Sprite(std::unique_ptr<Frame> frame);
     ~Sprite();
 
     const Frame& frame(FrameIndex frame = 0, rts::Direction direction = rts::Direction(0)) const;

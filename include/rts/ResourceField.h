@@ -14,7 +14,7 @@ namespace rts {
     ResourceGroupId group;
     Semaphore sem{1};
 
-    ResourceField(Point p, Vector s, ResourceId r, Quantity q, UiUPtr ui, ResourceGroupId g = 0)
-      : WorldObject{p, s, std::move(ui)}, bag{r, q, q}, group{g} {}
+    ResourceField(Vector s, ResourceId r, Quantity q, UiUPtr ui, ResourceGroupId g = 0)
+      : WorldObject{{-1, -1}, s, std::move(ui)}, bag{r, q, q}, group{g} {}
   };
 }

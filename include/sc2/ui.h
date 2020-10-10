@@ -50,12 +50,21 @@ namespace sc2::ui {
     const ::ui::Icon& icon() const final;
   };
 
+  struct PylonType : ::ui::IconUi<rts::UnitType> {
+    const ::ui::Icon& icon() const final;
+  };
+
   struct Nexus : Unit {
     using Unit::Unit;
     const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
   };
 
   struct Probe : Unit {
+    using Unit::Unit;
+    const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
+  };
+
+  struct Pylon : Unit {
     using Unit::Unit;
     const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
   };
@@ -77,6 +86,18 @@ namespace sc2::ui {
   };
 
   struct WarpInProbeAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct WarpInStructureAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct WarpInNexusAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct WarpInPylonAbility : ::ui::IconUi<rts::Ability> {
     const ::ui::Icon& icon() const final;
   };
 }

@@ -1,6 +1,7 @@
 #include "rts/Map.h"
 
 #include "rts/World.h"
+#include "util/algorithm.h"
 #include "util/fs.h"
 
 #include <algorithm>
@@ -35,14 +36,18 @@ void rts::Map::load(World& w, const MapInitializer& init, std::istream&& is) {
 void rts::Map::load(World& w, const MapInitializer& init, const std::vector<std::string>& lines) {
   const Coordinate cols{lines.empty() ? 0 : Coordinate(lines.front().size())};
   const Coordinate rows(lines.size());
-  cells_ = CellMatrix{rows, cols};
+  initCells({cols, rows});
   for (Coordinate y = 0; y < rows; ++y) {
     const auto& line = lines[y];
     assert(Coordinate(line.size()) == cols);
     for (Coordinate x = 0; x < cols; ++x) {
       Point p{x, y};
       if ((*this)[p].empty())
-        std::visit([&w](auto id) { w.addForFree(id); }, init(w, p, line[x], lines));
+        std::visit([&w, p](auto id) { w.addForFree(id, p); }, init(w, p, line[x], lines));
     }
   }
+}
+
+bool rts::Map::isEmpty(const Rectangle& area) const {
+  return util::allOf(area.points(), [this](Point p) { return (*this)[p].empty(); });
 }

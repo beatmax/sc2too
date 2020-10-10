@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <utility>
@@ -41,6 +42,12 @@ namespace util {
     template<typename T, uint32_t N, typename AIt>
     class Iterator {
     public:
+      using iterator_category = std::forward_iterator_tag;
+      using value_type = decltype(std::declval<AIt>()->value);
+      using difference_type = std::ptrdiff_t;
+      using pointer = value_type*;
+      using reference = value_type&;
+
       Iterator(AIt it, AIt end) : it_{it}, end_{end} { advance(); }
       Iterator(AIt end) : it_{end}, end_{end} {}
 

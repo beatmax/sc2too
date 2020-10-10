@@ -5,6 +5,25 @@
 #include <cstdlib>
 #include <ostream>
 
+auto util::geo::rectangleCenteredAt(Point center, Vector size, const Rectangle& bounds)
+    -> Rectangle {
+  auto r{rectangleCenteredAt(center, size)};
+  auto i{intersection(r, bounds)};
+  if (i.size.x < r.size.x) {
+    if (r.topLeft.x < i.topLeft.x)
+      r.topLeft.x = i.topLeft.x;
+    else
+      r.topLeft.x -= (r.size.x - i.size.x);
+  }
+  if (i.size.y < r.size.y) {
+    if (r.topLeft.y < i.topLeft.y)
+      r.topLeft.y = i.topLeft.y;
+    else
+      r.topLeft.y -= (r.size.y - i.size.y);
+  }
+  return r;
+}
+
 bool util::geo::intersect(const Rectangle& r1, const Rectangle& r2) {
   const auto& bro1{r1.bottomRightOut()};
   const auto& bro2{r2.bottomRightOut()};
@@ -23,6 +42,18 @@ auto util::geo::intersection(const Rectangle& r1, const Rectangle& r2) -> Rectan
   assert(size.x >= 0);
   assert(size.y >= 0);
   return {topLeft, size};
+}
+
+auto util::geo::maybeIntersection(const Rectangle& r1, const Rectangle& r2)
+    -> std::optional<Rectangle> {
+  const auto& bro1{r1.bottomRightOut()};
+  const auto& bro2{r2.bottomRightOut()};
+  Point topLeft{std::max(r1.topLeft.x, r2.topLeft.x), std::max(r1.topLeft.y, r2.topLeft.y)};
+  Point bottomRightOut{std::min(bro1.x, bro2.x), std::min(bro1.y, bro2.y)};
+  const auto size = bottomRightOut - topLeft;
+  if (size.x > 0 && size.y > 0)
+    return Rectangle{topLeft, size};
+  return std::nullopt;
 }
 
 auto util::geo::fixNegativeSize(Rectangle r) -> Rectangle {

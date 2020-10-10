@@ -7,38 +7,106 @@
 #include <cassert>
 
 rts::Unit::Unit(
-    Point p,
-    Vector s,
-    UnitTypeId t,
-    SideId sd,
-    UiUPtr ui,
-    Quantity cargoCapacity,
-    ProductionQueueId pq)
-  : WorldObject{p, s, std::move(ui)},
+    Vector s, UnitTypeId t, SideId sd, UiUPtr ui, Quantity cargoCapacity, ProductionQueueId pq)
+  : WorldObject{{-1, -1}, s, std::move(ui)},
     type{t},
     side{sd},
     bag{{}, 0, cargoCapacity},
     productionQueue{pq} {
 }
 
-void rts::Unit::onDestroy(World& w) {
+void rts::Unit::allocate(World& w, bool allocCheck) {
+  const auto& t{w[type]};
+  auto& res{w[side].resources()};
+  AllocResult ar{
+      res.allocate(t.cost, AllocFilter::Any, allocCheck ? AllocMode::Check : AllocMode::NoCheck)};
+  if (ar.result != AllocResult::Success)
+    throw std::runtime_error{"adding unit: resource allocation failed (use addForFree()?)"};
+  state = State::Allocated;
+}
+
+bool rts::Unit::tryAllocate(World& w) {
+  const auto& t{w[type]};
+  auto& s{w[side]};
+  auto& res{s.resources()};
+  if (auto [result, failedResource] = res.allocate(t.cost); result == AllocResult::Success) {
+    state = State::Allocated;
+    return true;
+  }
+  else {
+    auto& ui{w[failedResource].ui()};
+    s.messages().add(w, result == AllocResult::Lack ? ui.msgMoreRequired() : ui.msgCapReached());
+    return false;
+  }
+}
+
+void rts::Unit::setBuildPoint(World& w, Point p) {
+  assert(state == State::Allocated);
+  area.topLeft = p;
+  w[side].prototypeMap().setContent(area, w.id(*this));
+  state = State::Buildable;
+}
+
+bool rts::Unit::tryStartBuilding(World& w) {
+  assert(state == State::Buildable);
+  if (w.tryPlace(*this)) {
+    state = State::Building;
+    w[side].prototypeMap().setContent(area, Cell::Empty{});
+    nextStepTime_ = w.time + w[type].buildTime;
+    return true;
+  }
+  return false;
+}
+
+void rts::Unit::finishBuilding(World& w) {
+  assert(state == State::Building);
+  doActivate(w);
+}
+
+void rts::Unit::activate(World& w, Point p) {
+  assert(state == State::Allocated);
+  area.topLeft = p;
+  w.place(*this);
+  doActivate(w);
+}
+
+void rts::Unit::destroy(World& w) {
+  assert(state != State::Destroyed);
+
   cancelAll(w);
   if (productionQueue)
     w.destroy(productionQueue);
 
-  const auto& t{w[type]};
-  auto& res{w[side].resources()};
-  res.deallocate(t.cost);
-  res.deprovision(t.provision);
+  if (state != State::New) {
+    const auto& t{w[type]};
+    auto& res{w[side].resources()};
+    if (state == State::Building || state == State::Active) {
+      res.deallocate(t.cost);
+      w.remove(*this);
+      if (state == State::Active)
+        res.deprovision(t.provision);
+    }
+    else {
+      if (state == State::Buildable) {
+        w[side].prototypeMap().setContent(area, Cell::Empty{});
+      }
+      res.restore(t.cost);
+    }
+  }
+
+  state = State::Destroyed;
 }
 
-void rts::Unit::trigger(AbilityId ability, World& w, Point target, CancelOthers cancelOthers) {
+void rts::Unit::trigger(
+    AbilityInstanceIndex abilityIndex,
+    World& w,
+    const AbilityTarget& target,
+    CancelOthers cancelOthers) {
   const auto& unitType{w[type]};
-  auto ai{unitType.abilityIndex(ability)};
-  if (ai == AbilityInstanceIndex::None)
+  const auto& abilityInstance{unitType.abilities[abilityIndex]};
+  if (abilityInstance.kind == abilities::Kind::None)
     return;
 
-  const auto& abilityInstance{unitType.abilities[ai]};
   AbilityState& abilityState{abilityStates_[abilityInstance.stateIndex]};
 
   if (cancelOthers == CancelOthers::Yes) {
@@ -60,8 +128,17 @@ rts::WorldActionList rts::Unit::step(UnitStableRef u, const World& w) {
     return actions;
   }
 
+  if (u->state == State::Building) {
+    actions += [wid{w.weakId(*u)}](World& w) {
+      if (auto* u{w[wid]})
+        u->finishBuilding(w);
+    };
+    u->nextStepTime_ = GameTimeInf;
+    return actions;
+  }
+
   u->nextStepTime_ = GameTimeInf;
-  for (size_t i = 0; i < MaxUnitAbilities; ++i) {
+  for (size_t i = 0; i < MaxUnitAbilityStates; ++i) {
     AbilityStateIndex as{i};
     auto& abilityState{u->abilityStates_[as]};
     if (abilityState.nextStepTime() == w.time)
@@ -90,4 +167,11 @@ const rts::AbilityState& rts::Unit::abilityState(
   auto as{t.abilityStateIndex(kind)};
   assert(as != AbilityStateIndex::None);
   return u->abilityStates_[as];
+}
+
+void rts::Unit::doActivate(World& w) {
+  const auto& t{w[type]};
+  auto& res{w[side].resources()};
+  res.provision(t.provision);
+  state = State::Active;
 }

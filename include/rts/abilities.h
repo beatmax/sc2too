@@ -1,13 +1,34 @@
 #pragma once
 
 #include "Ability.h"
+#include "constants.h"
 #include "types.h"
 
+#include <cassert>
 #include <functional>
+#include <memory>
 #include <type_traits>
 
+namespace rts {
+  class ActiveAbilityState;
+  using ActiveAbilityStateUPtr = std::unique_ptr<ActiveAbilityState>;
+}
+
 namespace rts::abilities {
-  enum class Kind { None, Gather, Move, Produce, SetRallyPoint };
+  namespace state {
+    class Build;
+    class Gather;
+    class Move;
+    class Produce;
+    class SetRallyPoint;
+  }
+
+  enum class Kind { None, Build, Gather, Move, Produce, SetRallyPoint, MAX };
+  static_assert(size_t(Kind::MAX) - 1 == MaxUnitAbilityStates);
+  enum class GroupMode { One, All };
+  enum class TargetType { None, Any, Ground, Resource };
+
+  enum class BuildState { Init, MovingToTarget, Building };
 
   enum class GatherState {
     Init,
@@ -25,7 +46,9 @@ namespace rts::abilities {
 
   template<typename State>
   inline constexpr Kind kind() {
-    if constexpr (std::is_same_v<State, GatherState>)
+    if constexpr (std::is_same_v<State, BuildState>)
+      return Kind::Build;
+    else if constexpr (std::is_same_v<State, GatherState>)
       return Kind::Gather;
     else if constexpr (std::is_same_v<State, MoveState>)
       return Kind::Move;
@@ -35,39 +58,77 @@ namespace rts::abilities {
 
   int mutualCancelGroup(Kind kind);
 
-  struct Gather {
-    static constexpr auto kind{Kind::Gather};
+  struct Build {
+    using AbilityState = state::Build;
+    static constexpr auto kind{Kind::Build};
+    static constexpr auto groupMode{GroupMode::One};
+    static constexpr auto targetType{TargetType::Ground};
     AbilityId id;
-    AbilityId moveAbility;
+    UnitTypeId type;
+  };
+
+  struct Gather {
+    using AbilityState = state::Gather;
+    static constexpr auto kind{Kind::Gather};
+    static constexpr auto groupMode{GroupMode::All};
+    static constexpr auto targetType{TargetType::Resource};
+    AbilityId id;
     UnitTypeId baseType;
     GameTime gatherTime;
     GameTime deliverTime;
   };
 
+  struct GoToPage {
+    static constexpr auto kind{Kind::None};
+    AbilityId id;
+    AbilityPage page;
+  };
+
   struct Move {
+    using AbilityState = state::Move;
     static constexpr auto kind{Kind::Move};
+    static constexpr auto groupMode{GroupMode::All};
+    static constexpr auto targetType{TargetType::Any};
     AbilityId id;
     Speed speed;
   };
 
   struct Produce {
+    using AbilityState = state::Produce;
     static constexpr auto kind{Kind::Produce};
+    static constexpr auto groupMode{GroupMode::One};
+    static constexpr auto targetType{TargetType::None};
     AbilityId id;
     UnitTypeId type;
   };
 
   struct SetRallyPoint {
+    using AbilityState = state::SetRallyPoint;
     static constexpr auto kind{Kind::SetRallyPoint};
+    static constexpr auto groupMode{GroupMode::All};
+    static constexpr auto targetType{TargetType::Any};
     AbilityId id;
   };
 
   struct Instance {
-    using Trigger = std::function<void(World&, Unit&, ActiveAbilityStateUPtr&, Point)>;
+    using Trigger =
+        std::function<void(World&, Unit&, ActiveAbilityStateUPtr&, const AbilityTarget&)>;
+    using AbstractDesc = std::function<const void*()>;
 
     Kind kind{Kind::None};
-    AbilityId abilityId;
+    AbilityId abilityId{};
+    AbilityPage goToPage{0};
+    GroupMode groupMode{};
+    TargetType targetType{};
     AbilityStateIndex stateIndex{AbilityStateIndex::None};
     Trigger trigger;
+    AbstractDesc abstractDesc;
+
+    template<typename D>
+    const D& desc() const {
+      assert(D::kind == kind);
+      return *static_cast<const D*>(abstractDesc());
+    }
   };
 
   inline bool mutualCancelling(const Instance& i1, const Instance& i2) {
@@ -75,8 +136,7 @@ namespace rts::abilities {
     return group && group == mutualCancelGroup(i2.kind);
   }
 
-  Instance instance(const Gather& desc, AbilityStateIndex as);
-  Instance instance(const Move& desc, AbilityStateIndex as);
-  Instance instance(const Produce& desc, AbilityStateIndex as);
-  Instance instance(const SetRallyPoint& desc, AbilityStateIndex as);
+  template<typename D>
+  Instance instance(const D& desc, AbilityStateIndex as);
+  Instance instance(const GoToPage& desc, AbilityStateIndex);
 }

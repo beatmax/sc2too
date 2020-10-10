@@ -40,6 +40,12 @@ rts::World::~World() {
     destroy(rf);
 }
 
+void rts::World::loadMap(const MapInitializer& init, std::istream&& is) {
+  map.load(*this, init, std::move(is));
+  for (auto& s : sides)
+    s.onMapLoaded(*this);
+}
+
 void rts::World::exec(const SideCommand& cmd) {
   update(sides[cmd.side].exec(*this, cmd.command));
 }
@@ -49,26 +55,39 @@ void rts::World::update(const WorldActionList& actions) {
     action(*this);
 }
 
-rts::UnitId rts::World::add(UnitId id, bool allocCheck) {
+rts::UnitId rts::World::add(UnitId id, Point p, bool allocCheck) {
   auto& obj{(*this)[id]};
-  map.setContent(obj.area, id);
-  auto& res{sides[obj.side].resources()};
-  const auto& t{unitTypes[obj.type]};
-  res.provision(t.provision);
-  AllocResult ar{res.allocate(t.cost, AllocFilter::Any, allocCheck)};
-  if (ar.result != AllocResult::Success)
-    throw std::runtime_error{"adding unit: resource allocation failed (use addForFree()?)"};
+  obj.allocate(*this, allocCheck);
+  obj.activate(*this, p);
   return id;
 }
 
-rts::UnitId rts::World::addForFree(UnitId id) {
+rts::UnitId rts::World::addForFree(UnitId id, Point p) {
   auto& obj{(*this)[id]};
   auto& res{sides[obj.side].resources()};
   const auto& cost{unitTypes[obj.type].cost};
   res.provision(cost);
-  add(id, false);
+  add(id, p, false);
   res.deprovision(cost, AllocFilter::Recoverable);
   return id;
+}
+
+void rts::World::place(Unit& u) {
+  assert(map.isEmpty(u.area));
+  map.setContent(u.area, id(u));
+}
+
+bool rts::World::tryPlace(Unit& u) {
+  if (map.isEmpty(u.area)) {
+    map.setContent(u.area, id(u));
+    return true;
+  }
+  return false;
+}
+
+void rts::World::remove(Unit& u) {
+  assert(map[u.area.topLeft].contains(Cell::Unit));
+  map.setContent(u.area, Cell::Empty{});
 }
 
 void rts::World::move(Unit& u, Point p) {
@@ -82,10 +101,10 @@ void rts::World::move(Unit& u, Point p) {
 }
 
 void rts::World::destroy(Unit& u) {
-  assert(map[u.area.topLeft].contains(Cell::Unit));
-  u.onDestroy(*this);
-  map.setContent(u.area, Cell::Empty{});
+  auto& s{sides[u.side]};
+  u.destroy(*this);
   units.erase(id(u));
+  s.onUnitDestroyed(*this);
 }
 
 void rts::World::destroy(ResourceField& rf) {
@@ -113,9 +132,14 @@ rts::WorldObject* rts::World::object(const Cell& c) {
 }
 
 std::set<rts::WorldObjectCPtr> rts::World::objectsInArea(const Rectangle& area) const {
+  return objectsInArea(area, map);
+}
+
+std::set<rts::WorldObjectCPtr> rts::World::objectsInArea(
+    const Rectangle& area, const Map& m) const {
   std::set<WorldObjectCPtr> result;
   for (Point p : area.points()) {
-    if (auto obj{object(p)})
+    if (auto obj{object(m[p])})
       result.insert(obj);
   }
   return result;
@@ -127,7 +151,7 @@ rts::UnitIdList rts::World::unitsInArea(const Rectangle& area, SideId side, Unit
     if (auto uId{unitId(p)}) {
       if (!util::contains(result, uId)) {
         const auto& u{units[uId]};
-        if ((!side || u.side == side) && (!type || u.type == type))
+        if (u.active() && (!side || u.side == side) && (!type || u.type == type))
           result.push_back(uId);
       }
     }
@@ -139,7 +163,7 @@ rts::Unit* rts::World::closestUnit(Point p, SideId side, UnitTypeId type) {
   Unit* closest{nullptr};
   float closestDistance{std::numeric_limits<float>::infinity()};
   for (auto& u : units) {
-    if (u.side == side && u.type == type) {
+    if (u.active() && u.side == side && u.type == type) {
       if (float d{diagonalDistance(p, u.area.center())}; d < closestDistance) {
         closestDistance = d;
         closest = &u;

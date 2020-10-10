@@ -35,7 +35,7 @@ TEST_CASE("Hello world!", "[rts]") {
   REQUIRE(test::repr(cworld[test::simpletonTypeId].ui) == "S");
   REQUIRE(test::repr(cworld[test::thirdyTypeId].ui) == "T");
 
-  world.map.load(world, test::MapInitializer{}, std::istringstream{test::map});
+  world.loadMap(test::MapInitializer{}, std::istringstream{test::map});
 
   REQUIRE(cworld.map.size() == rts::Vector{40, 10});
   REQUIRE(cworld.map(9, 1).empty());
@@ -72,12 +72,13 @@ TEST_CASE("Hello world!", "[rts]") {
 
   test::TestResources expectedResources;
   expectedResources.gas.available = 1000;
-  expectedResources.supply.available = 115;
+  expectedResources.gas.allocated = test::BuildingGasCost;
+  expectedResources.supply.available = 100 + test::BuildingSupplyProvision;
   REQUIRE(test::TestResources{side1} == expectedResources);
 
   SECTION("A unit is added to the world") {
     Point pos{20, 5};
-    UnitId uid{world.add(test::Factory::simpleton(world, pos, test::side1Id))};
+    UnitId uid{world.add(test::Factory::simpleton(world, test::side1Id), pos)};
     REQUIRE(cworld[pos].contains(Cell::Unit));
     Unit& u{*world.unit(pos)};
     const Unit& cu{*cworld.unit(pos)};
@@ -105,7 +106,7 @@ TEST_CASE("Hello world!", "[rts]") {
           Unit::abilityState(UnitStableRef{u}, cworld, abilities::Kind::Move)};
 
       const Point targetPos{20, 3};
-      u.trigger(test::moveAbilityId, world, targetPos);
+      u.trigger(test::MoveAbilityIndex, world, targetPos);
 
       ++world.time;
       test::stepUpdate(world, cu);
@@ -162,7 +163,7 @@ TEST_CASE("Hello world!", "[rts]") {
 
     REQUIRE(test::Ui::count["b"] == 1);
 
-    UnitId uid{world.add(test::Factory::building(world, area.topLeft, test::side1Id))};
+    UnitId uid{world.add(test::Factory::building(world, test::side1Id), area.topLeft)};
     const Unit& cu{*cworld.unit(area.topLeft)};
     REQUIRE(cu.area == area);
     REQUIRE(test::repr(cu.ui) == "b");
@@ -185,7 +186,7 @@ TEST_CASE("Hello world!", "[rts]") {
   }
 
   SECTION("Try some moves!") {
-    UnitId uid{world.add(test::Factory::simpleton(world, Point{20, 5}, test::side1Id))};
+    UnitId uid{world.add(test::Factory::simpleton(world, test::side1Id), Point{20, 5})};
     auto& unit{world[uid]};
 
     test::select(world, test::side1Id, {uid});
@@ -240,7 +241,7 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("Path around a unit") {
-      world.add(test::Factory::building(world, {24, 4}, test::side1Id));
+      world.add(test::Factory::building(world, test::side1Id), {24, 4});
       REQUIRE(
           test::runMove(world, unit, Point{27, 5}) ==
           test::MoveStepList{
@@ -263,7 +264,7 @@ TEST_CASE("Hello world!", "[rts]") {
       ++world.time;
       WorldActionList actions{Unit::step(UnitStableRef{unit}, cworld)};
       REQUIRE(!actions.empty());
-      world.add(test::Factory::building(world, {24, 4}, test::side1Id));
+      world.add(test::Factory::building(world, test::side1Id), {24, 4});
       world.update(actions);
       REQUIRE(unit.area.topLeft == Point{23, 5});
       REQUIRE(
@@ -278,7 +279,7 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("Path around adjacent unit") {
-      world.add(test::Factory::simpleton(world, {21, 5}, test::side1Id));
+      world.add(test::Factory::simpleton(world, test::side1Id), {21, 5});
       REQUIRE(
           test::runMove(world, unit, Point{22, 5}) ==
           test::MoveStepList{{{20, 5}, 0}, {{21, 4}, 142}, {{22, 5}, 283}});
@@ -309,7 +310,7 @@ TEST_CASE("Hello world!", "[rts]") {
     SECTION("Blocked and unblocked") {
       for (Point p : Rectangle{{19, 4}, {3, 3}}.points()) {
         if (p != Point{20, 5})
-          world.add(test::Factory::simpleton(world, p, test::side1Id));
+          world.add(test::Factory::simpleton(world, test::side1Id), p);
       }
       REQUIRE(
           test::runMove(world, unit, Point{23, 5}, 350) ==
@@ -319,8 +320,8 @@ TEST_CASE("Hello world!", "[rts]") {
           test::continueMove(world, unit, 550) ==
           test::MoveStepList{{{20, 5}, 350}, {{21, 5}, 501}, {{21, 5}, 550}});
       for (Coordinate y : {4, 5, 6})
-        world.add(test::Factory::simpleton(world, {22, y}, test::side1Id));
-      world.add(test::Factory::simpleton(world, {20, 5}, test::side1Id));
+        world.add(test::Factory::simpleton(world, test::side1Id), {22, y});
+      world.add(test::Factory::simpleton(world, test::side1Id), {20, 5});
       REQUIRE(
           test::continueMove(world, unit, 750) ==
           test::MoveStepList{{{21, 5}, 550}, {{21, 5}, 750}});
@@ -340,9 +341,9 @@ TEST_CASE("Hello world!", "[rts]") {
     auto selectedUnits = [&]() { return side1.selection().ids(world); };
     auto subgroupType = [&]() { return side1.selection().subgroupType(world); };
 
-    UnitId u1{world.add(test::Factory::simpleton(world, Point{21, 5}, test::side1Id))};
-    UnitId u2{world.add(test::Factory::simpleton(world, Point{22, 5}, test::side1Id))};
-    UnitId u3{world.add(test::Factory::simpleton(world, Point{23, 5}, test::side1Id))};
+    UnitId u1{world.add(test::Factory::simpleton(world, test::side1Id), Point{21, 5})};
+    UnitId u2{world.add(test::Factory::simpleton(world, test::side1Id), Point{22, 5})};
+    UnitId u3{world.add(test::Factory::simpleton(world, test::side1Id), Point{23, 5})};
 
     REQUIRE(subgroupType() == UnitTypeId{});
 
@@ -390,8 +391,8 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(subgroupType() == test::simpletonTypeId);
 
     UnitId b1{world.units.id(*building)};
-    UnitId t1{world.add(test::Factory::thirdy(world, Point{24, 5}, test::side1Id))};
-    UnitId t2{world.add(test::Factory::thirdy(world, Point{25, 5}, test::side1Id))};
+    UnitId t1{world.add(test::Factory::thirdy(world, test::side1Id), Point{24, 5})};
+    UnitId t2{world.add(test::Factory::thirdy(world, test::side1Id), Point{25, 5})};
 
     test::select(world, test::side1Id, {u2, b1, t2, u1, t1});
     REQUIRE(selectedUnits() == UnitIdList{b1, u1, u2, t1, t2});
@@ -546,7 +547,7 @@ TEST_CASE("Hello world!", "[rts]") {
 
     SECTION("The engine runs and updates the world") {
       const auto side{test::side1Id};
-      const auto unit{world.add(test::Factory::simpleton(world, Point{20, 5}, side))};
+      const auto unit{world.add(test::Factory::simpleton(world, side), Point{20, 5})};
       test::select(world, side, {unit});
 
       const GameTime frameTime{10};
@@ -563,7 +564,7 @@ TEST_CASE("Hello world!", "[rts]") {
       auto processInput = [&](const World& w) -> std::optional<SideCommand> {
         ++inputCalls;
         if (inputCalls == 1)
-          return SideCommand{side, rts::command::TriggerAbility{test::moveAbilityId, targetPos}};
+          return SideCommand{side, rts::command::TriggerAbility{test::MoveAbilityIndex, targetPos}};
         else if (inputCalls == 100)
           controller.paused_ = true;
         else if (inputCalls == 100 + pausedFrames)
@@ -590,24 +591,26 @@ TEST_CASE("Hello world!", "[rts]") {
 
     auto triggerSimpletonProduction = [&]() {
       test::execCommand(
-          world, test::side1Id, rts::command::TriggerAbility{test::produceSimpletonAbilityId, {}});
+          world, test::side1Id,
+          rts::command::TriggerAbility{test::ProduceSimpletonAbilityIndex, {}});
     };
 
     auto triggerThirdyProduction = [&]() {
       test::execCommand(
-          world, test::side1Id, rts::command::TriggerAbility{test::produceThirdyAbilityId, {}});
+          world, test::side1Id, rts::command::TriggerAbility{test::ProduceThirdyAbilityIndex, {}});
     };
 
     auto triggerSetRallyPoint = [&](Point p) {
       test::execCommand(
-          world, test::side1Id, rts::command::TriggerAbility{test::setRallyPointAbilityId, p});
+          world, test::side1Id, rts::command::TriggerAbility{test::SetRallyPointAbilityIndex, p});
     };
 
     const Rectangle buildingArea{Point{1, 1}, rts::Vector{2, 3}};
-    UnitId building{world.add(test::Factory::building(world, buildingArea.topLeft, test::side1Id))};
+    UnitId building{world.add(test::Factory::building(world, test::side1Id), buildingArea.topLeft)};
     const Unit& cb{cworld[building]};
     test::select(world, test::side1Id, {building});
 
+    expectedResources.gas.allocate(test::BuildingGasCost);
     expectedResources.supply.provision(test::BuildingSupplyProvision);
     REQUIRE(test::TestResources{side1} == expectedResources);
 
@@ -730,9 +733,10 @@ TEST_CASE("Hello world!", "[rts]") {
     }
 
     SECTION("Production is attempted with insufficient resources") {
+      REQUIRE(side1.resource(test::gasResourceId).available() == 980);
       REQUIRE(side1.resource(test::supplyResourceId).totalSlots() == 130);
-      side1.resources().allocate({{test::gasResourceId, 998}, {test::supplyResourceId, 127}});
-      expectedResources.gas.allocate(998);
+      side1.resources().allocate({{test::gasResourceId, 978}, {test::supplyResourceId, 127}});
+      expectedResources.gas.allocate(978);
       expectedResources.supply.allocate(127);
       REQUIRE(test::TestResources{side1} == expectedResources);
       REQUIRE(side1.resource(test::supplyResourceId).freeSlots() == 3);
@@ -809,7 +813,7 @@ TEST_CASE("Hello world!", "[rts]") {
       world.destroy(building);
       REQUIRE(!world[queueWId]);
 
-      expectedResources.gas.lose(test::ThirdyGasCost);
+      expectedResources.gas.lose(test::BuildingGasCost + test::ThirdyGasCost);
       expectedResources.supply.restore(test::ThirdySupplyCost);
       expectedResources.supply.provision(-test::BuildingSupplyProvision);
       REQUIRE(test::TestResources{side1} == expectedResources);
@@ -841,8 +845,137 @@ TEST_CASE("Hello world!", "[rts]") {
       REQUIRE(test::nextStepTime(*u) == world.time);
       test::stepUpdate(world, *u);
       REQUIRE(
-          Unit::state<abilities::MoveState>(UnitStableRef{*u}, cworld) ==
+          Unit::abilityState<abilities::MoveState>(UnitStableRef{*u}, cworld) ==
           abilities::MoveState::Moving);
+    }
+  }
+
+  SECTION("Build ability") {
+    auto buildPrototype = [&]() {
+      test::execCommand(world, test::side1Id, rts::command::BuildPrototype{test::buildingTypeId});
+    };
+
+    auto triggerBuild = [&](Point target) {
+      test::execCommand(
+          world, test::side1Id, rts::command::TriggerAbility{test::BuildAbilityIndex, target});
+    };
+
+    UnitId u1{world.add(test::Factory::simpleton(world, test::side1Id), Point{20, 3})};
+    UnitId u2{world.add(test::Factory::simpleton(world, test::side1Id), Point{21, 3})};
+    UnitId u3{world.add(test::Factory::thirdy(world, test::side1Id), Point{22, 3})};
+    auto& unit1{world[u1]};
+
+    expectedResources.gas.allocate(2 * test::SimpletonGasCost + test::ThirdyGasCost);
+    expectedResources.supply.allocate(2 * test::SimpletonSupplyCost + test::ThirdySupplyCost);
+    REQUIRE(test::TestResources{side1} == expectedResources);
+
+    test::select(world, test::side1Id, {u1, u2, u3});
+    REQUIRE(side1.selection().subgroupType(world) == test::simpletonTypeId);
+    REQUIRE(!side1.prototype());
+
+    SECTION("Prototype creation is attempted with insufficient resources") {
+      side1.resources().allocate(
+          {{test::gasResourceId, side1.resource(test::gasResourceId).available()}});
+      buildPrototype();
+      REQUIRE(!side1.prototype());
+      REQUIRE(side1.messages().size() == 1);
+      REQUIRE_THAT(side1.messages()[0].text, Equals("Not enough gas!"));
+    }
+
+    SECTION("A prototype is created") {
+      buildPrototype();
+      REQUIRE(side1.prototype());
+      REQUIRE(test::TestResources{side1} == expectedResources);
+
+      SECTION("A command cancels the build and the prototype is destroyed") {
+        test::select(world, test::side1Id, {u1});
+        REQUIRE(!side1.prototype());
+        REQUIRE(test::TestResources{side1} == expectedResources);
+      }
+
+      SECTION("Prototype is destroyed when all builder units are destroyed") {
+        world.destroy(u1);
+        expectedResources.gas.lose(test::SimpletonGasCost);
+        expectedResources.supply.restore(test::SimpletonSupplyCost);
+        REQUIRE(test::TestResources{side1} == expectedResources);
+        REQUIRE(side1.prototype());
+
+        world.destroy(u2);
+        REQUIRE(!side1.prototype());
+        expectedResources.gas.lose(test::SimpletonGasCost);
+        expectedResources.supply.restore(test::SimpletonSupplyCost);
+        REQUIRE(test::TestResources{side1} == expectedResources);
+      }
+
+      SECTION("Build is attempted on occupied location") {
+        triggerBuild({18, 6});
+        REQUIRE(side1.messages().size() == 1);
+        REQUIRE_THAT(side1.messages()[0].text, Equals("INVALID LOCATION!"));
+        REQUIRE(side1.prototype());
+      }
+
+      SECTION("The 'build' ability is triggered") {
+        auto builtUnitWId{cworld.weakId(cworld[side1.prototype()])};
+        auto* builtUnit{cworld.units[builtUnitWId]};
+        REQUIRE(builtUnit);
+        REQUIRE(builtUnit->state == Unit::State::New);
+
+        const Map& protoMap{side1.prototypeMap()};
+        const AbilityState& buildAbilityState{
+            Unit::abilityState(UnitStableRef{unit1}, cworld, abilities::Kind::Build)};
+
+        const Point center{20, 8};
+        triggerBuild(center);
+
+        ++world.time;
+        REQUIRE(test::nextStepTime(unit1) == world.time);
+        test::stepUpdate(world, unit1);
+
+        builtUnit = cworld.units[builtUnitWId];
+        REQUIRE(builtUnit);
+        REQUIRE(builtUnit->state == Unit::State::Buildable);
+
+        expectedResources.gas.allocate(test::BuildingGasCost);
+        REQUIRE(test::TestResources{side1} == expectedResources);
+
+        REQUIRE(buildAbilityState.active());
+        REQUIRE(!side1.prototype());
+        REQUIRE(protoMap[center].contains(Cell::Unit));
+        REQUIRE(cworld[center].empty());
+
+        test::continueMove(world, unit1);
+        REQUIRE(unit1.area.topLeft == Point{20, 6});
+
+        builtUnit = cworld.units[builtUnitWId];
+        REQUIRE(builtUnit);
+        REQUIRE(builtUnit->state == Unit::State::Buildable);
+
+        REQUIRE(buildAbilityState.active());
+        world.time = test::nextStepTime(unit1);
+        test::stepUpdate(world, unit1);
+        REQUIRE(buildAbilityState.active());
+        world.time = test::nextStepTime(unit1);
+        test::stepUpdate(world, unit1);
+
+        REQUIRE(protoMap[center].empty());
+        REQUIRE(cworld[center].contains(Cell::Unit));
+
+        REQUIRE(!buildAbilityState.active());
+
+        builtUnit = cworld.units[builtUnitWId];
+        REQUIRE(builtUnit);
+        REQUIRE(builtUnit->state == Unit::State::Building);
+
+        REQUIRE(test::TestResources{side1} == expectedResources);
+
+        world.time += test::BuildingBuildTime;
+        REQUIRE(test::nextStepTime(*builtUnit) == world.time);
+        test::stepUpdate(world, *builtUnit);
+        REQUIRE(builtUnit->state == Unit::State::Active);
+
+        expectedResources.supply.provision(test::BuildingSupplyProvision);
+        REQUIRE(test::TestResources{side1} == expectedResources);
+      }
     }
   }
 }

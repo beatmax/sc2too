@@ -12,11 +12,15 @@ namespace test {
   constexpr rts::Quantity MaxSupplySlots{200};
 
   constexpr rts::AbilityInstanceIndex MoveAbilityIndex{0};
+  constexpr rts::AbilityInstanceIndex BuildAbilityIndex{1};
+
   constexpr rts::AbilityInstanceIndex ProduceSimpletonAbilityIndex{0};
   constexpr rts::AbilityInstanceIndex ProduceThirdyAbilityIndex{1};
   constexpr rts::AbilityInstanceIndex SetRallyPointAbilityIndex{2};
 
+  constexpr rts::Quantity BuildingGasCost{20};
   constexpr rts::Quantity BuildingSupplyProvision{15};
+  constexpr rts::Quantity BuildingBuildTime{30};
   constexpr rts::Quantity SimpletonGasCost{10};
   constexpr rts::Quantity SimpletonSupplyCost{2};
   constexpr rts::GameTime SimpletonBuildTime{100};
@@ -29,6 +33,7 @@ namespace test {
   extern rts::ResourceId gasResourceId;
   extern rts::ResourceId supplyResourceId;
   extern rts::AbilityId moveAbilityId;
+  extern rts::AbilityId buildAbilityId;
   extern rts::AbilityId produceSimpletonAbilityId;
   extern rts::AbilityId produceThirdyAbilityId;
   extern rts::AbilityId setRallyPointAbilityId;
@@ -61,12 +66,12 @@ namespace test {
 
   struct Factory : rts::Factory {
     void init(rts::World& w) final;
-    rts::UnitId create(rts::World& w, rts::UnitTypeId t, rts::Point p, rts::SideId sd) final;
-    static rts::UnitId building(rts::World& w, rts::Point p, rts::SideId sd);
-    static rts::UnitId simpleton(rts::World& w, rts::Point p, rts::SideId sd);
-    static rts::UnitId thirdy(rts::World& w, rts::Point p, rts::SideId sd);
-    static rts::ResourceFieldId geyser(rts::World& w, rts::Point p);
-    static rts::BlockerId rock(rts::World& w, rts::Point p);
+    rts::UnitId create(rts::World& w, rts::UnitTypeId t, rts::SideId sd) final;
+    static rts::UnitId building(rts::World& w, rts::SideId sd);
+    static rts::UnitId simpleton(rts::World& w, rts::SideId sd);
+    static rts::UnitId thirdy(rts::World& w, rts::SideId sd);
+    static rts::ResourceFieldId geyser(rts::World& w);
+    static rts::BlockerId rock(rts::World& w);
   };
 
   class MapInitializer : public rts::MapInitializer {

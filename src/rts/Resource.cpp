@@ -52,6 +52,10 @@ void rts::ResourceAccount::deallocateFrom(ResourceBag& bag) {
   bag.transferAllTo(sink);
 }
 
+void rts::ResourceAccount::restore(Quantity q) {
+  allocated_.transferTo(available_, q);
+}
+
 void rts::ResourceAccount::restoreFrom(ResourceBag& bag, Quantity q) {
   allocated_.transferTo(available_, q);
   ResourceBag sink;
@@ -79,17 +83,17 @@ void rts::ResourceBank::deprovision(const ResourceQuantityList& quantities, Allo
 }
 
 rts::AllocResult rts::ResourceBank::allocate(
-    const ResourceQuantityList& quantities, AllocFilter filter, bool check) {
+    const ResourceQuantityList& quantities, AllocFilter filter, AllocMode mode) {
   ResourceBagArray bags;
-  return allocateTo(bags, quantities, filter, check);
+  return allocateTo(bags, quantities, filter, mode);
 }
 
 rts::AllocResult rts::ResourceBank::allocateTo(
     ResourceBagArray& bags,
     const ResourceQuantityList& quantities,
     AllocFilter filter,
-    bool check) {
-  if (check) {
+    AllocMode mode) {
+  if (mode != AllocMode::NoCheck) {
     for (auto& [r, q] : quantities) {
       const auto& a{accounts_[r]};
       if (a.match(filter)) {
@@ -100,10 +104,12 @@ rts::AllocResult rts::ResourceBank::allocateTo(
       }
     }
   }
-  for (auto& [r, q] : quantities) {
-    const auto& a{accounts_[r]};
-    if (a.match(filter))
-      accounts_[r].allocateTo(bags[r], q);
+  if (mode != AllocMode::CheckOnly) {
+    for (auto& [r, q] : quantities) {
+      const auto& a{accounts_[r]};
+      if (a.match(filter))
+        accounts_[r].allocateTo(bags[r], q);
+    }
   }
   return {AllocResult::Success, {}};
 }
@@ -116,6 +122,11 @@ void rts::ResourceBank::deallocate(const ResourceQuantityList& quantities) {
 void rts::ResourceBank::deallocateFrom(ResourceBagArray& bags) {
   for (auto r{minId()}; r <= maxId(); ++r)
     accounts_[r].deallocateFrom(bags[r]);
+}
+
+void rts::ResourceBank::restore(const ResourceQuantityList& quantities) {
+  for (auto& [r, q] : quantities)
+    accounts_[r].restore(q);
 }
 
 void rts::ResourceBank::restoreFrom(

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Command.h"
+#include "Map.h"
 #include "Message.h"
 #include "Resource.h"
 #include "Selection.h"
@@ -28,11 +29,22 @@ namespace rts {
     const ResourceAccount& resource(ResourceId r) const { return resources_[r]; }
     MessageList& messages() { return messages_; }
     const MessageList& messages() const { return messages_; }
+    Map& prototypeMap() { return prototypeMap_; }
+    const Map& prototypeMap() const { return prototypeMap_; }
+    void createPrototype(World& w, UnitTypeId t, UnitTypeId builderType);
+    void destroyPrototype(World& w);
+    UnitId takePrototype();
+    UnitId prototype() const { return prototype_; }
     const Ui& ui() const { return *ui_; }
+
+    void onMapLoaded(World& w);
+    void onUnitDestroyed(World& w);
 
   private:
     using ControlGroupArray = std::array<Selection, MaxControlGroups>;
 
+    void exec(const World& w, WorldActionList& actions, const command::BuildPrototype& cmd);
+    void exec(const World& w, WorldActionList& actions, const command::Cancel& cmd);
     void exec(const World& w, WorldActionList& actions, const command::ControlGroup& cmd);
     void exec(const World& w, WorldActionList& actions, const command::Selection& cmd);
     void exec(const World& w, WorldActionList& actions, const command::SelectionSubgroup& cmd);
@@ -44,6 +56,9 @@ namespace rts {
     Selection selection_;
     ControlGroupArray groups_;
     MessageList messages_;
+    Map prototypeMap_;
+    UnitId prototype_;
+    UnitTypeId prototypeBuilderType_;
     UiUPtr ui_;
   };
 }

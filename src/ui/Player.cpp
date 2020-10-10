@@ -4,6 +4,8 @@
 #include "rts/Side.h"
 #include "rts/Unit.h"
 #include "rts/World.h"
+#include "rts/abilities.h"
+#include "util/ScopeExit.h"
 #include "util/geo.h"
 
 #include <cassert>
@@ -34,19 +36,32 @@ namespace ui {
   }
 }
 
-std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const InputEvent& event) {
-  auto cmd{doProcessInput(w, event)};
-  if (cmd)
-    selectingAbilityTarget.reset();
-  return cmd;
+void ui::Player::update(const rts::World& w) {
+  if (state_ != State::Default) {
+    if (state_ == State::BuildingPrototype && w[side].prototype()) {
+      selectingAbilityTarget = {lastBuildAbilityIndex_};
+    }
+    else if (state_ == State::BuildTriggered && !w[side].prototype()) {
+      abilityPage = 0;
+      selectingAbilityTarget.reset();
+    }
+    state_ = State::Default;
+  }
 }
 
-std::optional<rts::Command> ui::Player::doProcessInput(
-    const rts::World& w, const InputEvent& event) {
+std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const InputEvent& event) {
   using ControlGroupCmd = rts::command::ControlGroup;
   using SelectionCmd = rts::command::Selection;
   using SelectionSubgroupCmd = rts::command::SelectionSubgroup;
   using RC = rts::RelativeContent;
+
+  util::ScopeExit finishTargetSelection;
+  if (selectingAbilityTarget)
+    finishTargetSelection = [this]() { selectingAbilityTarget.reset(); };
+
+  util::ScopeExit goToMainAbilityPage;
+  if (abilityPage)
+    goToMainAbilityPage = [this]() { abilityPage = 0; };
 
   switch (event.type) {
     case InputType::Unknown:
@@ -78,25 +93,38 @@ std::optional<rts::Command> ui::Player::doProcessInput(
           cameraPositions_[fkey] = camera.topLeft();
         else if (cameraPositions_[fkey])
           camera.setTopLeft(*cameraPositions_[fkey]);
+        break;
       }
-      else if ((selectionBox || selectingAbilityTarget) && Layout::cancel(event.symbol)) {
+      else if (Layout::cancel(event.symbol)) {
+        abilityPage = 0;
         selectionBox.reset();
         selectingAbilityTarget.reset();
+        if (w[side].prototype())
+          return rts::command::Cancel{};
+        break;
       }
-      else if (auto abilityIndex{Layout::abilityIndex(event.symbol)};
+      else if (auto abilityIndex{Layout::abilityIndex(event.symbol, abilityPage)};
                abilityIndex != rts::AbilityInstanceIndex::None) {
         assert(abilityIndex < rts::MaxUnitAbilities);
         auto subgroupType{w[side].selection().subgroupType(w)};
         if (subgroupType) {
           const auto& type{w[subgroupType]};
-          if (auto a{type.abilities[abilityIndex].abilityId}) {
-            if (w[a].targetType == rts::Ability::TargetType::None) {
-              return rts::command::TriggerAbility{a, {-1, -1}};
+          const auto& ai{type.abilities[abilityIndex]};
+          if (ai.kind != rts::abilities::Kind::None) {
+            if (ai.targetType == rts::abilities::TargetType::None)
+              return rts::command::TriggerAbility{abilityIndex, {-1, -1}};
+            selectionBox.reset();
+            if (ai.kind == rts::abilities::Kind::Build) {
+              goToMainAbilityPage.reset();
+              state_ = State::BuildingPrototype;
+              lastBuildAbilityIndex_ = abilityIndex;
+              return rts::command::BuildPrototype{ai.desc<rts::abilities::Build>().type};
             }
-            else {
-              selectingAbilityTarget = a;
-              selectionBox.reset();
-            }
+            selectingAbilityTarget = {abilityIndex};
+          }
+          else if (ai.goToPage) {
+            abilityPage = ai.goToPage;
+            selectingAbilityTarget.reset();
           }
         }
         break;
@@ -111,8 +139,14 @@ std::optional<rts::Command> ui::Player::doProcessInput(
         auto mouseCell{*event.mouseCell};
 
         if (event.mouseButton == InputButton::Button1) {
-          if (selectingAbilityTarget)
-            return rts::command::TriggerAbility{*selectingAbilityTarget, mouseCell};
+          if (selectingAbilityTarget) {
+            if (w[side].prototype()) {
+              finishTargetSelection.reset();
+              goToMainAbilityPage.reset();
+              state_ = State::BuildTriggered;
+            }
+            return rts::command::TriggerAbility{selectingAbilityTarget->abilityIndex, mouseCell};
+          }
           auto rc{w.relativeContent(side, mouseCell)};
           if (rc == RC::Friend) {
             auto unit{w.unitId(mouseCell)};
@@ -160,6 +194,8 @@ std::optional<rts::Command> ui::Player::doProcessInput(
       break;
   }
 
+  finishTargetSelection.reset();
+  goToMainAbilityPage.reset();
   return std::nullopt;
 }
 

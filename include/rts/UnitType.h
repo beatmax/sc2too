@@ -11,7 +11,7 @@ namespace rts {
   class UnitType {
   public:
     std::array<abilities::Instance, MaxUnitAbilities> abilities{};
-    std::array<AbilityId, uint32_t(RelativeContent::Count)> defaultAbility{};
+    std::array<AbilityInstanceIndex, uint32_t(RelativeContent::Count)> defaultAbility{};
     ResourceQuantityList cost;
     ResourceQuantityList provision;
     GameTime buildTime;
@@ -26,6 +26,7 @@ namespace rts {
     }
 
     AbilityInstanceIndex abilityIndex(AbilityId ability) const;
+    AbilityInstanceIndex abilityIndex(abilities::Kind kind) const;
     AbilityStateIndex abilityStateIndex(abilities::Kind kind) const;
 
   private:

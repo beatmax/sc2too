@@ -20,4 +20,8 @@ namespace sc2 {
   static constexpr rts::Quantity ProbeMineralCost{50};
   static constexpr rts::Quantity ProbeSupplyCost{1};
   static constexpr rts::Quantity ProbeCargoCapacity{5};
+
+  static constexpr rts::GameTime PylonBuildTime{18 * rts::GameTimeSecond};
+  static constexpr rts::Quantity PylonMineralCost{100};
+  static constexpr rts::Quantity PylonSupplyProvision{8};
 }

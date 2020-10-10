@@ -9,6 +9,6 @@ namespace rts::abilities::state {
   public:
     using Desc = abilities::SetRallyPoint;
 
-    static void trigger(World& w, Unit& u, const Desc& desc, Point target);
+    static void trigger(World& w, Unit& u, const Desc& desc, const AbilityTarget& target);
   };
 }

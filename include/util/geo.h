@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdlib>
 #include <functional>
 #include <iosfwd>
@@ -59,7 +60,7 @@ namespace util::geo {
     struct PointIterator {
       using iterator_category = std::forward_iterator_tag;
       using value_type = Point;
-      using difference_type = void;
+      using difference_type = std::ptrdiff_t;
       using pointer = const Point*;
       using reference = const Point&;
 
@@ -125,8 +126,14 @@ namespace util::geo {
     OuterPointRange outerPoints() const { return OuterPointRange{*this}; }
   };
 
+  inline Rectangle rectangleCenteredAt(Point center, Vector size) {
+    return Rectangle{center - (size - Vector{1, 1}) / 2, size};
+  }
+  Rectangle rectangleCenteredAt(Point center, Vector size, const Rectangle& bounds);
+
   bool intersect(const Rectangle& r1, const Rectangle& r2);
   Rectangle intersection(const Rectangle& r1, const Rectangle& r2);
+  std::optional<Rectangle> maybeIntersection(const Rectangle& r1, const Rectangle& r2);
 
   struct AtBorder {
     AtBorder(const Rectangle& r, const Point& p)

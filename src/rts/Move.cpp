@@ -19,7 +19,7 @@ namespace rts {
 }
 
 void rts::abilities::state::Move::trigger(
-    World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, Point target) {
+    World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, const AbilityTarget& target) {
   if (as)
     as->cancel(w);
   as = std::make_unique<Move>(desc, target);
@@ -35,7 +35,7 @@ rts::AbilityStepResult rts::abilities::state::Move::step(const World& w, UnitSta
     return GameTime{0};
 
   const bool wasEmpty{path_.empty()};
-  std::tie(path_, completePath_) = findPath(w, pos, target_);
+  std::tie(path_, completePath_) = findPathToTarget(w, pos, target_);
 
   return (wasEmpty && !path_.empty()) ? adjacentDistance(pos, path_.front()) / desc_.speed
                                       : (path_.empty() && !completePath_) ? MoveRetryTime : 1;

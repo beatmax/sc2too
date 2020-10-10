@@ -5,7 +5,8 @@
 
 #include <cassert>
 
-void rts::AbilityState::trigger(World& w, Unit& u, const abilities::Instance& ai, Point target) {
+void rts::AbilityState::trigger(
+    World& w, Unit& u, const abilities::Instance& ai, const AbilityTarget& target) {
   ai.trigger(w, u, activeState_, target);
   if (nextStepTime_ == GameTimeInf && activeState_)
     nextStepTime_ = w.time + 1;

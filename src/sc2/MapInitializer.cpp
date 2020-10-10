@@ -5,28 +5,33 @@
 #include "util/algorithm.h"
 
 #include <cassert>
+#include <iterator>
 
 rts::Cell::Content sc2::MapInitializer::operator()(
     rts::World& w, rts::Point p, char c, const std::vector<std::string>& lines) const {
-  static auto sideIt = w.sides.begin();
+  static auto side1It = w.sides.begin();
+  static auto side2It = std::next(side1It);
+  const auto side{w.sides.id(
+      (p.y >= rts::Coordinate(lines.size() / 2) && side2It != w.sides.end()) ? *side2It
+                                                                             : *side1It)};
   switch (c) {
     case 'g':
-      return Factory::geyser(w, p);
+      return Factory::geyser(w);
     case 'm':
-      return Factory::mineralPatch(w, p, mineralGroup(w, p));
+      return Factory::mineralPatch(w, mineralGroup(w, p));
     case 'n':
-      if (sideIt == w.sides.end())
-        sideIt = w.sides.begin();
-      return Factory::nexus(w, p, w.sides.id(*sideIt++));
+      return Factory::nexus(w, side);
+    case 'p':
+      return Factory::pylon(w, side);
     case 'r':
       if (util::allOf(rts::Rectangle{p, {2, 2}}.points(), [&](rts::Point q) {
             return rts::Coordinate(lines.size()) > q.y &&
                 rts::Coordinate(lines[q.y].size()) > q.x && lines[q.y][q.x] == 'r' &&
                 w.map[q].empty();
           }))
-        return Factory::rock(w, p, {2, 2});
+        return Factory::rock(w, {2, 2});
       else
-        return Factory::rock(w, p, {1, 1});
+        return Factory::rock(w, {1, 1});
     default:
       return rts::Cell::Empty{};
   }

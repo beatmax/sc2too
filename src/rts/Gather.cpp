@@ -13,10 +13,11 @@ namespace rts {
 }
 
 void rts::abilities::state::Gather::trigger(
-    World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, Point target) {
+    World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, const AbilityTarget& target) {
   if (as)
     as->cancel(w);
-  as = std::make_unique<Gather>(desc, target);
+  assert(std::holds_alternative<Point>(target));
+  as = std::make_unique<Gather>(desc, std::get<Point>(target));
 }
 
 rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitStableRef u) {
@@ -25,7 +26,7 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitS
       return init(w, u);
 
     case State::MovingToTarget:
-      if (Unit::abilityState(u, w, abilities::Kind::Move).active())
+      if (Unit::abilityState(u, w, Kind::Move).active())
         return MonitorTime;
       if (auto rf{w[targetField_]}) {
         if (adjacent(u->area, rf->area))
@@ -67,7 +68,7 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitS
     }
 
     case State::MovingToBase:
-      if (Unit::abilityState(u, w, abilities::Kind::Move).active())
+      if (Unit::abilityState(u, w, Kind::Move).active())
         return MonitorTime;
       if (auto b{w[base_]}) {
         if (adjacent(u->area, b->area)) {
@@ -105,7 +106,9 @@ rts::AbilityStepResult rts::abilities::state::Gather::init(const World& w, const
 
 rts::AbilityStepAction rts::abilities::state::Gather::moveTo(Point p) {
   return [this, p](World& w, Unit& u) {
-    u.trigger(desc_.moveAbility, w, p, Unit::CancelOthers::No);
+    auto moveIndex{w[u.type].abilityIndex(Kind::Move)};
+    assert(moveIndex != AbilityStateIndex::None);
+    u.trigger(moveIndex, w, p, Unit::CancelOthers::No);
     return MonitorTime;
   };
 }

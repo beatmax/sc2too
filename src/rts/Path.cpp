@@ -70,12 +70,20 @@ namespace rts {
 }
 
 std::pair<rts::Path, bool> rts::findPath(const World& w, Point start, Point goal) {
-  using AStar = util::AStar<Graph>;
-
   auto object{w.object(goal)};
   auto goalArea{object ? boundingBox(object->area) : Rectangle{goal, {1, 1}}};
-  auto isGoal{[goalArea](Point p) { return goalArea.contains(p); }};
+  return findPath(w, start, goal, goalArea);
+}
 
+std::pair<rts::Path, bool> rts::findPath(const World& w, Point start, const Rectangle& goalArea) {
+  return findPath(w, start, goalArea.center(), goalArea);
+}
+
+std::pair<rts::Path, bool> rts::findPath(
+    const World& w, Point start, Point goal, const Rectangle& goalArea) {
+  using AStar = util::AStar<Graph>;
+
+  auto isGoal{[goalArea](Point p) { return goalArea.contains(p); }};
   auto h{[goal](Point p) { return diagonalDistance(p, goal); }};
 
   AStar::StateMap state;
@@ -89,4 +97,13 @@ std::pair<rts::Path, bool> rts::findPath(const World& w, Point start, Point goal
 
   auto path{util::reconstructPath<Path>(state, start, closest)};
   return {std::move(path), isGoal(closest)};
+}
+
+std::pair<rts::Path, bool> rts::findPath(const World& w, Point start, UnitId unit) {
+  return findPath(w, start, boundingBox(w[unit].area));
+}
+
+std::pair<rts::Path, bool> rts::findPathToTarget(
+    const World& w, Point start, const AbilityTarget& target) {
+  return std::visit([&](const auto& t) { return findPath(w, start, t); }, target);
 }

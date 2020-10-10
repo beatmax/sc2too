@@ -68,13 +68,13 @@ rts::GameTime rts::ProductionQueue::buildTime(const World& w) const {
 
 void rts::ProductionQueue::create(World& w, UnitTypeId type, Point p) {
   w[side_].resources().restoreFrom(resources_, w[type].cost);
-  auto& unit{w[w.createUnit(type, p, side_)]};
+  auto& unit{w[w.add(w.createUnit(type, side_), p)]};
   if (rallyPoint_) {
     const auto& unitType{w.unitTypes[unit.type]};
     auto rc{
         w[*rallyPoint_].contains(Cell::ResourceField) ? RelativeContent::Resource
                                                       : RelativeContent::Ground};
-    if (auto a{unitType.defaultAbility[uint32_t(rc)]})
-      unit.trigger(a, w, *rallyPoint_);
+    if (auto ai{unitType.defaultAbility[uint32_t(rc)]}; ai != AbilityInstanceIndex::None)
+      unit.trigger(ai, w, *rallyPoint_);
   }
 }

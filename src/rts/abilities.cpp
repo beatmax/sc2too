@@ -1,5 +1,6 @@
 #include "rts/abilities.h"
 
+#include "Build.h"
 #include "Gather.h"
 #include "Move.h"
 #include "Produce.h"
@@ -7,6 +8,7 @@
 
 int rts::abilities::mutualCancelGroup(Kind kind) {
   switch (kind) {
+    case Kind::Build:
     case Kind::Gather:
     case Kind::Move:
       return 1;
@@ -15,18 +17,27 @@ int rts::abilities::mutualCancelGroup(Kind kind) {
   }
 }
 
-rts::abilities::Instance rts::abilities::instance(const Gather& desc, AbilityStateIndex as) {
-  return Instance{Gather::kind, desc.id, as, state::Gather::makeTrigger(desc)};
+template<typename D>
+rts::abilities::Instance rts::abilities::instance(const D& desc, AbilityStateIndex as) {
+  return Instance{
+      D::kind,
+      desc.id,
+      0,
+      D::groupMode,
+      D::targetType,
+      as,
+      D::AbilityState::makeTrigger(desc),
+      [desc]() -> const void* { return &desc; }};
 }
 
-rts::abilities::Instance rts::abilities::instance(const Move& desc, AbilityStateIndex as) {
-  return Instance{Move::kind, desc.id, as, state::Move::makeTrigger(desc)};
+rts::abilities::Instance rts::abilities::instance(const GoToPage& desc, AbilityStateIndex) {
+  return Instance{GoToPage::kind, desc.id, desc.page};
 }
 
-rts::abilities::Instance rts::abilities::instance(const Produce& desc, AbilityStateIndex as) {
-  return Instance{Produce::kind, desc.id, as, state::Produce::makeTrigger(desc)};
-}
-
-rts::abilities::Instance rts::abilities::instance(const SetRallyPoint& desc, AbilityStateIndex as) {
-  return Instance{SetRallyPoint::kind, desc.id, as, state::SetRallyPoint::makeTrigger(desc)};
+namespace rts::abilities {
+  template Instance instance<Build>(const Build&, AbilityStateIndex);
+  template Instance instance<Gather>(const Gather&, AbilityStateIndex);
+  template Instance instance<Move>(const Move&, AbilityStateIndex);
+  template Instance instance<Produce>(const Produce&, AbilityStateIndex);
+  template Instance instance<SetRallyPoint>(const SetRallyPoint&, AbilityStateIndex);
 }
