@@ -722,6 +722,13 @@ TEST_CASE("Hello world!", "[rts]") {
         expectedResources.supply.allocate(test::SimpletonSupplyCost);
         REQUIRE(test::TestResources{side1} == expectedResources);
 
+        // free slots dropping to negative should not cause trouble
+        auto slots{side1.resource(test::supplyResourceId).totalSlots()};
+        side1.resources().deprovision({{test::supplyResourceId, slots}});
+        expectedResources.supply.provision(-slots);
+        REQUIRE(test::TestResources{side1} == expectedResources);
+        REQUIRE(side1.resource(test::supplyResourceId).freeSlots() < 0);
+
         world.time += test::SimpletonBuildTime;
         REQUIRE(test::nextStepTime(cb) == world.time);
         test::stepUpdate(world, cb);

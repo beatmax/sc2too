@@ -68,7 +68,8 @@ rts::GameTime rts::ProductionQueue::buildTime(const World& w) const {
 
 void rts::ProductionQueue::create(World& w, UnitTypeId type, Point p) {
   w[side_].resources().restoreFrom(resources_, w[type].cost);
-  auto& unit{w[w.add(w.createUnit(type, side_), p)]};
+  // allocCheck = false; negative free slots are possible
+  auto& unit{w[w.add(w.createUnit(type, side_), p, false)]};
   if (rallyPoint_) {
     const auto& unitType{w.unitTypes[unit.type]};
     auto rc{
