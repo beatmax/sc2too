@@ -97,6 +97,14 @@ void rts::Unit::destroy(World& w) {
   state = State::Destroyed;
 }
 
+bool rts::Unit::hasEnabledAbility(
+    const World& w, AbilityInstanceIndex abilityIndex, AbilityId abilityId) const {
+  const auto& abilityInstance{w[type].abilities[abilityIndex]};
+  return abilityInstance.abilityId == abilityId &&
+      (state == State::Active ||
+       (state == State::Building && abilityInstance.availableWhileBuilding));
+}
+
 void rts::Unit::trigger(
     AbilityInstanceIndex abilityIndex,
     World& w,
@@ -105,6 +113,10 @@ void rts::Unit::trigger(
   const auto& unitType{w[type]};
   const auto& abilityInstance{unitType.abilities[abilityIndex]};
   if (abilityInstance.kind == abilities::Kind::None)
+    return;
+
+  if (!(state == State::Active ||
+        (state == State::Building && abilityInstance.availableWhileBuilding)))
     return;
 
   AbilityState& abilityState{abilityStates_[abilityInstance.stateIndex]};

@@ -151,7 +151,7 @@ rts::UnitIdList rts::World::unitsInArea(const Rectangle& area, SideId side, Unit
     if (auto uId{unitId(p)}) {
       if (!util::contains(result, uId)) {
         const auto& u{units[uId]};
-        if (u.active() && (!side || u.side == side) && (!type || u.type == type))
+        if (u.activeOrBuilding() && (!side || u.side == side) && (!type || u.type == type))
           result.push_back(uId);
       }
     }
@@ -159,7 +159,7 @@ rts::UnitIdList rts::World::unitsInArea(const Rectangle& area, SideId side, Unit
   return result;
 }
 
-rts::Unit* rts::World::closestUnit(Point p, SideId side, UnitTypeId type) {
+rts::Unit* rts::World::closestActiveUnit(Point p, SideId side, UnitTypeId type) {
   Unit* closest{nullptr};
   float closestDistance{std::numeric_limits<float>::infinity()};
   for (auto& u : units) {

@@ -226,15 +226,22 @@ namespace ui {
     }
 
     void drawAbilities(
-        const IOState& ios, const rts::World& w, const Player& player, const rts::UnitType& type) {
+        const IOState& ios,
+        const rts::World& w,
+        const Player& player,
+        const rts::Selection::Subgroup& subgroup) {
       const auto& win{ios.controlWin};
+
+      auto enabled{subgroup.abilityEnabled(w)};
 
       for (int row{0}; row < 3; ++row) {
         for (int col{0}; col < 5; ++col) {
           rts::AbilityInstanceIndex ai(
               player.abilityPage * rts::MaxUnitAbilitiesPerPage + row * 5 + col);
           assert(ai < rts::MaxUnitAbilities);
-          if (auto a{type.abilities[ai].abilityId}) {
+          if (!enabled[ai])
+            continue;
+          if (const auto a{subgroup.abilities[ai]->abilityId}) {
             ScreenRect rect{
                 {79 + col * (dim::cellWidth + 2), 2 + row * (dim::cellHeight + 1)},
                 {dim::cellWidth + 1, dim::cellHeight}};
@@ -323,10 +330,9 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   drawFps(ios_, engine);
   drawControlGroups(ios_, w, side);
 
-  auto subgroupType{side.selection().subgroupType(w)};
-  drawSelection(ios_, w, side.selection(), subgroupType);
-  if (subgroupType)
-    drawAbilities(ios_, w, player, w[subgroupType]);
+  const auto& subgroup{side.selection().subgroup(w)};
+  drawSelection(ios_, w, side.selection(), subgroup.type);
+  drawAbilities(ios_, w, player, subgroup);
   drawMessages(ios_, w, side.messages());
 
   if (termTooSmall) {

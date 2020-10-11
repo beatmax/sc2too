@@ -37,6 +37,11 @@ namespace util {
   }
 
   template<typename C, typename P>
+  bool anyOf(const C& c, P p) {
+    return std::any_of(std::begin(c), std::end(c), p);
+  }
+
+  template<typename C, typename P>
   auto findIf(const C& c, P p) -> decltype(std::begin(c)) {
     return std::find_if(std::begin(c), std::end(c), p);
   }

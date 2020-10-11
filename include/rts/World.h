@@ -185,9 +185,9 @@ namespace rts {
     std::set<WorldObjectCPtr> objectsInArea(const Rectangle& area) const;
     std::set<WorldObjectCPtr> objectsInArea(const Rectangle& area, const Map& m) const;
     UnitIdList unitsInArea(const Rectangle& area, SideId side = {}, UnitTypeId type = {}) const;
-    Unit* closestUnit(Point p, SideId side, UnitTypeId type);
-    const Unit* closestUnit(Point p, SideId side, UnitTypeId type) const {
-      return const_cast<World&>(*this).closestUnit(p, side, type);
+    Unit* closestActiveUnit(Point p, SideId side, UnitTypeId type);
+    const Unit* closestActiveUnit(Point p, SideId side, UnitTypeId type) const {
+      return const_cast<World&>(*this).closestActiveUnit(p, side, type);
     }
     const ResourceField* closestResourceField(Point p, ResourceGroupId group, bool blockedOk) const;
     const ResourceField* closestResourceField(Point p, ResourceId r) const;

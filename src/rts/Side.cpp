@@ -39,10 +39,9 @@ rts::WorldActionList rts::Side::exec(const World& w, const Command& cmd) {
   if (prototype_) {
     bool keepPrototype{false};
     if (auto* triggerCmd{std::get_if<command::TriggerAbility>(&cmd)}) {
-      if (auto t{selection_.subgroupType(w)}) {
-        if (w[t].abilities[triggerCmd->abilityIndex].kind == abilities::Kind::Build)
-          keepPrototype = true;
-      }
+      const auto* a{selection_.subgroup(w).abilities[triggerCmd->abilityIndex]};
+      if (a && a->kind == abilities::Kind::Build)
+        keepPrototype = true;
     }
     if (!keepPrototype)
       actions += [side{w.id(*this)}](World& w) { w[side].destroyPrototype(w); };
@@ -71,16 +70,16 @@ void rts::Side::exec(const World& w, WorldActionList& actions, const command::Co
   if (cmd.exclusive) {
     for (ControlGroupId g{0}; g < MaxControlGroups; ++g) {
       if (g != cmd.group)
-        groups_[g].remove(selection_.ids(w));
+        groups_[g].remove(w, selection_.ids(w));
     }
   }
 }
 
 void rts::Side::exec(const World& w, WorldActionList& actions, const command::BuildPrototype& cmd) {
-  actions += [side{w.id(*this)}, t{cmd.unitType}](World& w) {
+  auto builderType{selection_.subgroup(w).type};
+  assert(builderType);
+  actions += [side{w.id(*this)}, t{cmd.unitType}, builderType](World& w) {
     auto& s{w[side]};
-    auto builderType{s.selection().subgroupType(w)};
-    assert(builderType);
     s.createPrototype(w, t, builderType);
   };
 }
@@ -97,7 +96,7 @@ void rts::Side::exec(const World& w, WorldActionList& actions, const command::Se
       selection_.add(w, cmd.units);
       break;
     case command::Selection::Remove:
-      selection_.remove(cmd.units);
+      selection_.remove(w, cmd.units);
       break;
   }
 }
@@ -115,37 +114,46 @@ void rts::Side::exec(
 }
 
 void rts::Side::exec(const World& w, WorldActionList& actions, const command::TriggerAbility& cmd) {
-  actions += [t{selection_.subgroupType(w)}, ids{selection_.ids(w)}, abilityIndex{cmd.abilityIndex},
-              target{cmd.target}](World& w) {
-    assert(t);
-    const auto& ai{w[t].abilities[abilityIndex]};
-    assert(ai.kind != abilities::Kind::None);
-    if (ai.groupMode == abilities::GroupMode::One) {
-      auto it{util::findIf(ids, [&](UnitId id) {
-        return !Unit::abilityState(UnitStableRef{w[id]}, w, ai.kind).active();
-      })};
-      if (it == ids.end())
-        it = ids.begin();
+  const auto* a{selection_.subgroup(w).abilities[cmd.abilityIndex]};
+  assert(a);
 
-      w[*it].trigger(abilityIndex, w, target);
-    }
-    else {
-      for (auto u : ids)
-        w[u].trigger(abilityIndex, w, target);
-    }
+  UnitIdList ids = util::filter(selection_.ids(w), [&](UnitId id) {
+    return w[id].hasEnabledAbility(w, cmd.abilityIndex, a->abilityId);
+  });
+
+  if (a->groupMode == abilities::GroupMode::One && !ids.empty()) {
+    auto it{util::findIf(ids, [&](UnitId id) {
+      return !Unit::abilityState(UnitStableRef{w[id]}, w, a->kind).active();
+    })};
+    if (it == ids.end())
+      it = ids.begin();
+    ids = {*it};
+  }
+
+  actions += [ids{std::move(ids)}, abilityIndex{cmd.abilityIndex}, target{cmd.target}](World& w) {
+    for (auto u : ids)
+      w[u].trigger(abilityIndex, w, target);
   };
 }
 
 void rts::Side::exec(
     const World& w, WorldActionList& actions, const command::TriggerDefaultAbility& cmd) {
-  actions += [side{w.id(*this)}, ids{selection_.ids(w)}, target{cmd.target}](World& w) {
-    for (auto u : ids) {
-      auto& unit{w[u]};
-      const auto& unitType{w.unitTypes[unit.type]};
-      auto rc{w.relativeContent(side, target)};
-      if (auto ai{unitType.defaultAbility[uint32_t(rc)]}; ai != AbilityInstanceIndex::None)
-        unit.trigger(ai, w, target);
-    }
+  const auto& subgroup{selection_.subgroup(w)};
+
+  auto rc{w.relativeContent(w.id(*this), cmd.target)};
+  auto abilityIndex{subgroup.defaultAbility[uint32_t(rc)]};
+  if (abilityIndex == AbilityInstanceIndex::None)
+    return;
+
+  const auto* a{subgroup.abilities[abilityIndex]};
+  assert(a);
+  UnitIdList ids = util::filter(selection_.ids(w), [&](UnitId id) {
+    return w[id].hasEnabledAbility(w, abilityIndex, a->abilityId);
+  });
+
+  actions += [ids{std::move(ids)}, abilityIndex, target{cmd.target}](World& w) {
+    for (auto u : ids)
+      w[u].trigger(abilityIndex, w, target);
   };
 }
 
@@ -163,6 +171,6 @@ void rts::Side::onMapLoaded(World& w) {
 }
 
 void rts::Side::onUnitDestroyed(World& w) {
-  if (prototype_ && selection().subgroupType(w) != prototypeBuilderType_)
+  if (prototype_ && selection().subgroup(w).type != prototypeBuilderType_)
     destroyPrototype(w);
 }

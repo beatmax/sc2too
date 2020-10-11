@@ -25,6 +25,7 @@ rts::abilities::Instance rts::abilities::instance(const D& desc, AbilityStateInd
       0,
       D::groupMode,
       D::targetType,
+      D::availableWhileBuilding,
       as,
       D::AbilityState::makeTrigger(desc),
       [desc]() -> const void* { return &desc; }};

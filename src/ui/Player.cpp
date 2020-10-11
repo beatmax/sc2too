@@ -106,21 +106,22 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
       else if (auto abilityIndex{Layout::abilityIndex(event.symbol, abilityPage)};
                abilityIndex != rts::AbilityInstanceIndex::None) {
         assert(abilityIndex < rts::MaxUnitAbilities);
-        auto subgroupType{w[side].selection().subgroupType(w)};
-        if (subgroupType) {
-          const auto& type{w[subgroupType]};
-          const auto& ai{type.abilities[abilityIndex]};
+        const auto& subgroup{w[side].selection().subgroup(w)};
+        if (subgroup.abilityEnabled(w, abilityIndex)) {
+          const auto& ai{*subgroup.abilities[abilityIndex]};
           if (ai.kind != rts::abilities::Kind::None) {
             if (ai.targetType == rts::abilities::TargetType::None)
               return rts::command::TriggerAbility{abilityIndex, {-1, -1}};
             selectionBox.reset();
-            if (ai.kind == rts::abilities::Kind::Build) {
+            if (ai.kind != rts::abilities::Kind::Build) {
+              selectingAbilityTarget = {abilityIndex};
+            }
+            else if (subgroup.type) {
               goToMainAbilityPage.reset();
               state_ = State::BuildingPrototype;
               lastBuildAbilityIndex_ = abilityIndex;
               return rts::command::BuildPrototype{ai.desc<rts::abilities::Build>().type};
             }
-            selectingAbilityTarget = {abilityIndex};
           }
           else if (ai.goToPage) {
             abilityPage = ai.goToPage;

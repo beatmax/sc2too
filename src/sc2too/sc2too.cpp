@@ -38,7 +38,7 @@ int main() try {
   world.loadMap(sc2::Assets::mapInitializer(), std::ifstream{"data/maps/ascii_jungle.txt"});
   ui::Player player{side, ui::Camera{{2, 6}, world.map.area()}};
 
-  auto* nexus{world.closestUnit(player.camera.area().center(), side, sc2::UnitTypes::nexus)};
+  auto* nexus{world.closestActiveUnit(player.camera.area().center(), side, sc2::UnitTypes::nexus)};
   assert(nexus);
   auto* closestMineral{world.closestResourceField(nexus->area.center(), sc2::Resources::mineral)};
   assert(closestMineral);

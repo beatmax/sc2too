@@ -339,7 +339,7 @@ TEST_CASE("Hello world!", "[rts]") {
     constexpr bool Exclusive{true};
     auto groupUnits = [&](ControlGroupId g) { return side1.group(g).ids(world); };
     auto selectedUnits = [&]() { return side1.selection().ids(world); };
-    auto subgroupType = [&]() { return side1.selection().subgroupType(world); };
+    auto subgroupType = [&]() { return side1.selection().subgroup(world).type; };
 
     UnitId u1{world.add(test::Factory::simpleton(world, test::side1Id), Point{21, 5})};
     UnitId u2{world.add(test::Factory::simpleton(world, test::side1Id), Point{22, 5})};
@@ -877,7 +877,7 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(test::TestResources{side1} == expectedResources);
 
     test::select(world, test::side1Id, {u1, u2, u3});
-    REQUIRE(side1.selection().subgroupType(world) == test::simpletonTypeId);
+    REQUIRE(side1.selection().subgroup(world).type == test::simpletonTypeId);
     REQUIRE(!side1.prototype());
 
     SECTION("Prototype creation is attempted with insufficient resources") {

@@ -39,6 +39,9 @@ namespace rts {
     void destroy(World& w);
 
     bool active() const { return state == State::Active; }
+    bool activeOrBuilding() const { return state == State::Active || state == State::Building; }
+    bool hasEnabledAbility(
+        const World& w, AbilityInstanceIndex abilityIndex, AbilityId abilityId) const;
 
     void trigger(
         AbilityInstanceIndex abilityIndex,
