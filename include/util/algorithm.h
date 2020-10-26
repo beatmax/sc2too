@@ -72,4 +72,28 @@ namespace util {
     }
     return smallest;
   }
+
+  template<typename C, typename S, typename R = typename C::value_type>
+  R join(const C& c, const S& sep) {
+    auto it{std::begin(c)};
+    auto last{std::end(c)};
+    if (it == last)
+      return R{};
+    R r{*it};
+    while (++it != last) {
+      r += sep;
+      r += *it;
+    }
+    return r;
+  }
+
+  template<typename C, typename R = typename C::value_type>
+  R joinLines(const C& c) {
+    R r;
+    for (const auto& line : c) {
+      r += line;
+      r += '\n';
+    }
+    return r;
+  }
 }

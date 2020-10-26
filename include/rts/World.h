@@ -51,6 +51,7 @@ namespace rts {
     World& operator=(const World&) = delete;
 
     void loadMap(const MapInitializer& init, std::istream&& is);
+    void loadMap(const MapInitializer& init, const std::vector<std::string>& lines);
     void exec(const SideCommand& cmd);
     void update(const WorldActionList& actions);
 
@@ -194,6 +195,8 @@ namespace rts {
     std::optional<Point> emptyCellAround(const Rectangle& area, Point towards) const;
 
   private:
+    void onMapLoaded();
+
     template<typename P, typename... Args>
     auto create(P& pool, Args&&... args) {
       auto id{factory->create(*this, std::forward<Args>(args)...)};

@@ -13,17 +13,19 @@ namespace test {
 
   constexpr rts::AbilityInstanceIndex MoveAbilityIndex{0};
   constexpr rts::AbilityInstanceIndex BuildAbilityIndex{1};
+  constexpr rts::AbilityInstanceIndex GatherAbilityIndex{2};
 
-  constexpr rts::AbilityInstanceIndex ProduceSimpletonAbilityIndex{0};
+  constexpr rts::AbilityInstanceIndex ProduceWorkerAbilityIndex{0};
   constexpr rts::AbilityInstanceIndex ProduceThirdyAbilityIndex{1};
   constexpr rts::AbilityInstanceIndex SetRallyPointAbilityIndex{2};
 
   constexpr rts::Quantity BuildingGasCost{20};
   constexpr rts::Quantity BuildingSupplyProvision{15};
   constexpr rts::Quantity BuildingBuildTime{30};
-  constexpr rts::Quantity SimpletonGasCost{10};
-  constexpr rts::Quantity SimpletonSupplyCost{2};
-  constexpr rts::GameTime SimpletonBuildTime{100};
+  constexpr rts::Quantity WorkerGasCost{10};
+  constexpr rts::Quantity WorkerSupplyCost{2};
+  constexpr rts::GameTime WorkerBuildTime{100};
+  constexpr rts::GameTime WorkerCargoCapacity{5};
   constexpr rts::Quantity ThirdyGasCost{2};
   constexpr rts::Quantity ThirdySupplyCost{4};
   constexpr rts::GameTime ThirdyBuildTime{20};
@@ -34,11 +36,12 @@ namespace test {
   extern rts::ResourceId supplyResourceId;
   extern rts::AbilityId moveAbilityId;
   extern rts::AbilityId buildAbilityId;
-  extern rts::AbilityId produceSimpletonAbilityId;
+  extern rts::AbilityId gatherAbilityId;
+  extern rts::AbilityId produceWorkerAbilityId;
   extern rts::AbilityId produceThirdyAbilityId;
   extern rts::AbilityId setRallyPointAbilityId;
   extern rts::UnitTypeId buildingTypeId;
-  extern rts::UnitTypeId simpletonTypeId;
+  extern rts::UnitTypeId workerTypeId;
   extern rts::UnitTypeId thirdyTypeId;
   extern rts::SideId side1Id;
   extern rts::SideId side2Id;
@@ -68,7 +71,7 @@ namespace test {
     void init(rts::World& w) final;
     rts::UnitId create(rts::World& w, rts::UnitTypeId t, rts::SideId sd) final;
     static rts::UnitId building(rts::World& w, rts::SideId sd);
-    static rts::UnitId simpleton(rts::World& w, rts::SideId sd);
+    static rts::UnitId worker(rts::World& w, rts::SideId sd);
     static rts::UnitId thirdy(rts::World& w, rts::SideId sd);
     static rts::ResourceFieldId geyser(rts::World& w);
     static rts::BlockerId rock(rts::World& w);
@@ -76,8 +79,14 @@ namespace test {
 
   class MapInitializer : public rts::MapInitializer {
   public:
+    MapInitializer() = default;
+    explicit MapInitializer(const std::map<char, rts::UnitId>& units) : predefinedUnits_{units} {}
+
     rts::Cell::Content operator()(
         rts::World& w, rts::Point p, char c, const std::vector<std::string>& lines) const final;
+
+  private:
+    const std::map<char, rts::UnitId> predefinedUnits_;
   };
 
   void makeSides(rts::World& w);

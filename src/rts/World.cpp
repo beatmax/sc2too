@@ -42,8 +42,12 @@ rts::World::~World() {
 
 void rts::World::loadMap(const MapInitializer& init, std::istream&& is) {
   map.load(*this, init, std::move(is));
-  for (auto& s : sides)
-    s.onMapLoaded(*this);
+  onMapLoaded();
+}
+
+void rts::World::loadMap(const MapInitializer& init, const std::vector<std::string>& lines) {
+  map.load(*this, init, lines);
+  onMapLoaded();
 }
 
 void rts::World::exec(const SideCommand& cmd) {
@@ -211,4 +215,9 @@ std::optional<rts::Point> rts::World::emptyCellAround(const Rectangle& area, Poi
   if (it != points.end() && map[*it].empty())
     return *it;
   return std::nullopt;
+}
+
+void rts::World::onMapLoaded() {
+  for (auto& s : sides)
+    s.onMapLoaded(*this);
 }

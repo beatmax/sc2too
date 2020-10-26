@@ -45,6 +45,7 @@ namespace rts {
     bool empty() const { return quantity_ == 0; }
     bool full() const { return quantity_ == capacity_; }
 
+    void setQuantity(Quantity q) { quantity_ = q; }
     Quantity transferTo(ResourceBag& other, Quantity q);
     Quantity transferAllTo(ResourceBag& other);
 
