@@ -11,6 +11,7 @@ namespace util {
     T& push();
     void push(T t);
     void pop();
+    void clear() { first_ = last_; }
     const T& front() const;
     size_t size() const;
     bool empty() const { return first_ == last_; }

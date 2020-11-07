@@ -1,0 +1,12 @@
+option t,g
+w: worker
+----------  [t:0 g:1000]
+w         
+          
+          
+          
+----------
+select w
+allocate gas 1000
+build_prototype building
+message: Not enough gas!

@@ -1,0 +1,153 @@
+option t,g,s
+b: building
+----------  [t:0 g:1000 s:0/15]
+          
+ bb       
+ bb       
+ bb       
+          
+----------
+select b
+trigger produce_thirdy
+run for 5
+----------  [t:0 g:998 s:0/15]
+          
+ bb       
+ bb       
+ bb       
+          
+==========  [t:1 g:998 s:4/15]
+          
+ bb       
+ bb       
+ bb       
+          
+==========  [t:5 g:998 s:4/15]
+          
+ bb       
+ bb       
+ bb       
+          
+----------
+trigger produce_worker
+run for 17
+----------  [t:5 g:988 s:4/15]
+          
+ bb       
+ bb       
+ bb       
+          
+==========  [t:21 g:988 s:4/15]
+          
+ bb       
+ bbt      
+ bb       
+          
+==========  [t:22 g:988 s:6/15]
+          
+ bb       
+ bbt      
+ bb       
+          
+----------
+
+# free slots dropping to negative should not cause trouble
+provision supply -15
+run
+----------  [t:22 g:988 s:6/0]
+          
+ bb       
+ bbt      
+ bb       
+          
+==========  [t:122 g:988 s:6/0]
+          
+ bbw      
+ bbt      
+ bb       
+          
+==========  [t:123 g:988 s:6/0]
+          
+ bbw      
+ bbt      
+ bb       
+          
+----------
+
+# rally point set during production
+provision supply 30
+trigger produce_worker
+run for 10
+----------  [t:123 g:978 s:6/30]
+          
+ bbw      
+ bbt      
+ bb       
+          
+==========  [t:124 g:978 s:8/30]
+          
+ bbw      
+ bbt      
+ bb       
+          
+==========  [t:133 g:978 s:8/30]
+          
+ bbw      
+ bbt      
+ bb       
+          
+----------
+trigger set_rally_point 4,4
+run
+----------  [t:133 g:978 s:8/30]
+          
+ bbw      
+ bbt      
+ bb       
+          
+==========  [t:224 g:978 s:8/30]
+          
+ bbw      
+ bbt      
+ bb       
+   w      
+==========  [t:325 g:978 s:8/30]
+          
+ bbw      
+ bbt      
+ bb       
+    w     
+----------
+
+# production queue destroyed during production
+trigger produce_worker
+run for 20
+----------  [t:325 g:968 s:8/30]
+          
+ bbw      
+ bbt      
+ bb       
+    w     
+==========  [t:326 g:968 s:10/30]
+          
+ bbw      
+ bbt      
+ bb       
+    w     
+==========  [t:345 g:968 s:10/30]
+          
+ bbw      
+ bbt      
+ bb       
+    w     
+----------
+destroy b
+# supply is returned, gas is lost
+run
+----------  [t:345 g:968 s:8/15]
+          
+   w      
+   t      
+          
+    w     
+----------

@@ -28,3 +28,25 @@ endfunction
 
 nnoremap <Leader>b :wa<CR>:execute BuildFileCommand()<CR>
 nnoremap <Leader>\ :wa<CR>:make unittest<CR>
+
+function! RunCurrentIntegrationTest(diff)
+    let b:winview = winsaveview()
+    silent call system("RTS_TEST_RUN_ONLY=". expand('%') . " build/test/tests Integration")
+    if v:shell_error == 0
+        echom "Test passed."
+    elseif v:shell_error != 1
+        echom "Test failed with status code: " . v:shell_error
+    else
+        if a:diff
+            silent let l:result = systemlist("util/test-diff.sh " . expand('%') . " .test.out || true")
+        else
+            let l:result = readfile('.test.out')
+        endif
+        %delete _
+        call setline(1, l:result)
+        call winrestview(b:winview)
+    endif
+endfunction
+
+nnoremap <Leader>r :w<CR>:call RunCurrentIntegrationTest(0)<CR>
+nnoremap <Leader>R :w<CR>:call RunCurrentIntegrationTest(1)<CR>

@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <optional>
 
 namespace fs = std::filesystem;
 namespace seq = test::seq;
@@ -14,7 +16,7 @@ namespace seq = test::seq;
 namespace {
   constexpr auto* OutputFile{".test.out"};
 
-  void runTest(const fs::path& filepath) {
+  void runTest(const fs::path& filepath, bool vimdiff) {
     seq::LineVector input;
     {
       auto f{std::ifstream(filepath)};
@@ -27,9 +29,11 @@ namespace {
         std::ofstream f{OutputFile};
         f.write(output.data(), output.size());
       }
-      std::system((std::string{"vimdiff "} + filepath.string() + " " + OutputFile +
-                   " < /dev/tty >& /dev/tty")
-                      .c_str());
+      if (vimdiff) {
+        std::system((std::string{"vimdiff "} + filepath.string() + " " + OutputFile +
+                     " < /dev/tty >& /dev/tty")
+                        .c_str());
+      }
       FAIL("Integration test failed: " + filepath.string());
     }
   }
@@ -37,8 +41,20 @@ namespace {
 
 TEST_CASE("Integration", "[rts]") {
   std::remove(OutputFile);
+  std::optional<fs::path> runOnly;
+  if (char* v{std::getenv("RTS_TEST_RUN_ONLY")})
+    runOnly = v;
+  bool ran{false};
   for (const auto& p : fs::recursive_directory_iterator("test")) {
-    if (fs::is_regular_file(p))
-      runTest(p);
+    if (fs::is_regular_file(p)) {
+      if (!runOnly || *runOnly == p) {
+        runTest(p, !runOnly);
+        ran = true;
+      }
+    }
+  }
+  if (!ran && runOnly) {
+    std::cerr << "Invalid test: " << *runOnly << std::endl;
+    exit(2);
   }
 }

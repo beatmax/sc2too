@@ -1,0 +1,18 @@
+option t,g,s
+x,y: worker
+t: thirdy
+----------  [t:0 g:1000 s:8/0]
+x         
+y         
+t         
+          
+----------
+select x,y,t
+build_prototype building
+prototype: building
+
+# prototype is destroyed when all builder units are destroyed
+destroy x
+prototype: building
+destroy y
+prototype: none

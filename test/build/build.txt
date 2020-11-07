@@ -1,0 +1,131 @@
+option t,g,s
+x,y: worker
+t: thirdy
+----------  [t:0 g:1000 s:8/0]
+x        r
+y         
+t         
+          
+----------
+select x
+build_prototype building
+prototype: building
+
+# a command cancels the build and the prototype is destroyed
+select x,y,t
+prototype: none
+
+# build is attempted on occupied location
+build_prototype building
+prototype: building
+trigger build 8,0
+message: INVALID LOCATION!
+prototype: building
+run
+----------  [t:0 g:1000 s:8/0]
+x        r
+y         
+t         
+          
+----------
+
+# begin a build
+build_prototype building
+prototype: building
+trigger build 3,2
+prototype: none
+run for 200
+----------  [t:0 g:980 s:8/0]
+x        r
+y         
+t         
+          
+==========  [t:143 g:980 s:8/0]
+         r
+yx        
+t         
+          
+==========  [t:200 g:980 s:8/0]
+         r
+yx        
+t         
+          
+----------
+
+# begin a second build
+build_prototype building
+prototype: building
+trigger build 7,2
+prototype: none
+run
+----------  [t:200 g:960 s:8/0]
+         r
+yx        
+t         
+          
+==========  [t:243 g:960 s:8/0]
+         r
+y x       
+t         
+          
+==========  [t:261 g:960 s:8/0]
+         r
+y xbb     
+t  bb     
+   bb     
+==========  [t:291 g:960 s:8/15]
+         r
+y xbb     
+t  bb     
+   bb     
+==========  [t:343 g:960 s:8/15]
+         r
+  xbb     
+ty bb     
+   bb     
+==========  [t:443 g:960 s:8/15]
+         r
+  xbb     
+t ybb     
+   bb     
+==========  [t:544 g:960 s:8/15]
+         r
+ yxbb     
+t  bb     
+   bb     
+==========  [t:685 g:960 s:8/15]
+  y      r
+  xbb     
+t  bb     
+   bb     
+==========  [t:785 g:960 s:8/15]
+   y     r
+  xbb     
+t  bb     
+   bb     
+==========  [t:885 g:960 s:8/15]
+    y    r
+  xbb     
+t  bb     
+   bb     
+==========  [t:985 g:960 s:8/15]
+     y   r
+  xbb     
+t  bb     
+   bb     
+==========  [t:1126 g:960 s:8/15]
+         r
+  xbb y   
+t  bb     
+   bb     
+==========  [t:1141 g:960 s:8/15]
+         r
+  xbb ybb 
+t  bb  bb 
+   bb  bb 
+==========  [t:1171 g:960 s:8/30]
+         r
+  xbb ybb 
+t  bb  bb 
+   bb  bb 
+----------

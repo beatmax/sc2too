@@ -2,7 +2,9 @@
 
 #include "rts/types.h"
 
+#include <optional>
 #include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -14,12 +16,18 @@ namespace test::seq {
       std::string text;
     };
 
+    struct Empty {};
+
     struct Comment {
       std::string text;
     };
 
+    struct Option {
+      std::vector<std::string> options;
+    };
+
     struct Definition {
-      std::string name;
+      std::vector<std::string> names;
       std::string type;
     };
 
@@ -31,35 +39,81 @@ namespace test::seq {
 
     struct Map {
       LineVector map;
-      rts::GameTime time{};
-      rts::Quantity gas{};
+      std::optional<rts::GameTime> time;
+      std::optional<rts::Quantity> gas;
+      std::optional<std::pair<rts::Quantity, rts::Quantity>> supply;
+
+      bool diff(const Map& other) const {
+        return map != other.map || gas != other.gas || supply != other.supply;
+      }
+    };
+
+    struct Message {
+      std::string text;
+    };
+
+    struct Prototype {
+      std::string type;
     };
 
     struct Run {
-      std::string untilIdle;
+      std::optional<rts::GameTime> duration;
+      std::optional<std::string> untilIdle;
     };
 
+    namespace act {
+      struct Add {
+        std::string name;
+        rts::Point point;
+      };
+
+      struct Destroy {
+        std::vector<std::string> names;
+      };
+
+      struct Provision {
+        std::string resource;
+        rts::Quantity quantity;
+      };
+
+      struct Allocate {
+        std::string resource;
+        rts::Quantity quantity;
+      };
+    }
+
+    using Action = std::variant<act::Add, act::Destroy, act::Provision, act::Allocate>;
+
     namespace cmd {
+      struct BuildPrototype {
+        std::string type;
+      };
+
       struct Select {
         std::vector<std::string> names;
       };
 
       struct Trigger {
         std::string ability;
-        rts::Point target;
+        std::optional<rts::Point> target;
       };
     }
 
-    using Command = std::variant<cmd::Select, cmd::Trigger>;
+    using Command = std::variant<cmd::BuildPrototype, cmd::Select, cmd::Trigger>;
   }
 
   using Item = std::variant<
       item::Error,
+      item::Empty,
       item::Comment,
+      item::Option,
       item::Definition,
       item::Assignment,
       item::Map,
+      item::Message,
+      item::Prototype,
       item::Run,
+      item::Action,
       item::Command>;
   using Sequence = std::vector<Item>;
 

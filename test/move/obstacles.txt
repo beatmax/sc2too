@@ -1,0 +1,350 @@
+option t
+w,x: worker
+--------------------  [t:0]
+                    
+     r              
+ w   r    bb  x     
+     r    bb        
+     r    bb        
+                    
+--------------------
+select w
+
+# path around the rocks
+trigger move 7,3
+run
+--------------------  [t:0]
+                    
+     r              
+ w   r    bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:101]
+                    
+     r              
+  w  r    bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:242]
+                    
+     r              
+     r    bb  x     
+   w r    bb        
+     r    bb        
+                    
+====================  [t:383]
+                    
+     r              
+     r    bb  x     
+     r    bb        
+    wr    bb        
+                    
+====================  [t:524]
+                    
+     r              
+     r    bb  x     
+     r    bb        
+     r    bb        
+     w              
+====================  [t:665]
+                    
+     r              
+     r    bb  x     
+     r    bb        
+     rw   bb        
+                    
+====================  [t:806]
+                    
+     r              
+     r    bb  x     
+     r w  bb        
+     r    bb        
+                    
+--------------------
+
+# path around a building
+trigger move 14,3
+run
+--------------------  [t:806]
+                    
+     r              
+     r    bb  x     
+     r w  bb        
+     r    bb        
+                    
+====================  [t:907]
+                    
+     r              
+     r    bb  x     
+     r  w bb        
+     r    bb        
+                    
+====================  [t:1007]
+                    
+     r              
+     r    bb  x     
+     r   wbb        
+     r    bb        
+                    
+====================  [t:1108]
+                    
+     r              
+     r   wbb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:1249]
+                    
+     r    w         
+     r    bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:1349]
+                    
+     r     w        
+     r    bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:1490]
+                    
+     r              
+     r    bbw x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:1631]
+                    
+     r              
+     r    bb  x     
+     r    bb w      
+     r    bb        
+                    
+====================  [t:1731]
+                    
+     r              
+     r    bb  x     
+     r    bb  w     
+     r    bb        
+                    
+--------------------
+
+# path around adjacent unit
+trigger move 14,1
+run
+--------------------  [t:1731]
+                    
+     r              
+     r    bb  x     
+     r    bb  w     
+     r    bb        
+                    
+====================  [t:1873]
+                    
+     r              
+     r    bb wx     
+     r    bb        
+     r    bb        
+                    
+====================  [t:2014]
+                    
+     r        w     
+     r    bb  x     
+     r    bb        
+     r    bb        
+                    
+--------------------
+
+# move next to target object
+trigger move 10,4
+run
+--------------------  [t:2014]
+                    
+     r        w     
+     r    bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:2115]
+                    
+     r       w      
+     r    bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:2256]
+                    
+     r              
+     r    bbw x     
+     r    bb        
+     r    bb        
+                    
+--------------------
+
+# move next to target blocker
+trigger move 5,1
+run
+--------------------  [t:2256]
+                    
+     r              
+     r    bbw x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:2398]
+                    
+     r     w        
+     r    bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:2498]
+                    
+     r    w         
+     r    bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:2598]
+                    
+     r   w          
+     r    bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:2698]
+                    
+     r  w           
+     r    bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:2798]
+                    
+     r w            
+     r    bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:2898]
+                    
+     rw             
+     r    bb  x     
+     r    bb        
+     r    bb        
+                    
+--------------------
+
+# blocked and unblocked
+1,2,3,4,5,6: worker
+add 1 5,0
+add 2 6,0
+add 3 7,0
+add 4 7,1
+add 5 7,2
+add 6 6,2
+run
+--------------------  [t:2898]
+     123            
+     rw4            
+     r65  bb  x     
+     r    bb        
+     r    bb        
+                    
+--------------------
+trigger move 10,0
+run for 1000
+--------------------  [t:2898]
+     123            
+     rw4            
+     r65  bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:3898]
+     123            
+     rw4            
+     r65  bb  x     
+     r    bb        
+     r    bb        
+                    
+--------------------
+destroy 4
+run for 150
+--------------------  [t:3898]
+     123            
+     rw             
+     r65  bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:3999]
+     123            
+     r w            
+     r65  bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:4048]
+     123            
+     r w            
+     r65  bb  x     
+     r    bb        
+     r    bb        
+                    
+--------------------
+4,7,8,9: worker
+add 4 6,1
+add 7 8,0
+add 8 8,1
+add 9 8,2
+run for 1000
+--------------------  [t:4048]
+     1237           
+     r4w8           
+     r659 bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:5048]
+     1237           
+     r4w8           
+     r659 bb  x     
+     r    bb        
+     r    bb        
+                    
+--------------------
+destroy 8
+run
+--------------------  [t:5048]
+     1237           
+     r4w            
+     r659 bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:5240]
+     1237           
+     r4 w           
+     r659 bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:5381]
+     1237w          
+     r4             
+     r659 bb  x     
+     r    bb        
+     r    bb        
+                    
+====================  [t:5481]
+     1237 w         
+     r4             
+     r659 bb  x     
+     r    bb        
+     r    bb        
+                    
+--------------------

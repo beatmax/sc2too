@@ -39,7 +39,7 @@ namespace util {
       void setUsed() { gen &= ~FreeMask; }
     };
 
-    template<typename T, uint32_t N, typename AIt>
+    template<typename T, uint32_t N, typename Array, typename AIt>
     class Iterator {
     public:
       using iterator_category = std::forward_iterator_tag;
@@ -51,8 +51,8 @@ namespace util {
       Iterator(AIt it, AIt end) : it_{it}, end_{end} { advance(); }
       Iterator(AIt end) : it_{end}, end_{end} {}
 
-      auto& operator*() { return it_->value; }
-      auto* operator->() { return &it_->value; }
+      auto& operator*() const { return it_->value; }
+      auto* operator->() const { return &it_->value; }
       Iterator& operator++() {
         advance();
         return *this;
@@ -64,6 +64,8 @@ namespace util {
       }
       bool operator==(Iterator other) const { return it_ == other.it_; }
       bool operator!=(Iterator other) const { return it_ != other.it_; }
+
+      operator Iterator<T, N, Array, typename Array::const_iterator>() const { return {it_, end_}; }
 
     private:
       void advance() {
@@ -130,8 +132,8 @@ namespace util {
     using PtrList = std::vector<Value*>;
     using CPtrList = std::vector<const Value*>;
     using value_type = T;
-    using iterator = detail::pool::Iterator<Value, N, typename Array::iterator>;
-    using const_iterator = detail::pool::Iterator<Value, N, typename Array::const_iterator>;
+    using iterator = detail::pool::Iterator<Value, N, Array, typename Array::iterator>;
+    using const_iterator = detail::pool::Iterator<Value, N, Array, typename Array::const_iterator>;
 
     Pool();
 

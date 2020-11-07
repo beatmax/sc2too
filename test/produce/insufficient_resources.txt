@@ -1,0 +1,118 @@
+option t,g,s
+b: building
+----------  [t:0 g:1000 s:0/15]
+          
+ bb       
+ bb       
+ bb       
+          
+----------
+allocate gas 998
+allocate supply 12
+select b
+
+trigger produce_worker
+message: Not enough gas!
+run
+----------  [t:0 g:2 s:12/15]
+          
+ bb       
+ bb       
+ bb       
+          
+----------
+
+trigger produce_thirdy
+run for 10
+----------  [t:0 g:0 s:12/15]
+          
+ bb       
+ bb       
+ bb       
+          
+----------
+message: Not enough supply!
+----------  [t:10 g:0 s:12/15]
+          
+ bb       
+ bb       
+ bb       
+          
+----------
+
+allocate supply -1
+run
+----------  [t:10 g:0 s:11/15]
+          
+ bb       
+ bb       
+ bb       
+          
+==========  [t:11 g:0 s:15/15]
+          
+ bb       
+ bb       
+ bb       
+          
+==========  [t:31 g:0 s:15/15]
+          
+ bb       
+ bbt      
+ bb       
+          
+==========  [t:32 g:0 s:15/15]
+          
+ bb       
+ bbt      
+ bb       
+          
+----------
+
+# resource cap should not be exceeded
+provision gas 1000
+provision supply 300
+allocate supply 184
+trigger produce_worker
+run for 10
+----------  [t:32 g:990 s:199/200]
+          
+ bb       
+ bbt      
+ bb       
+          
+----------
+message: Supply cap reached!
+----------  [t:42 g:990 s:199/200]
+          
+ bb       
+ bbt      
+ bb       
+          
+----------
+allocate supply -1
+run
+----------  [t:42 g:990 s:198/200]
+          
+ bb       
+ bbt      
+ bb       
+          
+==========  [t:43 g:990 s:200/200]
+          
+ bb       
+ bbt      
+ bb       
+          
+==========  [t:143 g:990 s:200/200]
+          
+ bbw      
+ bbt      
+ bb       
+          
+==========  [t:144 g:990 s:200/200]
+          
+ bbw      
+ bbt      
+ bb       
+          
+----------

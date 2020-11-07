@@ -67,8 +67,8 @@ namespace util::geo {
       Point p;
       Coordinate left, right;
 
-      Point operator*() { return p; }
-      const Point* operator->() { return &p; }
+      Point operator*() const { return p; }
+      const Point* operator->() const { return &p; }
       PointIterator& operator++() {
         if (++p.x == right) {
           p.x = left;
@@ -90,8 +90,8 @@ namespace util::geo {
       PointIterator pit;
       Coordinate top, bottom;
 
-      Point operator*() { return pit.p; }
-      const Point* operator->() { return &pit.p; }
+      Point operator*() const { return pit.p; }
+      const Point* operator->() const { return &pit.p; }
       OuterPointIterator& operator++() {
         if (pit.p.x == pit.left && pit.p.y != top && pit.p.y != bottom &&
             (pit.right - pit.left) > 1)

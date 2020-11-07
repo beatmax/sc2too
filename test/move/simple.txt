@@ -1,48 +1,120 @@
+option t
 w: worker
-----------
-t:0 g:1000
-          
-  w       
-          
-          
-----------
+------  [t:0]
+      
+ w    
+      
+      
+      
+      
+------
 select w
-trigger move 7,2
-run until idle w
-----------
-t:0 g:1000
-          
-  w       
-          
-          
-==========
-t:101 g:1000
-          
-   w      
-          
-          
-==========
-t:201 g:1000
-          
-    w     
-          
-          
-==========
-t:301 g:1000
-          
-     w    
-          
-          
-==========
-t:401 g:1000
-          
-      w   
-          
-          
-==========
-t:542 g:1000
-          
-          
-       w  
-          
-----------
+
+# already there
+trigger move 1,1
+run
+------  [t:0]
+      
+ w    
+      
+      
+      
+      
+======  [t:2]
+      
+ w    
+      
+      
+      
+      
+------
+
+# one cell straight
+trigger move 2,1
+run
+------  [t:2]
+      
+ w    
+      
+      
+      
+      
+======  [t:103]
+      
+  w   
+      
+      
+      
+      
+------
+
+# one cell diagonal
+trigger move 3,2
+run
+------  [t:103]
+      
+  w   
+      
+      
+      
+      
+======  [t:245]
+      
+      
+   w  
+      
+      
+      
+------
+
+# straight line
+trigger move 3,4
+run
+------  [t:245]
+      
+      
+   w  
+      
+      
+      
+======  [t:346]
+      
+      
+      
+   w  
+      
+      
+======  [t:446]
+      
+      
+      
+      
+   w  
+      
+------
+
+# straight and diagonal
+trigger move 2,2
+run
+------  [t:446]
+      
+      
+      
+      
+   w  
+      
+======  [t:588]
+      
+      
+      
+  w   
+      
+      
+======  [t:688]
+      
+      
+  w   
+      
+      
+      
+------

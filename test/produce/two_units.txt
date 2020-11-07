@@ -1,0 +1,50 @@
+option t,g,s
+b: building
+----------  [t:0 g:1000 s:0/15]
+          
+ bb       
+ bb       
+ bb       
+          
+----------
+select b
+trigger produce_worker
+trigger produce_thirdy
+run
+----------  [t:0 g:988 s:0/15]
+          
+ bb       
+ bb       
+ bb       
+          
+==========  [t:1 g:988 s:2/15]
+          
+ bb       
+ bb       
+ bb       
+          
+==========  [t:101 g:988 s:2/15]
+          
+ bb       
+ bbw      
+ bb       
+          
+==========  [t:102 g:988 s:6/15]
+          
+ bb       
+ bbw      
+ bb       
+          
+==========  [t:122 g:988 s:6/15]
+          
+ bbt      
+ bbw      
+ bb       
+          
+==========  [t:123 g:988 s:6/15]
+          
+ bbt      
+ bbw      
+ bb       
+          
+----------
