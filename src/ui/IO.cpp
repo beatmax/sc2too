@@ -10,7 +10,9 @@
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
+#include <langinfo.h>
 #include <locale>
+#include <string>
 #include <thread>
 
 namespace {
@@ -28,9 +30,11 @@ namespace {
 ui::IO::IO() : state_{std::make_unique<IOState>()}, input{*state_}, output{*state_} {
   gIO = this;
   std::signal(SIGABRT, abrtHandler);
-  std::setlocale(LC_ALL, "en_US.UTF-8");
-  std::locale utf8loc{"en_US.UTF-8"};
+  std::setlocale(LC_ALL, "");
+  std::locale utf8loc{""};
   std::locale::global(std::locale{utf8loc, new std::codecvt_utf8<wchar_t>});
+  if (std::string(nl_langinfo(CODESET)) != "UTF-8")
+    throw std::runtime_error{"please select a UTF-8 locale"};
   X::init();
   graph::init();
   output.init();
