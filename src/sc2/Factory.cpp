@@ -51,7 +51,7 @@ rts::ResourceFieldId sc2::Factory::geyser(rts::World& w) {
 
 rts::ResourceFieldId sc2::Factory::mineralPatch(rts::World& w, rts::ResourceGroupId group) {
   return w.resourceFields.emplace(
-      rts::Vector{1, 1}, Resources::mineral, MineralPatchContent,
+      rts::Vector{2, 1}, Resources::mineral, MineralPatchContent,
       std::make_unique<ui::MineralPatch>(), group);
 }
 

@@ -2,7 +2,9 @@
 
 #include "rts/World.h"
 #include "sc2/Factory.h"
+#include "sc2/Resources.h"
 #include "util/algorithm.h"
+#include "util/geo.h"
 
 #include <cassert>
 #include <iterator>
@@ -38,13 +40,9 @@ rts::Cell::Content sc2::MapInitializer::operator()(
 }
 
 rts::ResourceGroupId sc2::MapInitializer::mineralGroup(const rts::World& w, rts::Point p) const {
-  auto rp{util::findIfOpt(boundingBox(p).points(), [&w](rts::Point q) {
-    if (auto* rf{w.resourceField(q)})
-      return rf->group != 0;
-    return false;
-  })};
-  if (rp)
-    return w.resourceField(*rp)->group;
+  auto* rf{w.closestResourceField(p, sc2::Resources::mineral)};
+  if (rf && util::geo::diagonalDistance(p, rf->area.topLeft) < 6.)
+    return rf->group;
   else
     return ++mineralGroupId_;
 }

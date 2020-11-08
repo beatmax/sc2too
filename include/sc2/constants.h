@@ -7,7 +7,7 @@ namespace sc2 {
   static constexpr rts::Quantity MaxSupplySlots{200};
 
   static constexpr rts::Quantity GeyserContent{2250};
-  static constexpr rts::Quantity MineralPatchContent{1800};
+  static constexpr rts::Quantity MineralPatchContent{1500};
 
   static constexpr rts::GameTime GatherTime{2 * rts::GameTimeSecond};
   static constexpr rts::GameTime DeliveryTime{3 * rts::GameTimeSecond / 10};
