@@ -12,12 +12,10 @@ namespace rts {
   }
 }
 
-void rts::abilities::state::Gather::trigger(
+rts::ActiveAbilityStateUPtr rts::abilities::state::Gather::trigger(
     World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, const AbilityTarget& target) {
-  if (as)
-    as->cancel(w);
   assert(std::holds_alternative<Point>(target));
-  as = std::make_unique<Gather>(desc, std::get<Point>(target));
+  return std::make_unique<Gather>(desc, std::get<Point>(target));
 }
 
 rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitStableRef u) {
@@ -35,11 +33,13 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitS
       state_ = State::Occupying;
       return MonitorTime;
 
-    case State::Occupying:
+    case State::Occupying: {
       bool findBlockedOk;
       if (auto* rf{w[targetField_]}) {
-        if (!rf->sem.blocked())
-          return tryOccupy();
+        if (adjacent(u->area, rf->area)) {
+          if (!rf->sem.blocked())
+            return tryOccupy();
+        }
         findBlockedOk = false;
       }
       else {
@@ -54,6 +54,7 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitS
         }
       }
       return findBlockedOk ? 0 : MonitorTime;
+    }
 
     case State::Gathering:
       return finishGathering();

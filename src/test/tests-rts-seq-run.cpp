@@ -295,6 +295,8 @@ namespace test::seq {
         return error(a, "name size must be 1: " + a.name);
       if (auto it{unitByName.find(a.name.front())}; it == unitByName.end())
         return error(a, "undefined name: " + a.name);
+      else if (!world.map.isEmpty(rts::Rectangle{a.point, world[it->second].area.size}))
+        return error(a, "area not empty");
       else
         world.addForFree(it->second, a.point);
       output.push_back(a);

@@ -22,15 +22,22 @@ namespace rts {
     bool active() const { return bool(activeState_); }
     GameTime nextStepTime() const { return nextStepTime_; }
 
-    void trigger(World& w, Unit& u, const abilities::Instance& ai, const AbilityTarget& target);
+    void trigger(
+        World& w,
+        Unit& u,
+        TriggerGroup& group,
+        const abilities::Instance& ai,
+        const AbilityTarget& target);
     void step(const World& w, UnitStableRef u, AbilityStateIndex as, WorldActionList& actions);
-    void stepAction(World& w, Unit& u, const AbilityStepAction& f);
-    void cancel(World& w);
+    void stepAction(World& w, Unit& u, AbilityStateIndex as, const AbilityStepAction& f);
+    void cancel(World& w, Unit& u, AbilityStateIndex as);
 
     template<typename T>
     std::optional<T> state() const;
 
   private:
+    void destroyActiveState(Unit& u, AbilityStateIndex as);
+
     GameTime nextStepTime_{GameTimeInf};
     ActiveAbilityStateUPtr activeState_;
   };
@@ -50,8 +57,23 @@ namespace rts {
   public:
     template<typename D>
     static auto makeTrigger(const D& desc) {
-      return [desc](World& w, Unit& u, ActiveAbilityStateUPtr& as, const AbilityTarget& target) {
-        Derived::trigger(w, u, as, desc, target);
+      return [desc](
+                 World& w, Unit& u, TriggerGroup&, ActiveAbilityStateUPtr& as,
+                 const AbilityTarget& target) -> std::pair<ActiveAbilityStateUPtr, GameTime> {
+        return {Derived::trigger(w, u, as, desc, target), 1};
+      };
+    }
+  };
+
+  template<typename Derived>
+  class ActiveAbilityGroupStateTpl : public ActiveAbilityState {
+  public:
+    template<typename D>
+    static auto makeTrigger(const D& desc) {
+      return [desc](
+                 World& w, Unit& u, TriggerGroup& tg, ActiveAbilityStateUPtr& as,
+                 const AbilityTarget& target) -> std::pair<ActiveAbilityStateUPtr, GameTime> {
+        return Derived::trigger(w, u, tg, as, desc, target);
       };
     }
   };
@@ -61,11 +83,16 @@ namespace rts {
   public:
     template<typename D>
     static auto makeTrigger(const D& desc) {
-      return [desc](World& w, Unit& u, ActiveAbilityStateUPtr&, const AbilityTarget& target) {
+      return [desc](
+                 World& w, Unit& u, TriggerGroup&, ActiveAbilityStateUPtr&,
+                 const AbilityTarget& target) -> std::pair<ActiveAbilityStateUPtr, GameTime> {
         Derived::trigger(w, u, desc, target);
+        return {};
       };
     }
   };
+
+  class ActiveAbilityGroupState {};
 }
 
 template<typename T>

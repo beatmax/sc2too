@@ -10,15 +10,18 @@
 namespace rts {
   class UnitType {
   public:
+    enum class Kind { Structure, Worker, Army };
+
     std::array<abilities::Instance, MaxUnitAbilities> abilities{};
     std::array<AbilityInstanceIndex, uint32_t(RelativeContent::Count)> defaultAbility{};
+    Kind kind;
     ResourceQuantityList cost;
     ResourceQuantityList provision;
     GameTime buildTime;
     UiUPtr ui;
 
-    UnitType(ResourceQuantityList c, ResourceQuantityList p, GameTime bt, UiUPtr ui)
-      : cost{std::move(c)}, provision{std::move(p)}, buildTime{bt}, ui{std::move(ui)} {}
+    UnitType(Kind k, ResourceQuantityList c, ResourceQuantityList p, GameTime bt, UiUPtr ui)
+      : kind{k}, cost{std::move(c)}, provision{std::move(p)}, buildTime{bt}, ui{std::move(ui)} {}
 
     template<typename D>
     void addAbility(AbilityInstanceIndex index, const D& desc) {

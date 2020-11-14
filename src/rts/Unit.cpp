@@ -97,6 +97,18 @@ void rts::Unit::destroy(World& w) {
   state = State::Destroyed;
 }
 
+bool rts::Unit::isStructure(const World& w) const {
+  return w[type].kind == UnitType::Kind::Structure;
+}
+
+bool rts::Unit::isWorker(const World& w) const {
+  return w[type].kind == UnitType::Kind::Worker;
+}
+
+bool rts::Unit::isArmy(const World& w) const {
+  return w[type].kind == UnitType::Kind::Army;
+}
+
 bool rts::Unit::hasEnabledAbility(
     const World& w, AbilityInstanceIndex abilityIndex, AbilityId abilityId) const {
   const auto& abilityInstance{w[type].abilities[abilityIndex]};
@@ -108,6 +120,16 @@ bool rts::Unit::hasEnabledAbility(
 void rts::Unit::trigger(
     AbilityInstanceIndex abilityIndex,
     World& w,
+    const AbilityTarget& target,
+    CancelOthers cancelOthers) {
+  TriggerGroup group{{w.id(*this)}};
+  trigger(abilityIndex, w, group, target, cancelOthers);
+}
+
+void rts::Unit::trigger(
+    AbilityInstanceIndex abilityIndex,
+    World& w,
+    TriggerGroup& group,
     const AbilityTarget& target,
     CancelOthers cancelOthers) {
   const auto& unitType{w[type]};
@@ -125,11 +147,11 @@ void rts::Unit::trigger(
     for (const auto& otherInstance : unitType.abilities) {
       auto& as{abilityStates_[otherInstance.stateIndex]};
       if (&as != &abilityState && as.active() && mutualCancelling(abilityInstance, otherInstance))
-        as.cancel(w);
+        as.cancel(w, *this, otherInstance.stateIndex);
     }
   }
 
-  abilityState.trigger(w, *this, abilityInstance, target);
+  abilityState.trigger(w, *this, group, abilityInstance, target);
   nextStepTime_ = std::min(nextStepTime_, abilityState.nextStepTime());
 }
 
@@ -162,15 +184,21 @@ rts::WorldActionList rts::Unit::step(UnitStableRef u, const World& w) {
 
 void rts::Unit::abilityStepAction(World& w, AbilityStateIndex as, const AbilityStepAction& f) {
   auto& abilityState{abilityStates_[as]};
-  abilityState.stepAction(w, *this, f);
+  abilityState.stepAction(w, *this, as, f);
   nextStepTime_ = std::min(nextStepTime_, abilityState.nextStepTime());
 }
 
 void rts::Unit::cancelAll(World& w) {
-  for (auto& as : abilityStates_) {
-    if (as.active())
-      as.cancel(w);
+  for (size_t i = 0; i < MaxUnitAbilityStates; ++i) {
+    AbilityStateIndex as{i};
+    auto& abilityState{abilityStates_[as]};
+    abilityState.cancel(w, *this, as);
   }
+}
+
+bool rts::Unit::isActive(const World& w, abilities::Kind kind) const {
+  auto as{w[type].abilityStateIndex(kind)};
+  return as != AbilityStateIndex::None && abilityActive[as];
 }
 
 const rts::AbilityState& rts::Unit::abilityState(

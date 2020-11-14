@@ -131,8 +131,9 @@ void rts::Side::exec(const World& w, WorldActionList& actions, const command::Tr
   }
 
   actions += [ids{std::move(ids)}, abilityIndex{cmd.abilityIndex}, target{cmd.target}](World& w) {
-    for (auto u : ids)
-      w[u].trigger(abilityIndex, w, target);
+    TriggerGroup group{std::move(ids)};
+    for (auto u : group.ids)
+      w[u].trigger(abilityIndex, w, group, target);
   };
 }
 
@@ -152,8 +153,9 @@ void rts::Side::exec(
   });
 
   actions += [ids{std::move(ids)}, abilityIndex, target{cmd.target}](World& w) {
-    for (auto u : ids)
-      w[u].trigger(abilityIndex, w, target);
+    TriggerGroup group{std::move(ids)};
+    for (auto u : group.ids)
+      w[u].trigger(abilityIndex, w, group, target);
   };
 }
 

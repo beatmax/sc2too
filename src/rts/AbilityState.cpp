@@ -6,10 +6,19 @@
 #include <cassert>
 
 void rts::AbilityState::trigger(
-    World& w, Unit& u, const abilities::Instance& ai, const AbilityTarget& target) {
-  ai.trigger(w, u, activeState_, target);
-  if (nextStepTime_ == GameTimeInf && activeState_)
-    nextStepTime_ = w.time + 1;
+    World& w,
+    Unit& u,
+    TriggerGroup& group,
+    const abilities::Instance& ai,
+    const AbilityTarget& target) {
+  auto [newState, t] = ai.trigger(w, u, group, activeState_, target);
+  if (newState) {
+    if (activeState_)
+      activeState_->cancel(w);
+    activeState_ = std::move(newState);
+    nextStepTime_ = w.time + t;
+    u.abilityActive[ai.stateIndex] = true;
+  }
 }
 
 void rts::AbilityState::step(
@@ -24,6 +33,10 @@ void rts::AbilityState::step(
     else {
       activeState_.reset();
       nextStepTime_ = GameTimeInf;
+      actions += [as, wid{w.weakId(*u)}](World& w) {
+        if (auto* u{w[wid]})
+          u->abilityActive[as] = false;
+      };
     }
   }
   else {
@@ -35,7 +48,8 @@ void rts::AbilityState::step(
   }
 }
 
-void rts::AbilityState::stepAction(World& w, Unit& u, const AbilityStepAction& f) {
+void rts::AbilityState::stepAction(
+    World& w, Unit& u, AbilityStateIndex as, const AbilityStepAction& f) {
   if (!activeState_)
     return;
 
@@ -44,17 +58,22 @@ void rts::AbilityState::stepAction(World& w, Unit& u, const AbilityStepAction& f
     nextStepTime_ = w.time + t;
   }
   else {
-    activeState_.reset();
+    destroyActiveState(u, as);
     nextStepTime_ = GameTimeInf;
   }
 }
 
-void rts::AbilityState::cancel(World& w) {
+void rts::AbilityState::cancel(World& w, Unit& u, AbilityStateIndex as) {
   if (activeState_) {
     activeState_->cancel(w);
-    activeState_.reset();
+    destroyActiveState(u, as);
   }
   nextStepTime_ = GameTimeInf;
+}
+
+void rts::AbilityState::destroyActiveState(Unit& u, AbilityStateIndex as) {
+  activeState_.reset();
+  u.abilityActive[as] = false;
 }
 
 rts::ActiveAbilityState::~ActiveAbilityState() = default;

@@ -20,7 +20,7 @@ run
       
       
       
-======  [t:2]
+======  [t:1]
       
  w    
       
@@ -32,14 +32,14 @@ run
 # one cell straight
 trigger move 2,1
 run
-------  [t:2]
+------  [t:1]
       
  w    
       
       
       
       
-======  [t:103]
+======  [t:102]
       
   w   
       
@@ -51,14 +51,14 @@ run
 # one cell diagonal
 trigger move 3,2
 run
-------  [t:103]
+------  [t:102]
       
   w   
       
       
       
       
-======  [t:245]
+======  [t:244]
       
       
    w  
@@ -70,21 +70,21 @@ run
 # straight line
 trigger move 3,4
 run
-------  [t:245]
+------  [t:244]
       
       
    w  
       
       
       
-======  [t:346]
+======  [t:345]
       
       
       
    w  
       
       
-======  [t:446]
+======  [t:445]
       
       
       
@@ -96,21 +96,21 @@ run
 # straight and diagonal
 trigger move 2,2
 run
-------  [t:446]
+------  [t:445]
       
       
       
       
    w  
       
-======  [t:588]
+======  [t:587]
       
       
       
   w   
       
       
-======  [t:688]
+======  [t:687]
       
       
   w   

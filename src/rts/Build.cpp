@@ -13,7 +13,7 @@ namespace rts {
   }
 }
 
-void rts::abilities::state::Build::trigger(
+rts::ActiveAbilityStateUPtr rts::abilities::state::Build::trigger(
     World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, const AbilityTarget& target) {
   assert(std::holds_alternative<Point>(target));
   auto targetPoint{std::get<Point>(target)};
@@ -24,15 +24,13 @@ void rts::abilities::state::Build::trigger(
   auto buildArea{rectangleCenteredAt(targetPoint, proto.area.size, w.map.area())};
   if (!w.objectsInArea(buildArea).empty()) {
     side.messages().add(w, "INVALID LOCATION!");
-    return;
+    return {};
   }
   if (!proto.tryAllocate(w))
-    return;
+    return {};
   proto.setBuildPoint(w, buildArea.topLeft);
 
-  if (as)
-    as->cancel(w);
-  as = std::make_unique<Build>(desc, side.takePrototype());
+  return std::make_unique<Build>(desc, side.takePrototype());
 }
 
 rts::AbilityStepResult rts::abilities::state::Build::step(const World& w, UnitStableRef u) {

@@ -22,6 +22,7 @@ namespace rts {
     State state{State::New};
     ResourceFlexBag bag;
     ProductionQueueId productionQueue;
+    std::array<bool, MaxUnitAbilityStates> abilityActive{};
 
     Unit(
         Vector s,
@@ -38,6 +39,10 @@ namespace rts {
     void activate(World& w, Point p);
     void destroy(World& w);
 
+    bool isStructure(const World& w) const;
+    bool isWorker(const World& w) const;
+    bool isArmy(const World& w) const;
+
     bool active() const { return state == State::Active; }
     bool activeOrBuilding() const { return state == State::Active || state == State::Building; }
     bool hasEnabledAbility(
@@ -48,11 +53,18 @@ namespace rts {
         World& w,
         const AbilityTarget& target,
         CancelOthers cancelOthers = CancelOthers::Yes);
+    void trigger(
+        AbilityInstanceIndex abilityIndex,
+        World& w,
+        TriggerGroup& group,
+        const AbilityTarget& target,
+        CancelOthers cancelOthers = CancelOthers::Yes);
     static WorldActionList step(UnitStableRef u, const World& w)
         __attribute__((warn_unused_result));
     void abilityStepAction(World& w, AbilityStateIndex as, const AbilityStepAction& f);
     void cancelAll(World& w);
 
+    bool isActive(const World& w, abilities::Kind kind) const;
     static const AbilityState& abilityState(UnitStableRef u, const World& w, abilities::Kind kind);
     static GameTime nextStepTime(UnitStableRef u) { return u->nextStepTime_; }
 

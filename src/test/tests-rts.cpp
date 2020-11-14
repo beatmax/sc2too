@@ -115,7 +115,7 @@ TEST_CASE("Hello world!", "[rts]") {
       REQUIRE(test::nextStepTime(cu) == GameTimeSecond + 1);
 
       SECTION("The path is found") {
-        auto [path, isComplete] = findPath(world, pos, targetPos);
+        auto [path, isComplete] = findPath(world, pos, targetPos, {});
         REQUIRE(isComplete);
         REQUIRE(path == Path{{20, 4}, {20, 3}});
       }

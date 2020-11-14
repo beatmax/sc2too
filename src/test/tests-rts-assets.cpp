@@ -52,14 +52,16 @@ void test::Factory::init(rts::World& w) {
   setRallyPointAbilityId = w.createAbility(std::make_unique<Ui>("p.r"));
 
   buildingTypeId = w.createUnitType(
-      rts::ResourceQuantityList{{gasResourceId, BuildingGasCost}},
+      rts::UnitType::Kind::Structure, rts::ResourceQuantityList{{gasResourceId, BuildingGasCost}},
       rts::ResourceQuantityList{{supplyResourceId, BuildingSupplyProvision}}, BuildingBuildTime,
       std::make_unique<Ui>("B"));
   workerTypeId = w.createUnitType(
+      rts::UnitType::Kind::Worker,
       rts::ResourceQuantityList{
           {gasResourceId, WorkerGasCost}, {supplyResourceId, WorkerSupplyCost}},
       rts::ResourceQuantityList{}, WorkerBuildTime, std::make_unique<Ui>("W"));
   thirdyTypeId = w.createUnitType(
+      rts::UnitType::Kind::Army,
       rts::ResourceQuantityList{
           {gasResourceId, ThirdyGasCost}, {supplyResourceId, ThirdySupplyCost}},
       rts::ResourceQuantityList{}, ThirdyBuildTime, std::make_unique<Ui>("T"));

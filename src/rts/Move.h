@@ -5,20 +5,32 @@
 #include "rts/abilities.h"
 #include "rts/types.h"
 
+#include <optional>
+
 namespace rts::abilities::state {
-  class Move : public ActiveAbilityStateTpl<Move> {
+  class Move : public ActiveAbilityGroupStateTpl<Move> {
   public:
     using Desc = abilities::Move;
     using State = abilities::MoveState;
 
-    static void trigger(
+    struct GroupState : ActiveAbilityGroupState {
+      bool initialized{false};
+      AbilityTarget target;
+      size_t count;
+      GameTime firstStepTime{0};
+      float closeEnough;
+    };
+    using GroupStateSPtr = std::shared_ptr<GroupState>;
+
+    static std::pair<ActiveAbilityStateUPtr, GameTime> trigger(
         World& w,
         Unit& u,
+        TriggerGroup& group,
         ActiveAbilityStateUPtr& as,
         const Desc& desc,
         const AbilityTarget& target);
 
-    explicit Move(const Desc& desc, const AbilityTarget& target) : desc_{desc}, target_{target} {}
+    explicit Move(const Desc& desc, GroupStateSPtr gs) : desc_{desc}, groupState_{gs} {}
     AbilityStepResult step(const World& w, UnitStableRef u);
     void cancel(World& w) final {}
     int state() const final { return int(State::Moving); }
@@ -27,8 +39,12 @@ namespace rts::abilities::state {
     AbilityStepAction stepAction();
 
     const Desc desc_;
-    const AbilityTarget target_;
+    std::optional<AbilityTarget> target_;
+    GroupStateSPtr groupState_;
+    ExcludedPointSet excludedPoints_;
     Path path_;
-    bool completePath_{false};
+    bool havePath_{false};
+    std::optional<std::pair<Point, UnitId>> waitingFor_;
+    int waitingTries{0};
   };
 }

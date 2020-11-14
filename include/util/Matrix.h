@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <vector>
 
 namespace util {
@@ -15,8 +16,14 @@ namespace util {
     Dim cols() const { return cols_; }
     size_t size() const { return data_.size(); }
 
-    T& operator()(Dim i, Dim j) { return data_[i * cols_ + j]; }
-    const T& operator()(Dim i, Dim j) const { return data_[i * cols_ + j]; }
+    T& operator()(Dim i, Dim j) {
+      assert(i < rows_ && j < cols_);
+      return data_[i * cols_ + j];
+    }
+    const T& operator()(Dim i, Dim j) const {
+      assert(i < rows_ && j < cols_);
+      return data_[i * cols_ + j];
+    }
 
   private:
     Dim rows_;

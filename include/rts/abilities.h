@@ -11,7 +11,14 @@
 
 namespace rts {
   class ActiveAbilityState;
+  class ActiveAbilityGroupState;
   using ActiveAbilityStateUPtr = std::unique_ptr<ActiveAbilityState>;
+  using ActiveAbilityGroupStateSPtr = std::shared_ptr<ActiveAbilityGroupState>;
+
+  struct TriggerGroup {
+    UnitIdList ids;
+    ActiveAbilityGroupStateSPtr sharedState;
+  };
 }
 
 namespace rts::abilities {
@@ -116,8 +123,8 @@ namespace rts::abilities {
   };
 
   struct Instance {
-    using Trigger =
-        std::function<void(World&, Unit&, ActiveAbilityStateUPtr&, const AbilityTarget&)>;
+    using Trigger = std::function<std::pair<ActiveAbilityStateUPtr, GameTime>(
+        World&, Unit&, TriggerGroup&, ActiveAbilityStateUPtr&, const AbilityTarget&)>;
     using AbstractDesc = std::function<const void*()>;
 
     Kind kind{Kind::None};

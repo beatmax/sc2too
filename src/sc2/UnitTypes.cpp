@@ -12,14 +12,17 @@ void sc2::UnitTypes::init(rts::World& w) {
   using RC = rts::RelativeContent;
 
   nexus = w.createUnitType(
+      rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{Resources::mineral, NexusMineralCost}},
       rts::ResourceQuantityList{{Resources::supply, NexusSupplyProvision}}, NexusBuildTime,
       std::make_unique<ui::NexusType>());
   probe = w.createUnitType(
+      rts::UnitType::Kind::Worker,
       rts::ResourceQuantityList{
           {Resources::mineral, ProbeMineralCost}, {Resources::supply, ProbeSupplyCost}},
       rts::ResourceQuantityList{}, ProbeBuildTime, std::make_unique<ui::ProbeType>());
   pylon = w.createUnitType(
+      rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{Resources::mineral, PylonMineralCost}},
       rts::ResourceQuantityList{{Resources::supply, PylonSupplyProvision}}, PylonBuildTime,
       std::make_unique<ui::PylonType>());

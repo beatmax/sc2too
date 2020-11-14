@@ -1,0 +1,77 @@
+option t
+w: worker
+---------------  [t:0]
+               
+               
+       rrrrrrrr
+ w     r       
+---------------
+select w
+trigger move 13,3
+run
+---------------  [t:0]
+               
+               
+       rrrrrrrr
+ w     r       
+===============  [t:101]
+               
+               
+       rrrrrrrr
+  w    r       
+===============  [t:201]
+               
+               
+       rrrrrrrr
+   w   r       
+===============  [t:301]
+               
+               
+       rrrrrrrr
+    w  r       
+===============  [t:401]
+               
+               
+       rrrrrrrr
+     w r       
+===============  [t:542]
+               
+               
+      wrrrrrrrr
+       r       
+===============  [t:683]
+               
+       w       
+       rrrrrrrr
+       r       
+===============  [t:783]
+               
+        w      
+       rrrrrrrr
+       r       
+===============  [t:883]
+               
+         w     
+       rrrrrrrr
+       r       
+===============  [t:983]
+               
+          w    
+       rrrrrrrr
+       r       
+===============  [t:1083]
+               
+           w   
+       rrrrrrrr
+       r       
+===============  [t:1183]
+               
+            w  
+       rrrrrrrr
+       r       
+===============  [t:1283]
+               
+             w 
+       rrrrrrrr
+       r       
+---------------

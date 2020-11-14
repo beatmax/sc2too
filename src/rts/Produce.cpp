@@ -12,7 +12,7 @@ namespace rts {
   }
 }
 
-void rts::abilities::state::Produce::trigger(
+rts::ActiveAbilityStateUPtr rts::abilities::state::Produce::trigger(
     World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, const AbilityTarget&) {
   assert(u.productionQueue);
   auto& pq{w[u.productionQueue]};
@@ -21,10 +21,12 @@ void rts::abilities::state::Produce::trigger(
 
   if (pq.add(w, desc.type)) {
     if (!as)
-      as = std::make_unique<Produce>();
+      return std::make_unique<Produce>();
     else
       static_cast<Produce&>(*as).unblock();
   }
+
+  return {};
 }
 
 rts::AbilityStepResult rts::abilities::state::Produce::step(const World& w, UnitStableRef u) {

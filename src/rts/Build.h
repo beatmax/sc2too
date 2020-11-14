@@ -10,7 +10,7 @@ namespace rts::abilities::state {
     using Desc = abilities::Build;
     using State = abilities::BuildState;
 
-    static void trigger(
+    static ActiveAbilityStateUPtr trigger(
         World& w,
         Unit& u,
         ActiveAbilityStateUPtr& as,

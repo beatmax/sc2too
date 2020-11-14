@@ -154,6 +154,7 @@ namespace rts {
     }
     ProductionQueueWId weakId(ProductionQueueId id) const { return weakId((*this)[id]); }
 
+    bool inBounds(Point p) const { return map.area().contains(p); }
     Cell& operator[](Point p) { return map[p]; }
     const Cell& operator[](Point p) const { return map[p]; }
 

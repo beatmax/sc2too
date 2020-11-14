@@ -11,7 +11,7 @@ namespace rts::abilities::state {
     using Desc = abilities::Gather;
     using State = abilities::GatherState;
 
-    static void trigger(
+    static ActiveAbilityStateUPtr trigger(
         World& w,
         Unit& u,
         ActiveAbilityStateUPtr& as,
