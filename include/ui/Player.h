@@ -6,6 +6,7 @@
 #include "rts/types.h"
 
 #include <array>
+#include <chrono>
 #include <optional>
 #include <utility>
 
@@ -29,8 +30,16 @@ namespace ui {
     std::optional<rts::Command> processInput(const rts::World& w, const InputEvent& event);
 
   private:
+    using Clock = std::chrono::steady_clock;
+
+    struct Event {
+      InputEvent e{InputType::Unknown};
+      Clock::time_point time;
+    };
+
     enum class State { Default, BuildingPrototype, BuildTriggered };
 
+    Event lastEvent_;
     rts::Point selectionBoxStart_;
     State state_{State::Default};
     rts::AbilityInstanceIndex lastBuildAbilityIndex_;

@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cassert>
 #include <limits>
+#include <numeric>
 #include <stdexcept>
 
 namespace rts {
@@ -215,6 +216,23 @@ std::optional<rts::Point> rts::World::emptyCellAround(const Rectangle& area, Poi
   if (it != points.end() && map[*it].empty())
     return *it;
   return std::nullopt;
+}
+
+rts::Point rts::World::centralPoint(const UnitCPtrList& units) {
+  assert(!units.empty());
+  return Point{0, 0} +
+      std::accumulate(
+          units.begin(), units.end(), Vector{0, 0},
+          [](Vector v, UnitCPtr u) {
+            return v + (u->area.center() - Point{0, 0});
+          }) /
+      Coordinate(units.size());
+}
+
+const rts::Unit& rts::World::centralUnit(const UnitCPtrList& units) {
+  auto p{centralPoint(units)};
+  return **util::minElementBy(
+      units, [p](UnitCPtr u) { return diagonalDistance(p, u->area.center()); });
 }
 
 void rts::World::onMapLoaded() {

@@ -1,5 +1,11 @@
 #include "ui/Camera.h"
 
+#include "util/geo.h"
+
+void ui::Camera::setCenter(rts::Point p) {
+  area_ = rectangleCenteredAt(p, area_.size, bounds_);
+}
+
 void ui::Camera::update() {
   if (--moveCnt_ > 0) {
     return;
@@ -12,8 +18,8 @@ void ui::Camera::update() {
   if (area_.topLeft.y < 0)
     area_.topLeft.y = 0;
   const auto& br{bottomRight()};
-  if (br.x >= bottomRightOut_.x)
-    area_.topLeft.x = bottomRightOut_.x - area_.size.x;
-  if (br.y >= bottomRightOut_.y)
-    area_.topLeft.y = bottomRightOut_.y - area_.size.y;
+  if (br.x >= bounds_.size.x)
+    area_.topLeft.x = bounds_.size.x - area_.size.x;
+  if (br.y >= bounds_.size.y)
+    area_.topLeft.y = bounds_.size.y - area_.size.y;
 }

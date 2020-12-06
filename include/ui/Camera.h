@@ -9,20 +9,21 @@ namespace ui {
     constexpr static rts::Coordinate height{18};
 
     Camera(rts::Point topLeft, const rts::Rectangle& mapArea)
-      : area_{topLeft, {width, height}}, bottomRightOut_{mapArea.bottomRightOut()} {}
+      : area_{topLeft, {width, height}}, bounds_{mapArea} {}
 
     const rts::Rectangle& area() const { return area_; }
     const rts::Point topLeft() const { return area_.topLeft; }
     const rts::Point bottomRight() const { return area_.bottomRight(); }
     const rts::Vector& moveDirection() const { return moveDirection_; }
 
-    void setTopLeft(rts::Point topLeft) { area_.topLeft = topLeft; }
+    void setCenter(rts::Point p);
+    void setTopLeft(rts::Point p) { area_.topLeft = p; }
     void setMoveDirection(const rts::Vector& v) { moveDirection_ = v; }
     void update();
 
   private:
     rts::Rectangle area_;
-    const rts::Point bottomRightOut_;
+    const rts::Rectangle bounds_;
 
     rts::Vector moveDirection_{0, 0};
     constexpr static int movePerid_{2};

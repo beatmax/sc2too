@@ -55,6 +55,8 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
   using SelectionSubgroupCmd = rts::command::SelectionSubgroup;
   using RC = rts::RelativeContent;
 
+  Event previousEvent{std::exchange(lastEvent_, {event, Clock::now()})};
+
   util::ScopeExit finishTargetSelection;
   if (selectingAbilityTarget)
     finishTargetSelection = [this]() { selectingAbilityTarget.reset(); };
@@ -79,6 +81,16 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
                                          : SelectionSubgroupCmd::Next};
       }
       else if (int digit{getDigit(event.symbol)}; digit >= 0) {
+        if (event.state == 0) {
+          if (previousEvent.e.type == InputType::KeyRelease &&
+              previousEvent.e.symbol == event.symbol && previousEvent.e.state == 0 &&
+              (lastEvent_.time - previousEvent.time) < std::chrono::seconds{1}) {
+            if (const auto& items{w[side].selection().items(w)}; !items.empty()) {
+              camera.setCenter(rts::World::centralUnit(items).area.center());
+              break;
+            }
+          }
+        }
         return ControlGroupCmd{
             (event.state & ShiftPressed)
                 ? ControlGroupCmd::Add

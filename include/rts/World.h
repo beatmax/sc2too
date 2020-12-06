@@ -195,6 +195,9 @@ namespace rts {
     const ResourceField* closestResourceField(Point p, ResourceId r) const;
     std::optional<Point> emptyCellAround(const Rectangle& area, Point towards) const;
 
+    static Point centralPoint(const UnitCPtrList& units);
+    static const Unit& centralUnit(const UnitCPtrList& units);
+
   private:
     void onMapLoaded();
 
