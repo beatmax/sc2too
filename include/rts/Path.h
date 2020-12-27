@@ -21,8 +21,6 @@ namespace rts {
       Point goal,
       const Rectangle& goalArea,
       const ExcludedPointSet& excl);
-  std::pair<Path, bool> findPath(
-      const World& w, Point start, UnitId unit, const ExcludedPointSet& excl);
   std::pair<Path, bool> findPathToTarget(
       const World& w, Point start, const AbilityTarget& target, const ExcludedPointSet& excl);
 

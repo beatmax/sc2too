@@ -96,6 +96,7 @@ namespace test::seq {
       struct Trigger {
         std::string ability;
         std::optional<rts::Point> target;
+        bool enqueue;
       };
     }
 

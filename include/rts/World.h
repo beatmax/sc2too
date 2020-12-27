@@ -17,6 +17,7 @@
 #include "util/Pool.h"
 
 #include <iosfwd>
+#include <map>
 #include <memory>
 #include <optional>
 #include <set>
@@ -43,6 +44,9 @@ namespace rts {
     util::Pool<ResourceField, MaxResourceFields> resourceFields;
     util::Pool<Blocker, MaxBlockers> blockers;
     util::Pool<ProductionQueue, MaxProductionQueues> productionQueues;
+
+    std::map<TriggerGroupId, TriggerGroup> triggerGroups;
+    TriggerGroupId nextTriggerGroupId{};
 
     explicit World(FactoryUPtr f);
     ~World();
@@ -158,6 +162,8 @@ namespace rts {
     Cell& operator[](Point p) { return map[p]; }
     const Cell& operator[](Point p) const { return map[p]; }
 
+    AbilityTarget abilityTarget(Point p) const;
+    AbilityWeakTarget abilityWeakTarget(Point p) const;
     RelativeContent relativeContent(SideId side, Point p) const;
 
     UnitId unitId(Point p) const { return map[p].unitId(); }
@@ -197,6 +203,10 @@ namespace rts {
 
     static Point centralPoint(const UnitCPtrList& units);
     static const Unit& centralUnit(const UnitCPtrList& units);
+
+    Rectangle area(const AbilityTarget& t) const;
+    Point center(const AbilityTarget& t) const;
+    std::optional<AbilityTarget> fromWeakTarget(const AbilityWeakTarget& t) const;
 
   private:
     void onMapLoaded();

@@ -169,16 +169,23 @@ namespace ui {
       }
     }
 
-    void drawRallyPoints(
+    void drawTargetPoints(
         const IOState& ios,
         const rts::World& w,
         const Camera& camera,
         const rts::Selection& selection) {
       for (auto* u : selection.items(w)) {
+        auto color{graph::yellow()};
+        for (size_t i{0}; i < u->commandQueue.size(); ++i) {
+          const rts::UnitCommand& cmd{u->commandQueue[i]};
+          if (!cmd.prototype) {
+            if (auto target{w.fromWeakTarget(cmd.target)})
+              highlight(ios.renderWin, camera, w.area(*target), color);
+          }
+        }
         if (u->productionQueue) {
           const rts::ProductionQueue& pq{w[u->productionQueue]};
           if (auto p{pq.rallyPoint()}) {
-            auto color{graph::yellow()};
             if (auto* obj{w.object(*p)})
               highlight(ios.renderWin, camera, obj->area, color);
             else
@@ -316,7 +323,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
       ios_.mouseButtons ? graph::red() : graph::yellow());
   render(ios_.renderWin, w, side.prototypeMap(), camera, side.selection());
   render(ios_.renderWin, w, w.map, camera, side.selection());
-  drawRallyPoints(ios_, w, camera, side.selection());
+  drawTargetPoints(ios_, w, camera, side.selection());
   if (player.selectionBox)
     drawBoundingBox(ios_.renderWin, camera, *player.selectionBox, graph::green());
   if (side.prototype())

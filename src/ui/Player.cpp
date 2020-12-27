@@ -17,8 +17,12 @@ namespace ui {
 
     rts::Vector scrollDirectionVector(ScrollDirection sd) {
       return {
-          (sd & ScrollDirectionLeft) ? -1 : (sd & ScrollDirectionRight) ? 1 : 0,
-          (sd & ScrollDirectionUp) ? -1 : (sd & ScrollDirectionDown) ? 1 : 0};
+          (sd & ScrollDirectionLeft)        ? -1
+              : (sd & ScrollDirectionRight) ? 1
+                                            : 0,
+          (sd & ScrollDirectionUp)         ? -1
+              : (sd & ScrollDirectionDown) ? 1
+                                           : 0};
     }
 
     void processKeyScrollEvent(InputType type, ScrollDirection sd, Camera& camera) {
@@ -92,8 +96,7 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
           }
         }
         return ControlGroupCmd{
-            (event.state & ShiftPressed)
-                ? ControlGroupCmd::Add
+            (event.state & ShiftPressed)                        ? ControlGroupCmd::Add
                 : (event.state & (ControlPressed | AltPressed)) ? ControlGroupCmd::Set
                                                                 : ControlGroupCmd::Select,
             bool(event.state & AltPressed), rts::ControlGroupId(digit)};
@@ -105,7 +108,6 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
           cameraPositions_[fkey] = camera.topLeft();
         else if (cameraPositions_[fkey])
           camera.setTopLeft(*cameraPositions_[fkey]);
-        break;
       }
       else if (Layout::cancel(event.symbol)) {
         abilityPage = 0;
@@ -113,7 +115,6 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
         selectingAbilityTarget.reset();
         if (w[side].prototype())
           return rts::command::Cancel{};
-        break;
       }
       else if (auto abilityIndex{Layout::abilityIndex(event.symbol, abilityPage)};
                abilityIndex != rts::AbilityInstanceIndex::None) {
@@ -122,8 +123,10 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
         if (subgroup.abilityEnabled(w, abilityIndex)) {
           const auto& ai{*subgroup.abilities[abilityIndex]};
           if (ai.kind != rts::abilities::Kind::None) {
-            if (ai.targetType == rts::abilities::TargetType::None)
-              return rts::command::TriggerAbility{abilityIndex, {-1, -1}};
+            if (ai.targetType == rts::abilities::TargetType::None) {
+              const bool enqueue(event.state & ShiftPressed);
+              return rts::command::TriggerAbility{abilityIndex, {-1, -1}, enqueue};
+            }
             selectionBox.reset();
             if (ai.kind != rts::abilities::Kind::Build) {
               selectingAbilityTarget = {abilityIndex};
@@ -140,12 +143,20 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
             selectingAbilityTarget.reset();
           }
         }
-        break;
       }
-      // pass-through
+      else if (auto scrollDirection{Layout::scrollDirection(event.symbol)})
+        processKeyScrollEvent(event.type, scrollDirection, camera);
+      break;
     case InputType::KeyRelease:
       if (auto scrollDirection{Layout::scrollDirection(event.symbol)})
         processKeyScrollEvent(event.type, scrollDirection, camera);
+      else if (event.symbol == InputKeySym::Shift_L || event.symbol == InputKeySym::Shift_R) {
+        if (selectingAbilityTarget && selectingAbilityTarget->afterEnqueue) {
+          abilityPage = 0;
+          selectingAbilityTarget.reset();
+          return rts::command::Cancel{};
+        }
+      }
       break;
     case InputType::MousePress:
       if (event.mouseCell) {
@@ -158,7 +169,10 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
               goToMainAbilityPage.reset();
               state_ = State::BuildTriggered;
             }
-            return rts::command::TriggerAbility{selectingAbilityTarget->abilityIndex, mouseCell};
+            const bool enqueue(event.state & ShiftPressed);
+            selectingAbilityTarget->afterEnqueue = enqueue;
+            return rts::command::TriggerAbility{
+                selectingAbilityTarget->abilityIndex, mouseCell, enqueue};
           }
           auto rc{w.relativeContent(side, mouseCell)};
           if (rc == RC::Friend) {
@@ -183,7 +197,8 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
           }
         }
         else if (event.mouseButton == InputButton::Button3) {
-          return rts::command::TriggerDefaultAbility{mouseCell};
+          const bool enqueue(event.state & ShiftPressed);
+          return rts::command::TriggerDefaultAbility{mouseCell, enqueue};
         }
       }
       break;

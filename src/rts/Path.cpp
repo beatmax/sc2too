@@ -1,6 +1,7 @@
 #include "rts/Path.h"
 
 #include "rts/World.h"
+#include "util/Overloaded.h"
 #include "util/pathfinding.h"
 
 #include <cassert>
@@ -90,14 +91,13 @@ std::pair<rts::Path, bool> rts::findPath(
   return {std::move(path), isGoal(closest)};
 }
 
-std::pair<rts::Path, bool> rts::findPath(
-    const World& w, Point start, UnitId unit, const ExcludedPointSet& excl) {
-  return findPath(w, start, boundingBox(w[unit].area), excl);
-}
-
 std::pair<rts::Path, bool> rts::findPathToTarget(
     const World& w, Point start, const AbilityTarget& target, const ExcludedPointSet& excl) {
-  return std::visit([&](const auto& t) { return findPath(w, start, t, excl); }, target);
+  return std::visit(
+      util::Overloaded{
+          [&](Point p) { return findPath(w, start, p, excl); },
+          [&](auto id) { return findPath(w, start, boundingBox(w[id].area), excl); }},
+      target);
 }
 
 bool rts::dodge(const World& w, Point pos, Path& path) {

@@ -50,7 +50,7 @@ int main() try {
     auto probe{world.addForFree(sc2::Factory::probe(world, side), *p)};
     auto* mineral{world.closestResourceField(*p, sc2::Resources::mineral)};
     assert(mineral);
-    world[probe].trigger(sc2::Abilities::GatherIndex, world, mineral->area.topLeft);
+    world[probe].trigger(sc2::Abilities::GatherIndex, world, world.id(*mineral));
   }
 
   rts::Engine engine{world};

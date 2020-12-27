@@ -14,23 +14,9 @@ namespace rts {
 }
 
 rts::ActiveAbilityStateUPtr rts::abilities::state::Build::trigger(
-    World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, const AbilityTarget& target) {
-  assert(std::holds_alternative<Point>(target));
-  auto targetPoint{std::get<Point>(target)};
-
-  auto& side{w[u.side]};
-  assert(side.prototype());
-  auto& proto{w[side.prototype()]};
-  auto buildArea{rectangleCenteredAt(targetPoint, proto.area.size, w.map.area())};
-  if (!w.objectsInArea(buildArea).empty()) {
-    side.messages().add(w, "INVALID LOCATION!");
-    return {};
-  }
-  if (!proto.tryAllocate(w))
-    return {};
-  proto.setBuildPoint(w, buildArea.topLeft);
-
-  return std::make_unique<Build>(desc, side.takePrototype());
+    World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, UnitId prototype) {
+  assert(prototype);
+  return std::make_unique<Build>(desc, prototype);
 }
 
 rts::AbilityStepResult rts::abilities::state::Build::step(const World& w, UnitStableRef u) {
@@ -62,7 +48,7 @@ rts::AbilityStepResult rts::abilities::state::Build::init(const World& w, const 
   return [target{builtUnit_}](World& w, Unit& u) {
     auto moveIndex{w[u.type].abilityIndex(Kind::Move)};
     assert(moveIndex != AbilityStateIndex::None);
-    u.trigger(moveIndex, w, target, Unit::CancelOthers::No);
+    u.trigger(moveIndex, w, target, {}, Unit::CancelOthers::No);
     return MonitorTime;
   };
 }

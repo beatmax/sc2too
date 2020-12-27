@@ -3,6 +3,7 @@
 #include "rts/SemaphoreLock.h"
 #include "rts/Unit.h"
 #include "rts/WorldAction.h"
+#include "util/Overloaded.h"
 #include "util/algorithm.h"
 #include "util/geo.h"
 
@@ -22,10 +23,11 @@ namespace rts {
     WorldObject* objectPtr(World&, Cell::Empty) { return nullptr; }
 
     Direction direction(const Vector& v) {
-      return v.x < 0
-          ? Direction::Left
-          : v.x > 0 ? Direction::Right
-                    : v.y < 0 ? Direction::Up : v.y > 0 ? Direction::Down : Direction::Right;
+      return v.x < 0 ? Direction::Left
+          : v.x > 0  ? Direction::Right
+          : v.y < 0  ? Direction::Up
+          : v.y > 0  ? Direction::Down
+                     : Direction::Right;
     }
   }
 }
@@ -56,6 +58,7 @@ void rts::World::exec(const SideCommand& cmd) {
 }
 
 void rts::World::update(const WorldActionList& actions) {
+  triggerGroups.clear();
   for (const auto& action : actions)
     action(*this);
 }
@@ -121,6 +124,24 @@ void rts::World::destroy(ResourceField& rf) {
 void rts::World::destroy(ProductionQueue& pq) {
   pq.onDestroy(*this);
   productionQueues.erase(id(pq));
+}
+
+rts::AbilityTarget rts::World::abilityTarget(Point p) const {
+  auto& cell{map[p]};
+  if (auto u{cell.unitId()})
+    return u;
+  else if (auto rf{cell.resourceFieldId()})
+    return rf;
+  return p;
+}
+
+rts::AbilityWeakTarget rts::World::abilityWeakTarget(Point p) const {
+  auto& cell{map[p]};
+  if (auto u{cell.unitId()})
+    return weakId((*this)[u]);
+  else if (auto rf{cell.resourceFieldId()})
+    return weakId((*this)[rf]);
+  return p;
 }
 
 rts::RelativeContent rts::World::relativeContent(SideId side, Point p) const {
@@ -233,6 +254,35 @@ const rts::Unit& rts::World::centralUnit(const UnitCPtrList& units) {
   auto p{centralPoint(units)};
   return **util::minElementBy(
       units, [p](UnitCPtr u) { return diagonalDistance(p, u->area.center()); });
+}
+
+rts::Rectangle rts::World::area(const AbilityTarget& t) const {
+  return std::visit(
+      util::Overloaded{
+          [](Point p) {
+            return Rectangle{p, {1, 1}};
+          },
+          [this](auto id) { return (*this)[id].area; }},
+      t);
+}
+
+rts::Point rts::World::center(const AbilityTarget& t) const {
+  return std::visit(
+      util::Overloaded{
+          [](Point p) { return p; }, [this](auto id) { return (*this)[id].area.center(); }},
+      t);
+}
+
+std::optional<rts::AbilityTarget> rts::World::fromWeakTarget(const AbilityWeakTarget& t) const {
+  using OptTarget = std::optional<rts::AbilityTarget>;
+  return std::visit(
+      util::Overloaded{
+          [](Point p) -> OptTarget { return p; },
+          [this](auto wid) -> OptTarget {
+            auto* obj{(*this)[wid]};
+            return obj ? OptTarget{id(*obj)} : std::nullopt;
+          }},
+      t);
 }
 
 void rts::World::onMapLoaded() {

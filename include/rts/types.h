@@ -75,6 +75,7 @@ namespace rts {
   using ResourceGroupId = uint32_t;
   using ResourceId = util::PoolObjectId<Resource>;
   using SideId = util::PoolObjectId<Side>;
+  using TriggerGroupId = uint32_t;
   using UnitCPtr = const Unit*;
   using UnitCPtrList = std::vector<UnitCPtr>;
   using UnitId = util::PoolObjectId<Unit>;
@@ -100,7 +101,17 @@ namespace rts {
   using util::geo::Rectangle;
   using util::geo::Vector;
 
-  using AbilityTarget = std::variant<Point, UnitId>;
+  using AbilityTarget = std::variant<Point, UnitId, ResourceFieldId>;
+  using AbilityWeakTarget = std::variant<Point, UnitWId, ResourceFieldWId>;
+
+  struct UnitCommand {
+    AbilityInstanceIndex abilityIndex;
+    AbilityWeakTarget target;
+    TriggerGroupId triggerGroupId;
+    uint32_t triggerGroupSize;
+    UnitId prototype;
+  };
+
   enum class Direction : uint32_t { Left, Right, Up, Down };
   enum class RelativeContent : uint32_t { Friend, Foe, Ground, Resource, Count };
 

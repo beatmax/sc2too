@@ -5,6 +5,5 @@
 
 void rts::abilities::state::SetRallyPoint::trigger(
     World& w, Unit& u, const Desc& desc, const AbilityTarget& target) {
-  assert(std::holds_alternative<Point>(target));
-  w[u.productionQueue].setRallyPoint(std::get<Point>(target));
+  w[u.productionQueue].setRallyPoint(w.center(target));
 }

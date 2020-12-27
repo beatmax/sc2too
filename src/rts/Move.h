@@ -16,8 +16,8 @@ namespace rts::abilities::state {
     struct GroupState : ActiveAbilityGroupState {
       bool initialized{false};
       AbilityTarget target;
-      size_t count;
-      GameTime firstStepTime{0};
+      size_t originalSize;
+      size_t count{0};
       float closeEnough;
     };
     using GroupStateSPtr = std::shared_ptr<GroupState>;

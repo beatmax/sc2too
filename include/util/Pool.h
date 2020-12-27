@@ -109,7 +109,7 @@ namespace util {
       : idx{id.idx}, gen{pool.items_[id.idx].gen} {}
 
     template<typename Pool>
-    PoolObjectId<T> lock(const Pool& pool) {
+    PoolObjectId<T> lock(const Pool& pool) const {
       auto& item{pool.items_[idx]};
       return PoolObjectId<T>{item.gen == gen ? idx : 0};
     }

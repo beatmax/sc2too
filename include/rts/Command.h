@@ -31,10 +31,12 @@ namespace rts {
     struct TriggerAbility {
       AbilityInstanceIndex abilityIndex;
       Point target;
+      bool enqueue{false};
     };
 
     struct TriggerDefaultAbility {
       Point target;
+      bool enqueue{false};
     };
 
     struct Debug {

@@ -47,7 +47,8 @@ namespace test::seq::item::cmd {
     std::string toString(const BuildPrototype& bp) { return "build_prototype " + bp.type; }
     std::string toString(const Select& s) { return "select " + util::join(s.names, ','); }
     std::string toString(const Trigger& t) {
-      return "trigger " + t.ability + (t.target ? (' ' + ::toString(*t.target)) : "");
+      return (t.enqueue ? "enqueue " : "trigger ") + t.ability +
+          (t.target ? (' ' + ::toString(*t.target)) : "");
     }
   }
 }
@@ -130,7 +131,8 @@ namespace test::seq::item {
     }
     std::string toString(const Run& r) {
       return r.duration ? "run for " + std::to_string(*r.duration)
-                        : r.untilIdle ? "run until idle " + *r.untilIdle : "run";
+          : r.untilIdle ? "run until idle " + *r.untilIdle
+                        : "run";
     }
 
     const std::regex reAction{R"((?:add|destroy|provision|allocate)\s.*)"};
@@ -156,10 +158,10 @@ namespace test::seq::item {
       return std::visit([](const auto& a) { return act::toString(a); }, action);
     }
 
-    const std::regex reCommand{R"((?:build_prototype|select|trigger)\s.*)"};
+    const std::regex reCommand{R"((?:build_prototype|select|trigger|enqueue)\s.*)"};
     const std::regex reCommandBuildPrototype{R"(build_prototype\s+(\w+))"};
     const std::regex reCommandSelect{R"(select\s+(\w+(?:,\w+)*))"};
-    const std::regex reCommandTrigger{R"(trigger\s+(\w+)(?:\s+(\d+),(\d+))?)"};
+    const std::regex reCommandTrigger{R"((trigger|enqueue)\s+(\w+)(?:\s+(\d+),(\d+))?)"};
     Item parseCommand(ParseLoc& loc) {
       std::smatch match;
       if (std::regex_match(*loc.it, match, reCommandBuildPrototype))
@@ -168,9 +170,10 @@ namespace test::seq::item {
         return ++loc.it, Command{cmd::Select{commaSplit(match[1])}};
       if (std::regex_match(*loc.it, match, reCommandTrigger)) {
         std::optional<rts::Point> target;
-        if (match[2].matched && match[3].matched)
-          target = rts::Point{std::stoi(match[2]), std::stoi(match[3])};
-        return ++loc.it, Command{cmd::Trigger{match[1], target}};
+        bool enqueue{match[1] == "enqueue"};
+        if (match[3].matched && match[4].matched)
+          target = rts::Point{std::stoi(match[3]), std::stoi(match[4])};
+        return ++loc.it, Command{cmd::Trigger{match[2], target, enqueue}};
       }
       return item::Error{*loc.it++ + " <--- cannot parse command"};
     }

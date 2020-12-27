@@ -15,6 +15,7 @@ namespace util {
     const T& front() const;
     size_t size() const;
     bool empty() const { return first_ == last_; }
+    bool full() const { return ((last_ + 1) % Sz) == first_; }
     const T& operator[](size_t i) const;
 
   private:

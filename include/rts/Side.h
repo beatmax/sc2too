@@ -33,7 +33,9 @@ namespace rts {
     const Map& prototypeMap() const { return prototypeMap_; }
     void createPrototype(World& w, UnitTypeId t, UnitTypeId builderType);
     void destroyPrototype(World& w);
+    bool materializePrototype(World& w, Point p);
     UnitId takePrototype();
+    UnitId takeAndCreatePrototype(World& w);
     UnitId prototype() const { return prototype_; }
     const Ui& ui() const { return *ui_; }
 

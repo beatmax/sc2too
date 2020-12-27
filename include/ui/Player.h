@@ -16,6 +16,7 @@ namespace ui {
 
     struct SelectingAbilityTarget {
       rts::AbilityInstanceIndex abilityIndex;
+      bool afterEnqueue{false};
     };
 
     rts::SideId side;

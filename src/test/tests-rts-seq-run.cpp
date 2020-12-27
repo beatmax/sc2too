@@ -67,7 +67,8 @@ namespace {
   }
 
   bool isIdle(const rts::Unit& u) {
-    return rts::Unit::nextStepTime(rts::UnitStableRef{u}) == rts::GameTimeInf;
+    return rts::Unit::nextStepTime(rts::UnitStableRef{u}) == rts::GameTimeInf &&
+        u.commandQueue.empty();
   }
 
   bool stepWorld(rts::World& w, rts::GameTime limit) {
@@ -78,7 +79,10 @@ namespace {
     if (it == w.units.end())
       return false;
 
-    const auto nextTime{Unit::nextStepTime(UnitStableRef{*it})};
+    auto nextTime{Unit::nextStepTime(UnitStableRef{*it})};
+    if (nextTime == GameTimeInf && !it->commandQueue.empty())
+      nextTime = w.time + 1;
+
     if (nextTime > limit) {
       if (nextTime != GameTimeInf)
         w.time = limit;
@@ -86,8 +90,11 @@ namespace {
     }
 
     w.time = nextTime;
+
+    WorldActionList actions;
     for (auto& u : w.units)
-      w.update(Unit::step(StableRef{u}, w));
+      actions += Unit::step(StableRef{u}, w);
+    w.update(actions);
 
     return true;
   }
@@ -364,7 +371,8 @@ namespace test::seq {
       if (!t.target && requiresTarget(t.ability))
         return error(t, "target required");
       test::execCommand(
-          world, side, rts::command::TriggerAbility{ai, t.target ? *t.target : rts::Point{-1, -1}});
+          world, side,
+          rts::command::TriggerAbility{ai, t.target ? *t.target : rts::Point{-1, -1}, t.enqueue});
       output.push_back(t);
     }
 

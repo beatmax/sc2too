@@ -5,17 +5,13 @@
 #include "rts/types.h"
 
 namespace rts::abilities::state {
-  class Build : public ActiveAbilityStateTpl<Build> {
+  class Build : public ActiveAbilityBuildStateTpl<Build> {
   public:
     using Desc = abilities::Build;
     using State = abilities::BuildState;
 
     static ActiveAbilityStateUPtr trigger(
-        World& w,
-        Unit& u,
-        ActiveAbilityStateUPtr& as,
-        const Desc& desc,
-        const AbilityTarget& target);
+        World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, UnitId prototype);
 
     explicit Build(const Desc& desc, UnitId builtUnit) : desc_{desc}, builtUnit_{builtUnit} {}
 

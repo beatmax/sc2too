@@ -19,14 +19,8 @@ namespace rts {
       return (p1.x == p2.x || p1.y == p2.y) ? CellDistance : DiagonalDistance;
     }
 
-    inline Point center(const World& w, Point p) { return p; }
-    inline Point center(const World& w, UnitId u) { return w[u].area.center(); }
-    inline Point center(const World& w, const AbilityTarget& target) {
-      return std::visit([&](const auto& t) { return center(w, t); }, target);
-    }
-
     inline float diagonalDistance(const World& w, Point p, const AbilityTarget& target) {
-      return util::geo::diagonalDistance(p, center(w, target));
+      return util::geo::diagonalDistance(p, w.center(target));
     }
   }
 }
@@ -41,11 +35,12 @@ std::pair<rts::ActiveAbilityStateUPtr, rts::GameTime> rts::abilities::state::Mov
   if (!group.sharedState) {
     auto sharedState = std::make_shared<GroupState>();
     sharedState->target = target;
-    sharedState->count = group.ids.size();
+    sharedState->originalSize = group.originalSize;
     group.sharedState = sharedState;
   }
   auto groupState = std::static_pointer_cast<GroupState>(group.sharedState);
-  return {std::make_unique<Move>(desc, groupState), ++groupState->firstStepTime};
+  GameTime firstStepTime(++groupState->count);
+  return {std::make_unique<Move>(desc, groupState), firstStepTime};
 }
 
 rts::AbilityStepResult rts::abilities::state::Move::step(const World& w, UnitStableRef u) {
@@ -92,7 +87,7 @@ rts::AbilityStepResult rts::abilities::state::Move::step(const World& w, UnitSta
   if (!groupState_->initialized) {
     // no data race here because of the different first step times
     groupState_->target = *target_;
-    groupState_->closeEnough = sqrtf(groupState_->count);
+    groupState_->closeEnough = sqrtf(groupState_->originalSize);
     groupState_->initialized = true;
   }
 

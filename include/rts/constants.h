@@ -25,6 +25,7 @@ namespace rts {
   constexpr static size_t MaxProductionQueueSize{5};
   constexpr static size_t MaxMessageSize{79};
   constexpr static size_t MaxMessages{4};
+  constexpr static size_t MaxEnqueuedCommands{20};
 
   constexpr Distance CellDistance{100};
   constexpr Distance DiagonalDistance{141};

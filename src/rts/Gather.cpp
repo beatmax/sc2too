@@ -14,8 +14,9 @@ namespace rts {
 
 rts::ActiveAbilityStateUPtr rts::abilities::state::Gather::trigger(
     World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, const AbilityTarget& target) {
-  assert(std::holds_alternative<Point>(target));
-  return std::make_unique<Gather>(desc, std::get<Point>(target));
+  if (!std::holds_alternative<ResourceFieldId>(target))
+    return {};
+  return std::make_unique<Gather>(desc, w[std::get<ResourceFieldId>(target)].area.topLeft);
 }
 
 rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitStableRef u) {
@@ -83,8 +84,11 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitS
       return finishDelivering();
 
     case State::DeliveringDone:
-      state_ = State::MovingToTarget;
-      return moveTo(target_);
+      if (u->commandQueue.empty()) {
+        state_ = State::MovingToTarget;
+        return moveTo(target_);
+      }
+      return GameTime{0};
   }
   return GameTime{0};
 }
@@ -109,7 +113,7 @@ rts::AbilityStepAction rts::abilities::state::Gather::moveTo(Point p) {
   return [this, p](World& w, Unit& u) {
     auto moveIndex{w[u.type].abilityIndex(Kind::Move)};
     assert(moveIndex != AbilityStateIndex::None);
-    u.trigger(moveIndex, w, p, Unit::CancelOthers::No);
+    u.trigger(moveIndex, w, p, {}, Unit::CancelOthers::No);
     return MonitorTime;
   };
 }

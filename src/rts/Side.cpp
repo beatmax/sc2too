@@ -4,6 +4,7 @@
 #include "util/algorithm.h"
 
 #include <cassert>
+#include <utility>
 
 void rts::Side::createPrototype(World& w, UnitTypeId t, UnitTypeId builderType) {
   assert(!prototype_);
@@ -25,12 +26,29 @@ void rts::Side::destroyPrototype(World& w) {
   w.destroy(takePrototype());
 }
 
+bool rts::Side::materializePrototype(World& w, Point p) {
+  assert(prototype_);
+  auto& proto{w[prototype_]};
+  auto buildArea{rectangleCenteredAt(p, proto.area.size, w.map.area())};
+  if (!w.map.isEmpty(buildArea) || !prototypeMap_.isEmpty(buildArea)) {
+    messages_.add(w, "INVALID LOCATION!");
+    return false;
+  }
+  if (!proto.tryAllocate(w))
+    return false;
+  proto.setBuildPoint(w, buildArea.topLeft);
+  return true;
+}
+
 rts::UnitId rts::Side::takePrototype() {
   assert(prototype_);
-  auto p{prototype_};
-  prototype_ = {};
   prototypeBuilderType_ = {};
-  return p;
+  return std::exchange(prototype_, {});
+}
+
+rts::UnitId rts::Side::takeAndCreatePrototype(World& w) {
+  assert(prototype_);
+  return std::exchange(prototype_, w.createUnit(w[prototype_].type, w.id(*this)));
 }
 
 rts::WorldActionList rts::Side::exec(const World& w, const Command& cmd) {
@@ -120,21 +138,58 @@ void rts::Side::exec(const World& w, WorldActionList& actions, const command::Tr
   UnitIdList ids = util::filter(selection_.ids(w), [&](UnitId id) {
     return w[id].hasEnabledAbility(w, cmd.abilityIndex, a->abilityId);
   });
+  if (ids.empty())
+    return;
 
-  if (a->groupMode == abilities::GroupMode::One && !ids.empty()) {
-    auto it{util::findIf(ids, [&](UnitId id) {
-      return !Unit::abilityState(UnitStableRef{w[id]}, w, a->kind).active();
+  if (a->groupMode == abilities::GroupMode::One) {
+    auto it{util::minElementBy(ids, [&w, a](UnitId id) {
+      auto& u{w[id]};
+      return u.commandQueue.size() +
+          (Unit::abilityState(UnitStableRef{u}, w, a->kind).active() ? 1000 : 0);
     })};
-    if (it == ids.end())
-      it = ids.begin();
     ids = {*it};
   }
 
-  actions += [ids{std::move(ids)}, abilityIndex{cmd.abilityIndex}, target{cmd.target}](World& w) {
-    TriggerGroup group{std::move(ids)};
-    for (auto u : group.ids)
-      w[u].trigger(abilityIndex, w, group, target);
-  };
+  actions +=
+      [s{w.id(*this)}, ids{std::move(ids)},
+       cmd{command::TriggerAbility{cmd.abilityIndex, cmd.target, cmd.enqueue && a->enqueable}},
+       isBuild{a->kind == abilities::Kind::Build}](World& w) {
+        auto& side = w[s];
+
+        rts::UnitId protoId;
+        if (isBuild) {
+          assert(ids.size() == 1);
+          if (!side.materializePrototype(w, cmd.target))
+            return;
+          protoId = cmd.enqueue ? side.takeAndCreatePrototype(w) : side.takePrototype();
+        }
+
+        if (cmd.enqueue) {
+          UnitCommand ucmd{
+              cmd.abilityIndex, w.abilityWeakTarget(cmd.target), w.nextTriggerGroupId++,
+              uint32_t(ids.size()), protoId};
+          for (auto u : ids) {
+            auto& unit = w[u];
+            if (!unit.commandQueue.full())
+              unit.commandQueue.push(ucmd);
+            else if (protoId)
+              w.destroy(protoId);
+          }
+        }
+        else {
+          auto target{w.abilityTarget(cmd.target)};
+          TriggerGroup group{uint32_t(ids.size())};
+          for (auto u : ids) {
+            auto& unit = w[u];
+            unit.clearCommandQueue(w);
+            unit.trigger(cmd.abilityIndex, w, group, target, protoId);
+            assert(  // trigger build always succeeds (prototype is not leaked)
+                !protoId ||
+                Unit::abilityState<abilities::BuildState>(UnitStableRef{unit}, w) ==
+                    abilities::BuildState::Init);
+          }
+        }
+      };
 }
 
 void rts::Side::exec(
@@ -146,17 +201,7 @@ void rts::Side::exec(
   if (abilityIndex == AbilityInstanceIndex::None)
     return;
 
-  const auto* a{subgroup.abilities[abilityIndex]};
-  assert(a);
-  UnitIdList ids = util::filter(selection_.ids(w), [&](UnitId id) {
-    return w[id].hasEnabledAbility(w, abilityIndex, a->abilityId);
-  });
-
-  actions += [ids{std::move(ids)}, abilityIndex, target{cmd.target}](World& w) {
-    TriggerGroup group{std::move(ids)};
-    for (auto u : group.ids)
-      w[u].trigger(abilityIndex, w, group, target);
-  };
+  exec(w, actions, command::TriggerAbility{abilityIndex, cmd.target, cmd.enqueue});
 }
 
 void rts::Side::exec(const World& w, WorldActionList& actions, const command::Debug& cmd) {

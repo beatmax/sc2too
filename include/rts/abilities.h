@@ -16,7 +16,7 @@ namespace rts {
   using ActiveAbilityGroupStateSPtr = std::shared_ptr<ActiveAbilityGroupState>;
 
   struct TriggerGroup {
-    UnitIdList ids;
+    uint32_t originalSize;
     ActiveAbilityGroupStateSPtr sharedState;
   };
 }
@@ -70,6 +70,7 @@ namespace rts::abilities {
     static constexpr auto kind{Kind::Build};
     static constexpr auto groupMode{GroupMode::One};
     static constexpr auto targetType{TargetType::Ground};
+    static constexpr auto enqueable{true};
     static constexpr auto availableWhileBuilding{false};
     AbilityId id;
     UnitTypeId type;
@@ -80,6 +81,7 @@ namespace rts::abilities {
     static constexpr auto kind{Kind::Gather};
     static constexpr auto groupMode{GroupMode::All};
     static constexpr auto targetType{TargetType::Resource};
+    static constexpr auto enqueable{true};
     static constexpr auto availableWhileBuilding{false};
     AbilityId id;
     UnitTypeId baseType;
@@ -98,6 +100,7 @@ namespace rts::abilities {
     static constexpr auto kind{Kind::Move};
     static constexpr auto groupMode{GroupMode::All};
     static constexpr auto targetType{TargetType::Any};
+    static constexpr auto enqueable{true};
     static constexpr auto availableWhileBuilding{false};
     AbilityId id;
     Speed speed;
@@ -108,6 +111,7 @@ namespace rts::abilities {
     static constexpr auto kind{Kind::Produce};
     static constexpr auto groupMode{GroupMode::One};
     static constexpr auto targetType{TargetType::None};
+    static constexpr auto enqueable{false};
     static constexpr auto availableWhileBuilding{false};
     AbilityId id;
     UnitTypeId type;
@@ -118,13 +122,14 @@ namespace rts::abilities {
     static constexpr auto kind{Kind::SetRallyPoint};
     static constexpr auto groupMode{GroupMode::All};
     static constexpr auto targetType{TargetType::Any};
+    static constexpr auto enqueable{false};
     static constexpr auto availableWhileBuilding{true};
     AbilityId id;
   };
 
   struct Instance {
     using Trigger = std::function<std::pair<ActiveAbilityStateUPtr, GameTime>(
-        World&, Unit&, TriggerGroup&, ActiveAbilityStateUPtr&, const AbilityTarget&)>;
+        World&, Unit&, TriggerGroup&, ActiveAbilityStateUPtr&, const AbilityTarget&, UnitId)>;
     using AbstractDesc = std::function<const void*()>;
 
     Kind kind{Kind::None};
@@ -132,6 +137,7 @@ namespace rts::abilities {
     AbilityPage goToPage{0};
     GroupMode groupMode{};
     TargetType targetType{};
+    bool enqueable{false};
     bool availableWhileBuilding{false};
     AbilityStateIndex stateIndex{AbilityStateIndex::None};
     Trigger trigger;

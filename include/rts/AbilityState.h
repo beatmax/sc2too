@@ -27,7 +27,8 @@ namespace rts {
         Unit& u,
         TriggerGroup& group,
         const abilities::Instance& ai,
-        const AbilityTarget& target);
+        const AbilityTarget& target,
+        UnitId prototype);
     void step(const World& w, UnitStableRef u, AbilityStateIndex as, WorldActionList& actions);
     void stepAction(World& w, Unit& u, AbilityStateIndex as, const AbilityStepAction& f);
     void cancel(World& w, Unit& u, AbilityStateIndex as);
@@ -57,10 +58,24 @@ namespace rts {
   public:
     template<typename D>
     static auto makeTrigger(const D& desc) {
+      return
+          [desc](
+              World& w, Unit& u, TriggerGroup&, ActiveAbilityStateUPtr& as,
+              const AbilityTarget& target, UnitId) -> std::pair<ActiveAbilityStateUPtr, GameTime> {
+            return {Derived::trigger(w, u, as, desc, target), 1};
+          };
+    }
+  };
+
+  template<typename Derived>
+  class ActiveAbilityBuildStateTpl : public ActiveAbilityState {
+  public:
+    template<typename D>
+    static auto makeTrigger(const D& desc) {
       return [desc](
-                 World& w, Unit& u, TriggerGroup&, ActiveAbilityStateUPtr& as,
-                 const AbilityTarget& target) -> std::pair<ActiveAbilityStateUPtr, GameTime> {
-        return {Derived::trigger(w, u, as, desc, target), 1};
+                 World& w, Unit& u, TriggerGroup&, ActiveAbilityStateUPtr& as, const AbilityTarget&,
+                 UnitId prototype) -> std::pair<ActiveAbilityStateUPtr, GameTime> {
+        return {Derived::trigger(w, u, as, desc, prototype), 1};
       };
     }
   };
@@ -70,11 +85,12 @@ namespace rts {
   public:
     template<typename D>
     static auto makeTrigger(const D& desc) {
-      return [desc](
-                 World& w, Unit& u, TriggerGroup& tg, ActiveAbilityStateUPtr& as,
-                 const AbilityTarget& target) -> std::pair<ActiveAbilityStateUPtr, GameTime> {
-        return Derived::trigger(w, u, tg, as, desc, target);
-      };
+      return
+          [desc](
+              World& w, Unit& u, TriggerGroup& tg, ActiveAbilityStateUPtr& as,
+              const AbilityTarget& target, UnitId) -> std::pair<ActiveAbilityStateUPtr, GameTime> {
+            return Derived::trigger(w, u, tg, as, desc, target);
+          };
     }
   };
 
@@ -83,12 +99,13 @@ namespace rts {
   public:
     template<typename D>
     static auto makeTrigger(const D& desc) {
-      return [desc](
-                 World& w, Unit& u, TriggerGroup&, ActiveAbilityStateUPtr&,
-                 const AbilityTarget& target) -> std::pair<ActiveAbilityStateUPtr, GameTime> {
-        Derived::trigger(w, u, desc, target);
-        return {};
-      };
+      return
+          [desc](
+              World& w, Unit& u, TriggerGroup&, ActiveAbilityStateUPtr&,
+              const AbilityTarget& target, UnitId) -> std::pair<ActiveAbilityStateUPtr, GameTime> {
+            Derived::trigger(w, u, desc, target);
+            return {};
+          };
     }
   };
 

@@ -74,6 +74,7 @@ void rts::Unit::destroy(World& w) {
   assert(state != State::Destroyed);
 
   cancelAll(w);
+  clearCommandQueue(w);
   if (productionQueue)
     w.destroy(productionQueue);
 
@@ -97,6 +98,15 @@ void rts::Unit::destroy(World& w) {
   state = State::Destroyed;
 }
 
+void rts::Unit::clearCommandQueue(World& w) {
+  for (size_t i{0}; i < commandQueue.size(); ++i) {
+    const rts::UnitCommand& cmd{commandQueue[i]};
+    if (cmd.prototype)
+      w.destroy(cmd.prototype);
+  }
+  commandQueue.clear();
+}
+
 bool rts::Unit::isStructure(const World& w) const {
   return w[type].kind == UnitType::Kind::Structure;
 }
@@ -117,13 +127,22 @@ bool rts::Unit::hasEnabledAbility(
        (state == State::Building && abilityInstance.availableWhileBuilding));
 }
 
+void rts::Unit::trigger(World& w, const UnitCommand& uc, CancelOthers cancelOthers) {
+  if (auto target{w.fromWeakTarget(uc.target)}) {
+    auto& group{w.triggerGroups[uc.triggerGroupId]};
+    group.originalSize = uc.triggerGroupSize;
+    trigger(uc.abilityIndex, w, group, *target, uc.prototype, cancelOthers);
+  }
+}
+
 void rts::Unit::trigger(
     AbilityInstanceIndex abilityIndex,
     World& w,
     const AbilityTarget& target,
+    UnitId prototype,
     CancelOthers cancelOthers) {
-  TriggerGroup group{{w.id(*this)}};
-  trigger(abilityIndex, w, group, target, cancelOthers);
+  TriggerGroup group{1};
+  trigger(abilityIndex, w, group, target, prototype, cancelOthers);
 }
 
 void rts::Unit::trigger(
@@ -131,6 +150,7 @@ void rts::Unit::trigger(
     World& w,
     TriggerGroup& group,
     const AbilityTarget& target,
+    UnitId prototype,
     CancelOthers cancelOthers) {
   const auto& unitType{w[type]};
   const auto& abilityInstance{unitType.abilities[abilityIndex]};
@@ -151,12 +171,24 @@ void rts::Unit::trigger(
     }
   }
 
-  abilityState.trigger(w, *this, group, abilityInstance, target);
+  abilityState.trigger(w, *this, group, abilityInstance, target, prototype);
   nextStepTime_ = std::min(nextStepTime_, abilityState.nextStepTime());
 }
 
 rts::WorldActionList rts::Unit::step(UnitStableRef u, const World& w) {
   WorldActionList actions;
+  if (u->nextStepTime_ == GameTimeInf && !u->commandQueue.empty() &&
+      (w.time % u->commandQueue.front().triggerGroupSize) == 0) {  // give some time for regrouping
+    actions += [wid{w.weakId(*u)}](World& w) {
+      if (auto* u{w[wid]}) {
+        auto cmd{u->commandQueue.front()};
+        u->commandQueue.pop();
+        u->trigger(w, cmd);
+      }
+    };
+    return actions;
+  }
+
   if (u->nextStepTime_ != w.time) {
     assert(u->nextStepTime_ > w.time);
     return actions;

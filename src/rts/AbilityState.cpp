@@ -10,8 +10,9 @@ void rts::AbilityState::trigger(
     Unit& u,
     TriggerGroup& group,
     const abilities::Instance& ai,
-    const AbilityTarget& target) {
-  auto [newState, t] = ai.trigger(w, u, group, activeState_, target);
+    const AbilityTarget& target,
+    UnitId prototype) {
+  auto [newState, t] = ai.trigger(w, u, group, activeState_, target, prototype);
   if (newState) {
     if (activeState_)
       activeState_->cancel(w);

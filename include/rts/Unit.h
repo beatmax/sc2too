@@ -5,6 +5,7 @@
 #include "WorldObject.h"
 #include "constants.h"
 #include "types.h"
+#include "util/CircularBuffer.h"
 #include "util/Pool.h"
 
 #include <array>
@@ -23,6 +24,7 @@ namespace rts {
     ResourceFlexBag bag;
     ProductionQueueId productionQueue;
     std::array<bool, MaxUnitAbilityStates> abilityActive{};
+    util::CircularBuffer<UnitCommand, MaxEnqueuedCommands> commandQueue;
 
     Unit(
         Vector s,
@@ -38,6 +40,7 @@ namespace rts {
     void finishBuilding(World& w);
     void activate(World& w, Point p);
     void destroy(World& w);
+    void clearCommandQueue(World& w);
 
     bool isStructure(const World& w) const;
     bool isWorker(const World& w) const;
@@ -48,16 +51,19 @@ namespace rts {
     bool hasEnabledAbility(
         const World& w, AbilityInstanceIndex abilityIndex, AbilityId abilityId) const;
 
+    void trigger(World& w, const UnitCommand& uc, CancelOthers cancelOthers = CancelOthers::Yes);
     void trigger(
         AbilityInstanceIndex abilityIndex,
         World& w,
         const AbilityTarget& target,
+        UnitId prototype = {},
         CancelOthers cancelOthers = CancelOthers::Yes);
     void trigger(
         AbilityInstanceIndex abilityIndex,
         World& w,
         TriggerGroup& group,
         const AbilityTarget& target,
+        UnitId prototype = {},
         CancelOthers cancelOthers = CancelOthers::Yes);
     static WorldActionList step(UnitStableRef u, const World& w)
         __attribute__((warn_unused_result));
