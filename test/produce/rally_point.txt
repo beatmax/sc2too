@@ -1,0 +1,62 @@
+option t,g,s
+b: building
+----------  [t:0 g:1000 s:0/15]
+          
+ bb  gg   
+ bb  gg   
+ bb       
+          
+----------
+select b
+trigger set_rally_point 5,1
+trigger produce_worker
+run for 600
+----------  [t:0 g:990 s:0/15]
+          
+ bb  gg   
+ bb  gg   
+ bb       
+          
+==========  [t:1 g:990 s:2/15]
+          
+ bb  gg   
+ bb  gg   
+ bb       
+          
+==========  [t:101 g:990 s:2/15]
+          
+ bbw gg   
+ bb  gg   
+ bb       
+          
+==========  [t:203 g:990 s:2/15]
+          
+ bb wgg   
+ bb  gg   
+ bb       
+          
+==========  [t:414 g:990 s:2/15]
+          
+ bbw gg   
+ bb  gg   
+ bb       
+          
+==========  [t:424 g:995 s:2/15]
+          
+ bbw gg   
+ bb  gg   
+ bb       
+          
+==========  [t:526 g:995 s:2/15]
+          
+ bb wgg   
+ bb  gg   
+ bb       
+          
+==========  [t:600 g:995 s:2/15]
+          
+ bb wgg   
+ bb  gg   
+ bb       
+          
+----------

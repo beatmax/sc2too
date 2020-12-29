@@ -72,10 +72,11 @@ void rts::ProductionQueue::create(World& w, UnitTypeId type, Point p) {
   auto& unit{w[w.add(w.createUnit(type, side_), p, false)]};
   if (rallyPoint_) {
     const auto& unitType{w.unitTypes[unit.type]};
+    auto target{w.abilityTarget(*rallyPoint_)};
     auto rc{
-        w[*rallyPoint_].contains(Cell::ResourceField) ? RelativeContent::Resource
-                                                      : RelativeContent::Ground};
+        std::holds_alternative<ResourceFieldId>(target) ? RelativeContent::Resource
+                                                        : RelativeContent::Ground};
     if (auto ai{unitType.defaultAbility[uint32_t(rc)]}; ai != AbilityInstanceIndex::None)
-      unit.trigger(ai, w, *rallyPoint_);
+      unit.trigger(ai, w, target);
   }
 }
