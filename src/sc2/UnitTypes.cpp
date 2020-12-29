@@ -11,6 +11,10 @@
 void sc2::UnitTypes::init(rts::World& w) {
   using RC = rts::RelativeContent;
 
+  gateway = w.createUnitType(
+      rts::UnitType::Kind::Structure,
+      rts::ResourceQuantityList{{Resources::mineral, GatewayMineralCost}},
+      rts::ResourceQuantityList{}, GatewayBuildTime, std::make_unique<ui::GatewayType>());
   nexus = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{Resources::mineral, NexusMineralCost}},
@@ -26,6 +30,21 @@ void sc2::UnitTypes::init(rts::World& w) {
       rts::ResourceQuantityList{{Resources::mineral, PylonMineralCost}},
       rts::ResourceQuantityList{{Resources::supply, PylonSupplyProvision}}, PylonBuildTime,
       std::make_unique<ui::PylonType>());
+  zealot = w.createUnitType(
+      rts::UnitType::Kind::Army,
+      rts::ResourceQuantityList{
+          {Resources::mineral, ZealotMineralCost}, {Resources::supply, ZealotSupplyCost}},
+      rts::ResourceQuantityList{}, ZealotBuildTime, std::make_unique<ui::ZealotType>());
+  {
+    auto& gatewayType{w.unitTypes[gateway]};
+    gatewayType.addAbility(
+        Abilities::SetRallyPointIndex, rts::abilities::SetRallyPoint{Abilities::setRallyPoint});
+    gatewayType.addAbility(
+        Abilities::WarpInZealotIndex, rts::abilities::Produce{Abilities::warpInZealot, zealot});
+
+    for (auto rc : {RC::Friend, RC::Foe, RC::Ground, RC::Resource})
+      gatewayType.defaultAbility[uint32_t(rc)] = Abilities::SetRallyPointIndex;
+  }
   {
     auto& nexusType{w.unitTypes[nexus]};
     nexusType.addAbility(
@@ -47,6 +66,8 @@ void sc2::UnitTypes::init(rts::World& w) {
         Abilities::WarpInStructureIndex,
         rts::abilities::GoToPage{Abilities::warpInStructure, Abilities::WarpInStructurePage});
     probeType.addAbility(
+        Abilities::WarpInGatewayIndex, rts::abilities::Build{Abilities::warpInGateway, gateway});
+    probeType.addAbility(
         Abilities::WarpInNexusIndex, rts::abilities::Build{Abilities::warpInNexus, nexus});
     probeType.addAbility(
         Abilities::WarpInPylonIndex, rts::abilities::Build{Abilities::warpInPylon, pylon});
@@ -55,8 +76,18 @@ void sc2::UnitTypes::init(rts::World& w) {
       probeType.defaultAbility[uint32_t(rc)] = Abilities::MoveIndex;
     probeType.defaultAbility[uint32_t(RC::Resource)] = Abilities::GatherIndex;
   }
+  {
+    auto& zealotType{w.unitTypes[zealot]};
+    zealotType.addAbility(
+        Abilities::MoveIndex, rts::abilities::Move{Abilities::move, rts::Speed{4}});
+
+    for (auto rc : {RC::Friend, RC::Foe, RC::Ground, RC::Resource})
+      zealotType.defaultAbility[uint32_t(rc)] = Abilities::MoveIndex;
+  }
 }
 
+rts::UnitTypeId sc2::UnitTypes::gateway;
 rts::UnitTypeId sc2::UnitTypes::nexus;
 rts::UnitTypeId sc2::UnitTypes::probe;
 rts::UnitTypeId sc2::UnitTypes::pylon;
+rts::UnitTypeId sc2::UnitTypes::zealot;

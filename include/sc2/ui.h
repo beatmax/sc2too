@@ -9,10 +9,10 @@
 
 namespace sc2::ui {
   struct Unit : ::ui::SpriteUi<rts::Unit> {
-    int sideColor;
+    ::ui::Color sideColor;
 
-    explicit Unit(int sc) : sideColor{sc} {}
-    int defaultColor(rts::UnitStableRef) const final;
+    explicit Unit(::ui::Color sc) : sideColor{sc} {}
+    ::ui::Color defaultColor(rts::UnitStableRef) const final;
   };
 
   struct Mineral : ::ui::ResourceUi {
@@ -42,6 +42,10 @@ namespace sc2::ui {
     const ::ui::Sprite& sprite(const rts::World&, rts::ResourceFieldStableRef) const final;
   };
 
+  struct GatewayType : ::ui::IconUi<rts::UnitType> {
+    const ::ui::Icon& icon() const final;
+  };
+
   struct NexusType : ::ui::IconUi<rts::UnitType> {
     const ::ui::Icon& icon() const final;
   };
@@ -52,6 +56,15 @@ namespace sc2::ui {
 
   struct PylonType : ::ui::IconUi<rts::UnitType> {
     const ::ui::Icon& icon() const final;
+  };
+
+  struct ZealotType : ::ui::IconUi<rts::UnitType> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct Gateway : Unit {
+    using Unit::Unit;
+    const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
   };
 
   struct Nexus : Unit {
@@ -65,6 +78,11 @@ namespace sc2::ui {
   };
 
   struct Pylon : Unit {
+    using Unit::Unit;
+    const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
+  };
+
+  struct Zealot : Unit {
     using Unit::Unit;
     const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
   };
@@ -89,7 +107,15 @@ namespace sc2::ui {
     const ::ui::Icon& icon() const final;
   };
 
+  struct WarpInZealotAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
   struct WarpInStructureAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct WarpInGatewayAbility : ::ui::IconUi<rts::Ability> {
     const ::ui::Icon& icon() const final;
   };
 

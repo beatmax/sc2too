@@ -34,6 +34,8 @@ rts::Cell::Content sc2::MapInitializer::operator()(
         return Factory::rock(w, {2, 2});
       else
         return Factory::rock(w, {1, 1});
+    case 'w':
+      return Factory::gateway(w, side);
     default:
       return rts::Cell::Empty{};
   }

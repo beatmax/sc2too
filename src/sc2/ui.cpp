@@ -6,7 +6,7 @@
 #include "sc2/Resources.h"
 #include "ui/fx.h"
 
-int sc2::ui::Unit::defaultColor(rts::UnitStableRef) const {
+ui::Color sc2::ui::Unit::defaultColor(rts::UnitStableRef) const {
   return sideColor;
 }
 
@@ -52,6 +52,11 @@ const ::ui::Sprite& sc2::ui::MineralPatch::sprite(
   return sprite;
 }
 
+const ::ui::Icon& sc2::ui::GatewayType::icon() const {
+  static const auto& icon{Assets::getIcon("gateway")};
+  return icon;
+}
+
 const ::ui::Icon& sc2::ui::NexusType::icon() const {
   static const auto& icon{Assets::getIcon("nexus")};
   return icon;
@@ -65,6 +70,35 @@ const ::ui::Icon& sc2::ui::ProbeType::icon() const {
 const ::ui::Icon& sc2::ui::PylonType::icon() const {
   static const auto& icon{Assets::getIcon("pylon")};
   return icon;
+}
+
+const ::ui::Icon& sc2::ui::ZealotType::icon() const {
+  static const auto& icon{Assets::getIcon("zealot")};
+  return icon;
+}
+
+const ::ui::Sprite& sc2::ui::Gateway::sprite(const rts::World& w, rts::UnitStableRef u) const {
+  using State = rts::Unit::State;
+  using ProduceState = rts::abilities::ProduceState;
+
+  static const auto& sprite{Assets::getSprite("gateway")};
+  static const auto& spriteBuilding{Assets::getSprite("building3x3")};
+  static const auto& spriteProducing{Assets::getSprite("gateway_producing")};
+  static const auto spritePrototype{::ui::fx::flatten(sprite)};
+
+  switch (u->state) {
+    case State::New:
+    case State::Allocated:
+    case State::Buildable:
+      return spritePrototype;
+    case State::Building:
+      return spriteBuilding;
+    case State::Active:
+    case State::Destroyed:
+      break;
+  }
+  return (rts::Unit::abilityState<ProduceState>(u, w) == ProduceState::Producing) ? spriteProducing
+                                                                                  : sprite;
 }
 
 const ::ui::Sprite& sc2::ui::Nexus::sprite(const rts::World& w, rts::UnitStableRef u) const {
@@ -97,8 +131,7 @@ const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::World& w, rts::UnitStableR
   static const auto& spriteGather{Assets::getSprite("probe_gather")};
   static const auto& spriteMineral{Assets::getSprite("probe_mineral")};
   static const auto& spriteGas{Assets::getSprite("probe_gas")};
-  return (!u->bag.empty())
-      ? (u->bag.resource == Resources::mineral ? spriteMineral : spriteGas)
+  return (!u->bag.empty()) ? (u->bag.resource == Resources::mineral ? spriteMineral : spriteGas)
       : (rts::Unit::abilityState<GatherState>(u, w) == GatherState::Gathering) ? spriteGather
                                                                                : sprite;
 }
@@ -121,6 +154,11 @@ const ::ui::Sprite& sc2::ui::Pylon::sprite(const rts::World& w, rts::UnitStableR
     case State::Destroyed:
       break;
   }
+  return sprite;
+}
+
+const ::ui::Sprite& sc2::ui::Zealot::sprite(const rts::World& w, rts::UnitStableRef u) const {
+  static const auto& sprite{Assets::getSprite("zealot")};
   return sprite;
 }
 
@@ -150,8 +188,18 @@ const ::ui::Icon& sc2::ui::WarpInProbeAbility::icon() const {
   return icon;
 }
 
+const ::ui::Icon& sc2::ui::WarpInZealotAbility::icon() const {
+  static const auto& icon{Assets::getIcon("zealot")};
+  return icon;
+}
+
 const ::ui::Icon& sc2::ui::WarpInStructureAbility::icon() const {
   static const auto& icon{Assets::getIcon("nexus")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::WarpInGatewayAbility::icon() const {
+  static const auto& icon{Assets::getIcon("gateway")};
   return icon;
 }
 

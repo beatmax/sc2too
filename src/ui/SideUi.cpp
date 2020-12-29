@@ -1,19 +1,17 @@
 #include "ui/SideUi.h"
 
-#include "graph.h"
-
 #include <cassert>
 
 ui::SideUi::SideUi(int n) {
   switch (n) {
     case 0:
-      color = graph::cyan();
+      color = Color::Cyan;
       break;
     case 1:
-      color = graph::red();
+      color = Color::Red;
       break;
     default:
       assert(false);
-      color = graph::white();
+      color = Color::White;
   }
 }

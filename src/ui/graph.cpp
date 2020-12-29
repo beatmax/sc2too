@@ -114,8 +114,6 @@ void ui::graph::init() {
   curs_set(0);
   start_color();
   use_default_colors();
-
-  colorPairs.emplace(std::make_pair(0, int(Color::Default)), 0);
 }
 
 void ui::graph::drawBorders(const std::vector<const Window*>& windows) {
@@ -189,7 +187,11 @@ void ui::graph::drawFrame(
     const Window& win,
     const Frame& frame,
     const ScreenRect& drawRect,
-    const ScreenVector& topLeftInFrame) {
+    const ScreenVector& topLeftInFrame,
+    Color defaultColor) {
+  // default for color pair 0 (e.g. unit's side color)
+  wattrset(win.w, graph::colorAttr(defaultColor, frame.defaultBg()));
+
   ScreenVector v{0, 0};
   for (; v.y < drawRect.size.y; ++v.y) {
     const auto sp{topLeftInFrame + v};

@@ -99,8 +99,8 @@ namespace {
   }
 }
 
-int ui::detail::defaultDefaultColor() {
-  return graph::white();
+ui::Color ui::detail::defaultDefaultColor() {
+  return Color::White;
 }
 
 ui::Sprite::Sprite() = default;
@@ -125,6 +125,10 @@ ui::Sprite::Sprite(std::vector<std::wstring>&& lines) {
         const auto* color = (lineColors != colors.end() && x < int(lineColors->size()))
             ? &(*lineColors)[x]
             : nullptr;
+        if (color && color->first == 0) {
+          frame.setDefaultBg(Color{color->second});
+          color = nullptr;
+        }
         const int colorPair = color ? graph::colorPair(color->first, color->second) : 0;
         setcchar(&frame(y, x), wch, 0, colorPair, nullptr);
       }

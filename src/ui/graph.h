@@ -5,32 +5,22 @@
 #include <vector>
 
 namespace ui::graph {
-  enum class Color : int {
-    Red = 1,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-    LightGreen = 10,
-    DarkGreen = 22,
-    DarkGrey = 237,
-    Default = -1
-  };
-
   int colorPair(int fg, int bg);
-  inline int colorPair(Color fg, Color bg) { return colorPair(int(fg), int(bg)); }
-  inline int red() { return COLOR_PAIR(colorPair(Color::Red, Color::Default)); }
-  inline int green() { return COLOR_PAIR(colorPair(Color::Green, Color::Default)); }
-  inline int yellow() { return COLOR_PAIR(colorPair(Color::Yellow, Color::Default)); }
-  inline int blue() { return COLOR_PAIR(colorPair(Color::Blue, Color::Default)); }
-  inline int magenta() { return COLOR_PAIR(colorPair(Color::Magenta, Color::Default)); }
-  inline int cyan() { return COLOR_PAIR(colorPair(Color::Cyan, Color::Default)); }
-  inline int white() { return COLOR_PAIR(colorPair(Color::White, Color::Default)); }
-  inline int lightGreen() { return COLOR_PAIR(colorPair(Color::LightGreen, Color::Default)); }
-  inline int darkGreen() { return COLOR_PAIR(colorPair(Color::DarkGreen, Color::Default)); }
-  inline int darkGrey() { return COLOR_PAIR(colorPair(Color::DarkGrey, Color::Default)); }
+  inline int colorPair(Color fg, Color bg = Color::Default) { return colorPair(int(fg), int(bg)); }
+  inline int colorAttr(Color fg, Color bg = Color::Default) {
+    return COLOR_PAIR(colorPair(fg, bg));
+  }
+
+  inline int red() { return colorAttr(Color::Red); }
+  inline int green() { return colorAttr(Color::Green); }
+  inline int yellow() { return colorAttr(Color::Yellow); }
+  inline int blue() { return colorAttr(Color::Blue); }
+  inline int magenta() { return colorAttr(Color::Magenta); }
+  inline int cyan() { return colorAttr(Color::Cyan); }
+  inline int white() { return colorAttr(Color::White); }
+  inline int lightGreen() { return colorAttr(Color::LightGreen); }
+  inline int darkGreen() { return colorAttr(Color::DarkGreen); }
+  inline int darkGrey() { return colorAttr(Color::DarkGrey); }
 
   enum class BoxSegment : int {
     None = 0b0000,
@@ -58,5 +48,6 @@ namespace ui::graph {
       const Window& win,
       const Frame& frame,
       const ScreenRect& drawRect,
-      const ScreenVector& topLeftInFrame);
+      const ScreenVector& topLeftInFrame,
+      Color defaultColor = Color::White);
 }

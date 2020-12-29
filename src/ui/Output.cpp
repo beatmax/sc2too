@@ -91,7 +91,6 @@ namespace ui {
         const auto& acc{side.resources()[id]};
         bool displayAlloc{ui.display == ResourceUi::Display::Allocated};
         x -= displayAlloc ? 13 : 9;
-        wattrset(win.w, graph::white());
         graph::drawFrame(win, ui.icon().frame(), {{x, 0}, {1, 1}}, {0, 0});
         if (displayAlloc) {
           if (acc.allocated() > acc.totalSlots())
@@ -148,16 +147,14 @@ namespace ui {
       const auto& win{ios.controlWin};
       const auto left{40};
       const auto right{left + (rts::MaxProductionQueueSize - 2) * (dim::cellWidth + 1)};
-      const auto sideColor{getColor(w[pq.side()])};
+      const auto iconColor{blocked ? Color::DarkGrey : getColor(w[pq.side()])};
       ScreenRect rect{{right, 4}, {dim::cellWidth, dim::cellHeight}};
 
       for (size_t i{0}; i < rts::MaxProductionQueueSize; ++i) {
         wattrset(win.w, blocked ? graph::darkGrey() : graph::darkGreen());
         graph::drawRect(win, boundingBox(rect));
-        if (i < pq.size()) {
-          wattrset(win.w, blocked ? graph::darkGrey() : sideColor);
-          graph::drawFrame(win, getIcon(w[pq.type(i)]).frame(), rect, {0, 0});
-        }
+        if (i < pq.size())
+          graph::drawFrame(win, getIcon(w[pq.type(i)]).frame(), rect, {0, 0}, iconColor);
 
         if (i == 0) {
           rect.topLeft.x = left;
@@ -220,9 +217,8 @@ namespace ui {
         }
         wattrset(win.w, graph::green());
         graph::drawRect(win, boundingBox(rect));
-        (u->type == subgroupType) ? wattrset(win.w, graph::lightGreen())
-                                  : wattrset(win.w, graph::darkGreen());
-        graph::drawFrame(win, getIcon(w[u->type]).frame(), rect, {0, 0});
+        const auto color = (u->type == subgroupType) ? Color::LightGreen : Color::DarkGreen;
+        graph::drawFrame(win, getIcon(w[u->type]).frame(), rect, {0, 0}, color);
         rect.topLeft.x += dim::cellWidth + 1;
         ++col;
       }
@@ -262,8 +258,7 @@ namespace ui {
                     ? (graph::white() | A_BOLD)
                     : graph::white());
             mvwaddch(win.w, rect.topLeft.y, rect.topLeft.x, ui::Layout::abilityKey(ai));
-            wattrset(win.w, graph::green());
-            graph::drawFrame(win, getIcon(w[a]).frame(), iconRect, {0, 0});
+            graph::drawFrame(win, getIcon(w[a]).frame(), iconRect, {0, 0}, Color::Green);
           }
         }
       }

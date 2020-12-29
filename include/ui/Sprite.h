@@ -10,7 +10,7 @@
 #include <vector>
 
 namespace ui::detail {
-  int defaultDefaultColor();
+  Color defaultDefaultColor();
 }
 
 namespace ui {
@@ -50,7 +50,7 @@ namespace ui {
     const Frame& frame(rts::Direction direction) const {
       return sprite_->frame(frameIndex_, direction);
     }
-    virtual int defaultColorPublic(const rts::WorldObject&) const = 0;
+    virtual Color defaultColorPublic(const rts::WorldObject&) const = 0;
 
   protected:
     virtual const Sprite& spriteProtected(const rts::World&, const rts::WorldObject&) const = 0;
@@ -69,7 +69,7 @@ namespace ui {
     }
     const Sprite& sprite() const { return ui_.spritePublic(); }
     const Frame& frame(rts::Direction direction) const { return ui_.frame(direction); }
-    int defaultColor(const rts::WorldObject& obj) const { return ui_.defaultColorPublic(obj); }
+    Color defaultColor(const rts::WorldObject& obj) const { return ui_.defaultColorPublic(obj); }
 
   private:
     SpriteUiBase& ui_;
@@ -81,13 +81,13 @@ namespace ui {
     const Sprite& spriteProtected(const rts::World& w, const rts::WorldObject& obj) const final {
       return sprite(w, rts::StableRef<T>{static_cast<const T&>(obj)});
     }
-    int defaultColorPublic(const rts::WorldObject& obj) const final {
+    Color defaultColorPublic(const rts::WorldObject& obj) const final {
       return defaultColor(rts::StableRef<T>{static_cast<const T&>(obj)});
     }
 
   private:
     virtual const Sprite& sprite(const rts::World& w, rts::StableRef<T>) const = 0;
-    virtual int defaultColor(rts::StableRef<T>) const { return detail::defaultDefaultColor(); }
+    virtual Color defaultColor(rts::StableRef<T>) const { return detail::defaultDefaultColor(); }
   };
 
   template<typename T>

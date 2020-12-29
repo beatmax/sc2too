@@ -12,6 +12,9 @@ namespace sc2 {
   static constexpr rts::GameTime GatherTime{2 * rts::GameTimeSecond};
   static constexpr rts::GameTime DeliveryTime{3 * rts::GameTimeSecond / 10};
 
+  static constexpr rts::GameTime GatewayBuildTime{46 * rts::GameTimeSecond};
+  static constexpr rts::Quantity GatewayMineralCost{150};
+
   static constexpr rts::GameTime NexusBuildTime{71 * rts::GameTimeSecond};
   static constexpr rts::Quantity NexusMineralCost{400};
   static constexpr rts::Quantity NexusSupplyProvision{15};
@@ -24,4 +27,8 @@ namespace sc2 {
   static constexpr rts::GameTime PylonBuildTime{18 * rts::GameTimeSecond};
   static constexpr rts::Quantity PylonMineralCost{100};
   static constexpr rts::Quantity PylonSupplyProvision{8};
+
+  static constexpr rts::GameTime ZealotBuildTime{27 * rts::GameTimeSecond};
+  static constexpr rts::Quantity ZealotMineralCost{100};
+  static constexpr rts::Quantity ZealotSupplyCost{2};
 }

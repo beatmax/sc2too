@@ -25,6 +25,20 @@ namespace ui {
     int beginY{}, beginX{};
   };
 
+  enum class Color : int {
+    Red = 1,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    LightGreen = 10,
+    DarkGreen = 22,
+    DarkGrey = 237,
+    Default = -1
+  };
+
   using ScrollDirection = uint32_t;
   constexpr ScrollDirection ScrollDirectionLeft{0b0001};
   constexpr ScrollDirection ScrollDirectionRight{0b0010};

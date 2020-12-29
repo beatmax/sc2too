@@ -66,16 +66,15 @@ void ui::render(
     const Window& win, const rts::World& w, const Camera& camera, const rts::WorldObject& object) {
   const auto& spriteUi{getUpdatedSpriteUi(w, object)};
 
-  // default for color pair 0 (e.g. unit's side color)
-  wattrset(win.w, spriteUi.defaultColor(object));
-
   assert(spriteUi.sprite().area(object.area.topLeft) == object.area);
 
   const rts::Rectangle visibleArea{intersection(object.area, camera.area())};
   const ScreenRect drawRect{toScreenRect(camera, visibleArea)};
   const ScreenVector topLeftInSprite{toScreenVector(visibleArea.topLeft - object.area.topLeft)};
 
-  graph::drawFrame(win, spriteUi.frame(object.direction), drawRect, topLeftInSprite);
+  graph::drawFrame(
+      win, spriteUi.frame(object.direction), drawRect, topLeftInSprite,
+      spriteUi.defaultColor(object));
 }
 
 void ui::render(
@@ -86,16 +85,15 @@ void ui::render(
     rts::Point center) {
   const auto& spriteUi{getUpdatedSpriteUi(w, object)};
 
-  // default for color pair 0 (e.g. unit's side color)
-  wattrset(win.w, spriteUi.defaultColor(object));
-
   auto area{rectangleCenteredAt(center, object.area.size, w.map.area())};
   assert(spriteUi.sprite().area(area.topLeft) == area);
 
   if (auto visibleArea{maybeIntersection(area, camera.area())}) {
     const ScreenRect drawRect{toScreenRect(camera, *visibleArea)};
     const ScreenVector topLeftInSprite{toScreenVector(visibleArea->topLeft - area.topLeft)};
-    graph::drawFrame(win, spriteUi.frame(object.direction), drawRect, topLeftInSprite);
+    graph::drawFrame(
+        win, spriteUi.frame(object.direction), drawRect, topLeftInSprite,
+        spriteUi.defaultColor(object));
   }
 }
 
