@@ -14,11 +14,8 @@ namespace rts::abilities::state {
     using State = abilities::MoveState;
 
     struct GroupState : ActiveAbilityGroupState {
-      bool initialized{false};
-      AbilityTarget target;
-      size_t originalSize;
-      size_t count{0};
       float closeEnough;
+      size_t count{0};
     };
     using GroupStateSPtr = std::shared_ptr<GroupState>;
 
@@ -30,7 +27,8 @@ namespace rts::abilities::state {
         const Desc& desc,
         const AbilityTarget& target);
 
-    explicit Move(const Desc& desc, GroupStateSPtr gs) : desc_{desc}, groupState_{gs} {}
+    explicit Move(const Desc& desc, AbilityTarget target, GroupStateSPtr gs)
+      : desc_{desc}, target_{target}, groupState_{gs} {}
     AbilityStepResult step(const World& w, UnitStableRef u);
     void cancel(World& w) final {}
     int state() const final { return int(State::Moving); }
@@ -39,7 +37,7 @@ namespace rts::abilities::state {
     AbilityStepAction stepAction();
 
     const Desc desc_;
-    std::optional<AbilityTarget> target_;
+    AbilityTarget target_;
     GroupStateSPtr groupState_;
     ExcludedPointSet excludedPoints_;
     Path path_;

@@ -128,8 +128,17 @@ void ui::drawBoundingBox(
 
 #ifdef MAP_DEBUG
 void ui::mapDebug(const Window& win, const rts::World& w, const Camera& camera) {
-  for (rts::Point p : camera.area().points())
+  for (rts::Point p : camera.area().points()) {
     if (w[p].debug.highlight)
       highlight(win, camera, p, graph::blue());
+  }
+  wattrset(win.w, graph::darkGrey());
+  for (rts::Point p : camera.area().points())
+    printInCell(win, camera, p, std::to_string(w[p].segment).c_str());
+}
+
+void ui::printInCell(const Window& win, const Camera& camera, rts::Point p, const char* txt) {
+  const ScreenVector topLeft{toScreenVector(p - camera.topLeft())};
+  mvwprintw(win.w, topLeft.y, topLeft.x, txt);
 }
 #endif

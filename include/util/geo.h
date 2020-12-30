@@ -34,7 +34,9 @@ namespace util::geo {
   inline Point& operator-=(Point& p, const Vector& v) { return p = p - v; }
   inline Vector operator-(const Point& a, const Point& b) { return {a.x - b.x, a.y - b.y}; }
   inline Vector operator+(const Vector& v1, const Vector& v2) { return {v1.x + v2.x, v1.y + v2.y}; }
+  inline Vector& operator+=(Vector& v1, const Vector& v2) { return v1 = v1 + v2; }
   inline Vector operator-(const Vector& v1, const Vector& v2) { return {v1.x - v2.x, v1.y - v2.y}; }
+  inline Vector& operator-=(Vector& v1, const Vector& v2) { return v1 = v1 - v2; }
   inline Vector operator-(const Vector& v) { return {-v.x, -v.y}; }
   inline Vector operator*(const Vector& v, Coordinate f) { return {v.x * f, v.y * f}; }
   inline Vector operator/(const Vector& v, Coordinate d) { return {v.x / d, v.y / d}; }

@@ -2,9 +2,11 @@
 
 #include "rts/World.h"
 #include "util/Overloaded.h"
+#include "util/algorithm.h"
 #include "util/pathfinding.h"
 
 #include <cassert>
+#include <queue>
 #include <utility>
 
 namespace rts {
@@ -27,8 +29,7 @@ namespace rts {
       const World& w;
       const ExcludedPointSet& excludedPoints;
 
-      Graph(const World& w, Point start, const ExcludedPointSet& excl)
-        : w{w}, excludedPoints{excl} {}
+      Graph(const World& w, const ExcludedPointSet& excl) : w{w}, excludedPoints{excl} {}
 
       size_t size() const { return w.map.cellCount(); }
       bool contains(Point p) const;
@@ -38,7 +39,7 @@ namespace rts {
     bool Graph::contains(Point p) const {
       if (!w.inBounds(p) || excludedPoints.find(p) != excludedPoints.end())
         return false;
-      const auto& cell{w.map[p]};
+      const auto& cell{w[p]};
       return cell.empty() || (cell.contains(Cell::Unit) && !w[cell.unitId()].isStructure(w));
     }
 
@@ -46,13 +47,59 @@ namespace rts {
       int n{0};
       for (auto [v, d] : NeighborVectors) {
         auto q{p + v};
-        if (contains(q)) {
+        if (contains(q))
           result[n++] = {q, d};
-        }
       }
       return n;
     }
+
+    void floodFill(World& w, const Graph& graph, Point start, MapSegmentId segment) {
+      std::queue<Point> queue;
+      queue.push(start);
+      w.map[start].segment = segment;
+      while (!queue.empty()) {
+        auto p{queue.front()};
+        queue.pop();
+        for (const auto& v : NeighborVectors) {
+          auto q{p + v.first};
+          if (graph.contains(q) && w[q].segment != segment) {
+            queue.push(q);
+            w.map[q].segment = segment;
+          }
+        }
+      }
+    }
   }
+}
+
+void rts::initMapSegments(World& w) {
+  const ExcludedPointSet eps;
+  Graph graph{w, eps};
+  MapSegmentId segment{0};
+  for (Point p : w.map.area().points())
+    w[p].segment = 0;
+  for (Point p : w.map.area().points()) {
+    if (graph.contains(p) && !w[p].segment)
+      floodFill(w, graph, p, ++segment);
+  }
+}
+
+rts::Point rts::closestConnectedPoint(const World& w, Point p, Point goal) {
+  Point closest;
+  float closestDistance{std::numeric_limits<float>::infinity()};
+  auto segment{w[p].segment};
+  Rectangle area{goal, {1, 1}};
+  for (float radius{0.}; radius < closestDistance; radius += 1., area = boundingBox(area)) {
+    for (auto q : area.outerPoints()) {
+      if (w.inBounds(q) && w[q].segment == segment) {
+        if (float d{diagonalDistance(q, goal)}; d < closestDistance) {
+          closestDistance = d;
+          closest = q;
+        }
+      }
+    }
+  }
+  return closest;
 }
 
 std::pair<rts::Path, bool> rts::findPath(
@@ -68,18 +115,22 @@ std::pair<rts::Path, bool> rts::findPath(
 }
 
 std::pair<rts::Path, bool> rts::findPath(
-    const World& w,
-    Point start,
-    Point goal,
-    const Rectangle& goalArea,
-    const ExcludedPointSet& excl) {
+    const World& w, Point start, Point goal, Rectangle goalArea, const ExcludedPointSet& excl) {
   using AStar = util::AStar<Graph>;
+
+  const bool reachable{util::anyOf(
+      goalArea.outerPoints(),
+      [&w, segment{w[start].segment}](Point p) { return w[p].segment == segment; })};
+  if (!reachable) {
+    goal = closestConnectedPoint(w, start, goal);
+    goalArea = Rectangle{goal, {1, 1}};
+  }
 
   auto isGoal{[goalArea](Point p) { return goalArea.contains(p); }};
   auto h{[goal](Point p) { return diagonalDistance(p, goal); }};
 
   AStar::StateMap state;
-  Point closest{AStar::search(Graph{w, start, excl}, start, isGoal, h, state)};
+  Point closest{AStar::search(Graph{w, excl}, start, isGoal, h, state)};
 
 #ifdef MAP_DEBUG
   auto& m{const_cast<Map&>(w.map)};
@@ -88,7 +139,7 @@ std::pair<rts::Path, bool> rts::findPath(
 #endif
 
   auto path{util::reconstructPath<Path>(state, start, closest)};
-  return {std::move(path), isGoal(closest)};
+  return {std::move(path), reachable && isGoal(closest)};
 }
 
 std::pair<rts::Path, bool> rts::findPathToTarget(

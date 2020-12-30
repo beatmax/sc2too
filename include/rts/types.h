@@ -67,6 +67,7 @@ namespace rts {
   using BlockerStableRef = StableRef<Blocker>;
   using BlockerWId = util::PoolObjectWeakId<Blocker>;
   using ControlGroupId = uint8_t;
+  using MapSegmentId = uint32_t;
   using ProductionQueueId = util::PoolObjectId<ProductionQueue>;
   using ProductionQueueWId = util::PoolObjectWeakId<ProductionQueue>;
   using ResourceFieldId = util::PoolObjectId<ResourceField>;

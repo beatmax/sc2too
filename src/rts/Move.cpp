@@ -34,13 +34,12 @@ std::pair<rts::ActiveAbilityStateUPtr, rts::GameTime> rts::abilities::state::Mov
     const AbilityTarget& target) {
   if (!group.sharedState) {
     auto sharedState = std::make_shared<GroupState>();
-    sharedState->target = target;
-    sharedState->originalSize = group.originalSize;
+    sharedState->closeEnough = sqrtf(group.originalSize);
     group.sharedState = sharedState;
   }
   auto groupState = std::static_pointer_cast<GroupState>(group.sharedState);
   GameTime firstStepTime(++groupState->count);
-  return {std::make_unique<Move>(desc, groupState), firstStepTime};
+  return {std::make_unique<Move>(desc, target, groupState), firstStepTime};
 }
 
 rts::AbilityStepResult rts::abilities::state::Move::step(const World& w, UnitStableRef u) {
@@ -69,33 +68,23 @@ rts::AbilityStepResult rts::abilities::state::Move::step(const World& w, UnitSta
     }
   }
 
-  if (havePath_ &&
-      (path_.empty() || diagonalDistance(w, pos, *target_) <= groupState_->closeEnough))
+  if (havePath_ && (path_.empty() || diagonalDistance(w, pos, target_) <= groupState_->closeEnough))
     return GameTime{0};
 
-  if (!target_)
-    target_ = groupState_->target;
-
-  bool init = !havePath_;
-  havePath_ = false;
   bool complete;
-  std::tie(path_, complete) = findPathToTarget(w, pos, *target_, excludedPoints_);
-
-  if (!complete)
-    *target_ = path_.empty() ? pos : path_.back();
-
-  if (!groupState_->initialized) {
-    // no data race here because of the different first step times
-    groupState_->target = *target_;
-    groupState_->closeEnough = sqrtf(groupState_->originalSize);
-    groupState_->initialized = true;
-  }
+  std::tie(path_, complete) = findPathToTarget(w, pos, target_, excludedPoints_);
 
   if (path_.empty())
     return GameTime{0};
 
+  if (!complete)
+    target_ = path_.back();
+
+  if (havePath_)
+    return GameTime{1};
+
   havePath_ = true;
-  return init ? adjacentDistance(pos, path_.front()) / desc_.speed : 1;
+  return adjacentDistance(pos, path_.front()) / desc_.speed;
 }
 
 rts::AbilityStepAction rts::abilities::state::Move::stepAction() {

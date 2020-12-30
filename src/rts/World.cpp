@@ -1,5 +1,6 @@
 #include "rts/World.h"
 
+#include "rts/Path.h"
 #include "rts/SemaphoreLock.h"
 #include "rts/Unit.h"
 #include "rts/WorldAction.h"
@@ -83,11 +84,13 @@ rts::UnitId rts::World::addForFree(UnitId id, Point p) {
 void rts::World::place(Unit& u) {
   assert(map.isEmpty(u.area));
   map.setContent(u.area, id(u));
+  if (u.isStructure(*this))
+    initMapSegments(*this);
 }
 
 bool rts::World::tryPlace(Unit& u) {
   if (map.isEmpty(u.area)) {
-    map.setContent(u.area, id(u));
+    place(u);
     return true;
   }
   return false;
@@ -96,6 +99,8 @@ bool rts::World::tryPlace(Unit& u) {
 void rts::World::remove(Unit& u) {
   assert(map[u.area.topLeft].contains(Cell::Unit));
   map.setContent(u.area, Cell::Empty{});
+  if (u.isStructure(*this))
+    initMapSegments(*this);
 }
 
 void rts::World::move(Unit& u, Point p) {
@@ -286,6 +291,7 @@ std::optional<rts::AbilityTarget> rts::World::fromWeakTarget(const AbilityWeakTa
 }
 
 void rts::World::onMapLoaded() {
+  initMapSegments(*this);
   for (auto& s : sides)
     s.onMapLoaded(*this);
 }

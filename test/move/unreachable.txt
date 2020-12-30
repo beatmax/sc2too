@@ -1,77 +1,148 @@
 option t
-w: worker
+v,w: worker
 ---------------  [t:0]
                
                
        rrrrrrrr
- w     r       
+       r       
+ w     r v     
 ---------------
-select w
-trigger move 13,3
+select v,w
+trigger move 13,4
 run
 ---------------  [t:0]
                
                
        rrrrrrrr
- w     r       
+       r       
+ w     r v     
 ===============  [t:101]
                
                
        rrrrrrrr
+       r       
+ w     r  v    
+===============  [t:143]
+               
+               
+       rrrrrrrr
   w    r       
+       r  v    
 ===============  [t:201]
                
                
        rrrrrrrr
+  w    r       
+       r   v   
+===============  [t:243]
+               
+               
+       rrrrrrrr
    w   r       
+       r   v   
 ===============  [t:301]
                
                
        rrrrrrrr
-    w  r       
+   w   r       
+       r    v  
+===============  [t:384]
+               
+               
+    w  rrrrrrrr
+       r       
+       r    v  
 ===============  [t:401]
                
                
-       rrrrrrrr
-     w r       
-===============  [t:542]
-               
-               
-      wrrrrrrrr
+    w  rrrrrrrr
        r       
-===============  [t:683]
+       r     v 
+===============  [t:525]
+               
+     w         
+       rrrrrrrr
+       r       
+       r     v 
+===============  [t:625]
+               
+      w        
+       rrrrrrrr
+       r       
+       r     v 
+===============  [t:725]
                
        w       
        rrrrrrrr
        r       
-===============  [t:783]
+       r     v 
+===============  [t:825]
                
         w      
        rrrrrrrr
        r       
-===============  [t:883]
+       r     v 
+===============  [t:925]
                
          w     
        rrrrrrrr
        r       
-===============  [t:983]
+       r     v 
+===============  [t:1025]
                
           w    
        rrrrrrrr
        r       
-===============  [t:1083]
+       r     v 
+===============  [t:1125]
                
            w   
        rrrrrrrr
        r       
-===============  [t:1183]
+       r     v 
+===============  [t:1225]
                
             w  
        rrrrrrrr
        r       
-===============  [t:1283]
+       r     v 
+===============  [t:1325]
                
              w 
        rrrrrrrr
+       r       
+       r     v 
+---------------
+trigger move 11,0
+run
+---------------  [t:1325]
+               
+             w 
+       rrrrrrrr
+       r       
+       r     v 
+===============  [t:1467]
+               
+             w 
+       rrrrrrrr
+       r    v  
+       r       
+===============  [t:1468]
+            w  
+               
+       rrrrrrrr
+       r    v  
+       r       
+===============  [t:1567]
+            w  
+               
+       rrrrrrrr
+       r   v   
+       r       
+===============  [t:1568]
+           w   
+               
+       rrrrrrrr
+       r   v   
        r       
 ---------------

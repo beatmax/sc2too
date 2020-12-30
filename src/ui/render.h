@@ -28,5 +28,6 @@ namespace ui {
 
 #ifdef MAP_DEBUG
   void mapDebug(const Window& win, const rts::World& w, const Camera& camera);
+  void printInCell(const Window& win, const Camera& camera, rts::Point p, const char* txt);
 #endif
 }

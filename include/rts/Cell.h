@@ -12,6 +12,7 @@ namespace rts {
     enum ContentType { Nothing, Blocker, Unit, ResourceField };
 
     Content content;
+    MapSegmentId segment{0};
 
     ContentType contentType() const { return static_cast<ContentType>(content.index()); }
     bool contains(ContentType ct) const { return contentType() == ct; }
