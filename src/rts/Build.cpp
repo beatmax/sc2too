@@ -27,11 +27,14 @@ rts::AbilityStepResult rts::abilities::state::Build::step(const World& w, UnitSt
     case State::MovingToTarget:
       if (Unit::abilityState(u, w, Kind::Move).active())
         return MonitorTime;
-      if (adjacent(u->area, w[builtUnit_].area)) {
+      if (adjacent(u->area, w[prototype_].area)) {
         state_ = State::Building;
         return GameTime{BuildDelay};
       }
-      return GameTime{0};
+      return [this](World& w, Unit& u) {
+        w[u.side].messages().add(w, "IT'S BLOCKED!");
+        return GameTime{0};
+      };
 
     case State::Building:
       return build();
@@ -39,13 +42,14 @@ rts::AbilityStepResult rts::abilities::state::Build::step(const World& w, UnitSt
   return GameTime{0};
 }
 
-void rts::abilities::state::Build::cancel(World& w) {
-  w.destroy(builtUnit_);
+void rts::abilities::state::Build::cleanup(World& w) {
+  if (prototype_)
+    w.destroy(prototype_);
 }
 
 rts::AbilityStepResult rts::abilities::state::Build::init(const World& w, const Unit& unit) {
   state_ = State::MovingToTarget;
-  return [target{builtUnit_}](World& w, Unit& u) {
+  return [target{prototype_}](World& w, Unit& u) {
     auto moveIndex{w[u.type].abilityIndex(Kind::Move)};
     assert(moveIndex != AbilityStateIndex::None);
     u.trigger(moveIndex, w, target, {}, Unit::CancelOthers::No);
@@ -55,12 +59,12 @@ rts::AbilityStepResult rts::abilities::state::Build::init(const World& w, const 
 
 rts::AbilityStepAction rts::abilities::state::Build::build() {
   return [this](World& w, Unit& u) {
-    if (w[builtUnit_].tryStartBuilding(w)) {
+    if (w[prototype_].tryStartBuilding(w)) {
+      prototype_ = {};
       return GameTime{0};
     }
     else if (++retryCount_ > MaxRetries) {
       w[u.side].messages().add(w, "I CAN'T BUILD HERE!");
-      w.destroy(builtUnit_);
       return GameTime{0};
     }
     return RetryTime;

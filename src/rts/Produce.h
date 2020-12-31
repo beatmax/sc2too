@@ -18,7 +18,7 @@ namespace rts::abilities::state {
         const AbilityTarget& target);
 
     AbilityStepResult step(const World& w, UnitStableRef u) final;
-    void cancel(World& w) final {}
+    void cleanup(World& w) final {}
     int state() const final { return int(state_); }
 
     void unblock();

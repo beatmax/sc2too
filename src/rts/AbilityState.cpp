@@ -15,7 +15,7 @@ void rts::AbilityState::trigger(
   auto [newState, t] = ai.trigger(w, u, group, activeState_, target, prototype);
   if (newState) {
     if (activeState_)
-      activeState_->cancel(w);
+      activeState_->cleanup(w);
     activeState_ = std::move(newState);
     nextStepTime_ = w.time + t;
     u.abilityActive[ai.stateIndex] = true;
@@ -32,9 +32,10 @@ void rts::AbilityState::step(
     else if (*t)
       nextStepTime_ = w.time + *t;
     else {
-      activeState_.reset();
       nextStepTime_ = GameTimeInf;
-      actions += [as, wid{w.weakId(*u)}](World& w) {
+      actions += [as, activeState{activeState_.release()}, wid{w.weakId(*u)}](World& w) {
+        activeState->cleanup(w);
+        delete activeState;
         if (auto* u{w[wid]})
           u->abilityActive[as] = false;
       };
@@ -54,27 +55,19 @@ void rts::AbilityState::stepAction(
   if (!activeState_)
     return;
 
-  GameTime t{f(w, u)};
-  if (t) {
+  if (GameTime t{f(w, u)}; t)
     nextStepTime_ = w.time + t;
-  }
-  else {
-    destroyActiveState(u, as);
-    nextStepTime_ = GameTimeInf;
-  }
+  else
+    cancel(w, u, as);
 }
 
 void rts::AbilityState::cancel(World& w, Unit& u, AbilityStateIndex as) {
   if (activeState_) {
-    activeState_->cancel(w);
-    destroyActiveState(u, as);
+    activeState_->cleanup(w);
+    activeState_.reset();
+    u.abilityActive[as] = false;
   }
   nextStepTime_ = GameTimeInf;
-}
-
-void rts::AbilityState::destroyActiveState(Unit& u, AbilityStateIndex as) {
-  activeState_.reset();
-  u.abilityActive[as] = false;
 }
 
 rts::ActiveAbilityState::~ActiveAbilityState() = default;

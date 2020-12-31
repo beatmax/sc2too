@@ -21,7 +21,7 @@ namespace rts::abilities::state {
     explicit Gather(const Desc& desc, Point target) : desc_{desc}, target_{target} {}
 
     AbilityStepResult step(const World& w, UnitStableRef u) final;
-    void cancel(World& w) final;
+    void cleanup(World& w) final;
     int state() const final { return int(state_); }
 
   private:

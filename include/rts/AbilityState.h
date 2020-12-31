@@ -37,8 +37,6 @@ namespace rts {
     std::optional<T> state() const;
 
   private:
-    void destroyActiveState(Unit& u, AbilityStateIndex as);
-
     GameTime nextStepTime_{GameTimeInf};
     ActiveAbilityStateUPtr activeState_;
   };
@@ -47,7 +45,7 @@ namespace rts {
   public:
     virtual ~ActiveAbilityState() = 0;
     virtual AbilityStepResult step(const World& w, UnitStableRef u) = 0;
-    virtual void cancel(World& w) = 0;
+    virtual void cleanup(World& w) = 0;
     virtual int state() const = 0;
   };
 

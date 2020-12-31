@@ -93,7 +93,7 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitS
   return GameTime{0};
 }
 
-void rts::abilities::state::Gather::cancel(World& w) {
+void rts::abilities::state::Gather::cleanup(World& w) {
   if (targetFieldLock_)
     targetFieldLock_.release(w);
 }

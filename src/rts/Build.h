@@ -13,10 +13,10 @@ namespace rts::abilities::state {
     static ActiveAbilityStateUPtr trigger(
         World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, UnitId prototype);
 
-    explicit Build(const Desc& desc, UnitId builtUnit) : desc_{desc}, builtUnit_{builtUnit} {}
+    explicit Build(const Desc& desc, UnitId prototype) : desc_{desc}, prototype_{prototype} {}
 
     AbilityStepResult step(const World& w, UnitStableRef u) final;
-    void cancel(World& w) final;
+    void cleanup(World& w) final;
     int state() const final { return int(state_); }
 
   private:
@@ -25,7 +25,7 @@ namespace rts::abilities::state {
 
     const Desc desc_;
     State state_{State::Init};
-    UnitId builtUnit_;
+    UnitId prototype_;
     int retryCount_{0};
   };
 }

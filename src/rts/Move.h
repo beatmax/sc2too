@@ -30,7 +30,7 @@ namespace rts::abilities::state {
     explicit Move(const Desc& desc, AbilityTarget target, GroupStateSPtr gs)
       : desc_{desc}, target_{target}, groupState_{gs} {}
     AbilityStepResult step(const World& w, UnitStableRef u);
-    void cancel(World& w) final {}
+    void cleanup(World& w) final {}
     int state() const final { return int(State::Moving); }
 
   private:
