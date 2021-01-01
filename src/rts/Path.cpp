@@ -146,6 +146,7 @@ std::pair<rts::Path, bool> rts::findPathToTarget(
     const World& w, Point start, const AbilityTarget& target, const ExcludedPointSet& excl) {
   return std::visit(
       util::Overloaded{
+          [](std::monostate) { return std::make_pair(rts::Path{}, false); },
           [&](Point p) { return findPath(w, start, p, excl); },
           [&](auto id) { return findPath(w, start, boundingBox(w[id].area), excl); }},
       target);

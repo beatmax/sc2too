@@ -139,6 +139,9 @@ void rts::World::destroy(ProductionQueue& pq) {
 }
 
 rts::AbilityTarget rts::World::abilityTarget(Point p) const {
+  if (p.x < 0)
+    return {};
+  assert(inBounds(p));
   auto& cell{map[p]};
   if (auto u{cell.unitId()})
     return u;
@@ -148,17 +151,13 @@ rts::AbilityTarget rts::World::abilityTarget(Point p) const {
 }
 
 rts::AbilityWeakTarget rts::World::abilityWeakTarget(Point p) const {
-  auto& cell{map[p]};
-  if (auto u{cell.unitId()})
-    return weakId(u);
-  else if (auto rf{cell.resourceFieldId()})
-    return weakId(rf);
-  return p;
+  return abilityWeakTarget(abilityTarget(p));
 }
 
 rts::AbilityWeakTarget rts::World::abilityWeakTarget(const AbilityTarget& t) const {
   return std::visit(
       util::Overloaded{
+          [](std::monostate) -> AbilityWeakTarget { return {}; },
           [](Point p) -> AbilityWeakTarget { return p; },
           [this](auto id) -> AbilityWeakTarget { return weakId(id); }},
       t);
@@ -317,6 +316,10 @@ const rts::Unit& rts::World::centralUnit(const UnitCPtrList& units) {
 rts::Rectangle rts::World::area(const AbilityTarget& t) const {
   return std::visit(
       util::Overloaded{
+          [](std::monostate) {
+            assert(false);
+            return Rectangle{};
+          },
           [](Point p) {
             return Rectangle{p, {1, 1}};
           },
@@ -327,6 +330,10 @@ rts::Rectangle rts::World::area(const AbilityTarget& t) const {
 rts::Point rts::World::center(const AbilityTarget& t) const {
   return std::visit(
       util::Overloaded{
+          [](std::monostate) {
+            assert(false);
+            return Point{};
+          },
           [](Point p) { return p; }, [this](auto id) { return (*this)[id].area.center(); }},
       t);
 }
@@ -335,6 +342,7 @@ std::optional<rts::AbilityTarget> rts::World::fromWeakTarget(const AbilityWeakTa
   using OptTarget = std::optional<rts::AbilityTarget>;
   return std::visit(
       util::Overloaded{
+          [](std::monostate) -> OptTarget { return AbilityTarget{}; },
           [](Point p) -> OptTarget { return p; },
           [this](auto wid) -> OptTarget {
             auto* obj{(*this)[wid]};

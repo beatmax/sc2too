@@ -103,8 +103,8 @@ namespace rts {
   using util::geo::Rectangle;
   using util::geo::Vector;
 
-  using AbilityTarget = std::variant<Point, UnitId, ResourceFieldId>;
-  using AbilityWeakTarget = std::variant<Point, UnitWId, ResourceFieldWId>;
+  using AbilityTarget = std::variant<std::monostate, Point, UnitId, ResourceFieldId>;
+  using AbilityWeakTarget = std::variant<std::monostate, Point, UnitWId, ResourceFieldWId>;
 
   struct UnitCommand {
     AbilityInstanceIndex abilityIndex;
