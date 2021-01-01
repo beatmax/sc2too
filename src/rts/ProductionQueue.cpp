@@ -71,12 +71,9 @@ void rts::ProductionQueue::create(World& w, UnitTypeId type, Point p) {
   // allocCheck = false; negative free slots are possible
   auto& unit{w[w.add(w.createUnit(type, side_), p, false)]};
   if (rallyPoint_) {
+    auto rc{w.relativeContentForRally(side_, *rallyPoint_)};
     const auto& unitType{w.unitTypes[unit.type]};
-    auto target{w.abilityTarget(*rallyPoint_)};
-    auto rc{
-        std::holds_alternative<ResourceFieldId>(target) ? RelativeContent::Resource
-                                                        : RelativeContent::Ground};
     if (auto ai{unitType.defaultAbility[uint32_t(rc)]}; ai != AbilityInstanceIndex::None)
-      unit.trigger(ai, w, target);
+      unit.trigger(ai, w, w.abilityTarget(*rallyPoint_));
   }
 }

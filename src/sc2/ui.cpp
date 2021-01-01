@@ -1,5 +1,6 @@
 #include "sc2/ui.h"
 
+#include "rts/World.h"
 #include "rts/abilities.h"
 #include "sc2/Abilities.h"
 #include "sc2/Assets.h"
@@ -41,15 +42,22 @@ const char* sc2::ui::Supply::msgCapReached() const {
   return "WE ARE AT MAXIMUM SUPPLY!";
 }
 
-const ::ui::Sprite& sc2::ui::Geyser::sprite(const rts::World&, rts::ResourceFieldStableRef) const {
+const ::ui::Sprite& sc2::ui::Geyser::sprite(
+    const rts::World&, rts::ResourceFieldStableRef rf) const {
   static const auto& sprite{Assets::getSprite("geyser")};
-  return sprite;
+  static const auto& spriteEmpty{Assets::getSprite("geyser_empty")};
+  return rf->bag.empty() ? spriteEmpty : sprite;
 }
 
 const ::ui::Sprite& sc2::ui::MineralPatch::sprite(
     const rts::World&, rts::ResourceFieldStableRef) const {
   static const auto& sprite{Assets::getSprite("mineral")};
   return sprite;
+}
+
+const ::ui::Icon& sc2::ui::AssimilatorType::icon() const {
+  static const auto& icon{Assets::getIcon("assimilator")};
+  return icon;
 }
 
 const ::ui::Icon& sc2::ui::GatewayType::icon() const {
@@ -75,6 +83,30 @@ const ::ui::Icon& sc2::ui::PylonType::icon() const {
 const ::ui::Icon& sc2::ui::ZealotType::icon() const {
   static const auto& icon{Assets::getIcon("zealot")};
   return icon;
+}
+
+const ::ui::Sprite& sc2::ui::Assimilator::sprite(const rts::World& w, rts::UnitStableRef u) const {
+  using State = rts::Unit::State;
+
+  static const auto& sprite{Assets::getSprite("assimilator")};
+  static const auto& spriteBuilding{Assets::getSprite("building3x3")};
+  static const auto& spriteEmpty{Assets::getSprite("assimilator_empty")};
+  static const auto spritePrototype{::ui::fx::flatten(sprite)};
+
+  switch (u->state) {
+    case State::New:
+    case State::Allocated:
+    case State::Buildable:
+      return spritePrototype;
+    case State::Building:
+      return spriteBuilding;
+    case State::Active:
+    case State::Destroyed:
+      break;
+  }
+  if (u->resourceField && w[u->resourceField].bag.empty())
+    return spriteEmpty;
+  return sprite;
 }
 
 const ::ui::Sprite& sc2::ui::Gateway::sprite(const rts::World& w, rts::UnitStableRef u) const {
@@ -195,6 +227,11 @@ const ::ui::Icon& sc2::ui::WarpInZealotAbility::icon() const {
 
 const ::ui::Icon& sc2::ui::WarpInStructureAbility::icon() const {
   static const auto& icon{Assets::getIcon("nexus")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::WarpInAssimilatorAbility::icon() const {
+  static const auto& icon{Assets::getIcon("assimilator")};
   return icon;
 }
 

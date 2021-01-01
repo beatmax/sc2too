@@ -7,12 +7,19 @@
 #include <cassert>
 
 rts::Unit::Unit(
-    Vector s, UnitTypeId t, SideId sd, UiUPtr ui, Quantity cargoCapacity, ProductionQueueId pq)
+    Vector s,
+    UnitTypeId t,
+    SideId sd,
+    UiUPtr ui,
+    Quantity cargoCapacity,
+    ProductionQueueId pq,
+    ResourceFieldId rf)
   : WorldObject{{-1, -1}, s, std::move(ui)},
     type{t},
     side{sd},
     bag{{}, 0, cargoCapacity},
-    productionQueue{pq} {
+    productionQueue{pq},
+    resourceField{rf} {
 }
 
 void rts::Unit::allocate(World& w, bool allocCheck) {
@@ -43,6 +50,7 @@ bool rts::Unit::tryAllocate(World& w) {
 void rts::Unit::setBuildPoint(World& w, Point p) {
   assert(state == State::Allocated);
   area.topLeft = p;
+  layer = LayerPrototypes;
   w[side].prototypeMap().setContent(area, w.id(*this));
   state = State::Buildable;
 }

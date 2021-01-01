@@ -15,6 +15,8 @@ void sc2::Factory::init(rts::World& w) {
 }
 
 rts::UnitId sc2::Factory::create(rts::World& w, rts::UnitTypeId t, rts::SideId sd) {
+  if (t == UnitTypes::assimilator)
+    return assimilator(w, sd);
   if (t == UnitTypes::gateway)
     return gateway(w, sd);
   if (t == UnitTypes::nexus)
@@ -26,6 +28,13 @@ rts::UnitId sc2::Factory::create(rts::World& w, rts::UnitTypeId t, rts::SideId s
   if (t == UnitTypes::zealot)
     return zealot(w, sd);
   return {};
+}
+
+rts::UnitId sc2::Factory::assimilator(rts::World& w, rts::SideId sd, rts::ResourceFieldId rf) {
+  auto sideColor{::ui::getColor(w[sd])};
+  return w.units.emplace(
+      rts::Vector{3, 3}, UnitTypes::assimilator, sd, std::make_unique<ui::Assimilator>(sideColor),
+      0, rts::ProductionQueueId{}, rf);
 }
 
 rts::UnitId sc2::Factory::gateway(rts::World& w, rts::SideId sd) {
@@ -63,12 +72,14 @@ rts::UnitId sc2::Factory::zealot(rts::World& w, rts::SideId sd) {
 
 rts::ResourceFieldId sc2::Factory::geyser(rts::World& w) {
   return w.resourceFields.emplace(
-      rts::Vector{3, 3}, Resources::gas, GeyserContent, std::make_unique<ui::Geyser>());
+      rts::Vector{3, 3}, Resources::gas, GeyserContent, rts::ResourceField::DestroyWhenEmpty::No,
+      rts::ResourceField::RequiresBuilding::Yes, std::make_unique<ui::Geyser>());
 }
 
 rts::ResourceFieldId sc2::Factory::mineralPatch(rts::World& w, rts::ResourceGroupId group) {
   return w.resourceFields.emplace(
       rts::Vector{2, 1}, Resources::mineral, MineralPatchContent,
+      rts::ResourceField::DestroyWhenEmpty::Yes, rts::ResourceField::RequiresBuilding::No,
       std::make_unique<ui::MineralPatch>(), group);
 }
 

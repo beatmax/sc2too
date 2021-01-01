@@ -23,15 +23,18 @@ bool test::TestAccount::operator==(const TestAccount& other) const {
 
 test::TestResources::TestResources(const rts::Side& s) {
   auto& sGas{s.resources()[gasResourceId]};
+  auto& sMineral{s.resources()[mineralResourceId]};
   auto& sSupply{s.resources()[supplyResourceId]};
   gas.available = sGas.available();
   gas.allocated = sGas.allocated();
+  mineral.available = sMineral.available();
+  mineral.allocated = sMineral.allocated();
   supply.available = sSupply.available();
   supply.allocated = sSupply.allocated();
 }
 
 bool test::TestResources::operator==(const TestResources& other) const {
-  return gas == other.gas && supply == other.supply;
+  return gas == other.gas && mineral == other.mineral && supply == other.supply;
 }
 
 std::ostream& test::operator<<(std::ostream& os, const TestAccount& a) {
@@ -39,7 +42,7 @@ std::ostream& test::operator<<(std::ostream& os, const TestAccount& a) {
 }
 
 std::ostream& test::operator<<(std::ostream& os, const TestResources& r) {
-  return os << "gas:{" << r.gas << "}, supply:{" << r.supply << "}";
+  return os << "mineral:{" << r.mineral << "}, gas:{" << r.gas << "}, supply:{" << r.supply << "}";
 }
 
 GameTime test::nextStepTime(const Unit& u) {

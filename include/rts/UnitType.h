@@ -19,9 +19,21 @@ namespace rts {
     ResourceQuantityList provision;
     GameTime buildTime;
     UiUPtr ui;
+    ResourceId extractedResource;
 
-    UnitType(Kind k, ResourceQuantityList c, ResourceQuantityList p, GameTime bt, UiUPtr ui)
-      : kind{k}, cost{std::move(c)}, provision{std::move(p)}, buildTime{bt}, ui{std::move(ui)} {}
+    UnitType(
+        Kind k,
+        ResourceQuantityList c,
+        ResourceQuantityList p,
+        GameTime bt,
+        UiUPtr ui,
+        ResourceId er = {})
+      : kind{k},
+        cost{std::move(c)},
+        provision{std::move(p)},
+        buildTime{bt},
+        ui{std::move(ui)},
+        extractedResource{er} {}
 
     template<typename D>
     void addAbility(AbilityInstanceIndex index, const D& desc) {

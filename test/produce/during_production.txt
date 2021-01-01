@@ -1,6 +1,6 @@
-option t,g,s
-b: building
-----------  [t:0 g:1000 s:0/15]
+option t,r,s
+b: base
+----------  [t:0 m:1000 g:0 s:0/15]
           
  bb       
  bb       
@@ -10,19 +10,19 @@ b: building
 select b
 trigger produce_thirdy
 run for 5
-----------  [t:0 g:998 s:0/15]
+----------  [t:0 m:998 g:0 s:0/15]
           
  bb       
  bb       
  bb       
           
-==========  [t:1 g:998 s:4/15]
+==========  [t:1 m:998 g:0 s:4/15]
           
  bb       
  bb       
  bb       
           
-==========  [t:5 g:998 s:4/15]
+==========  [t:5 m:998 g:0 s:4/15]
           
  bb       
  bb       
@@ -31,19 +31,19 @@ run for 5
 ----------
 trigger produce_worker
 run for 17
-----------  [t:5 g:988 s:4/15]
+----------  [t:5 m:988 g:0 s:4/15]
           
  bb       
  bb       
  bb       
           
-==========  [t:21 g:988 s:4/15]
+==========  [t:21 m:988 g:0 s:4/15]
           
  bb       
  bbt      
  bb       
           
-==========  [t:22 g:988 s:6/15]
+==========  [t:22 m:988 g:0 s:6/15]
           
  bb       
  bbt      
@@ -54,19 +54,19 @@ run for 17
 # free slots dropping to negative should not cause trouble
 provision supply -15
 run
-----------  [t:22 g:988 s:6/0]
+----------  [t:22 m:988 g:0 s:6/0]
           
  bb       
  bbt      
  bb       
           
-==========  [t:122 g:988 s:6/0]
+==========  [t:122 m:988 g:0 s:6/0]
           
  bbw      
  bbt      
  bb       
           
-==========  [t:123 g:988 s:6/0]
+==========  [t:123 m:988 g:0 s:6/0]
           
  bbw      
  bbt      
@@ -78,19 +78,19 @@ run
 provision supply 30
 trigger produce_worker
 run for 10
-----------  [t:123 g:978 s:6/30]
+----------  [t:123 m:978 g:0 s:6/30]
           
  bbw      
  bbt      
  bb       
           
-==========  [t:124 g:978 s:8/30]
+==========  [t:124 m:978 g:0 s:8/30]
           
  bbw      
  bbt      
  bb       
           
-==========  [t:133 g:978 s:8/30]
+==========  [t:133 m:978 g:0 s:8/30]
           
  bbw      
  bbt      
@@ -99,19 +99,19 @@ run for 10
 ----------
 trigger set_rally_point 4,4
 run
-----------  [t:133 g:978 s:8/30]
+----------  [t:133 m:978 g:0 s:8/30]
           
  bbw      
  bbt      
  bb       
           
-==========  [t:224 g:978 s:8/30]
+==========  [t:224 m:978 g:0 s:8/30]
           
  bbw      
  bbt      
  bb       
    w      
-==========  [t:325 g:978 s:8/30]
+==========  [t:325 m:978 g:0 s:8/30]
           
  bbw      
  bbt      
@@ -122,19 +122,19 @@ run
 # production queue destroyed during production
 trigger produce_worker
 run for 20
-----------  [t:325 g:968 s:8/30]
+----------  [t:325 m:968 g:0 s:8/30]
           
  bbw      
  bbt      
  bb       
     w     
-==========  [t:326 g:968 s:10/30]
+==========  [t:326 m:968 g:0 s:10/30]
           
  bbw      
  bbt      
  bb       
     w     
-==========  [t:345 g:968 s:10/30]
+==========  [t:345 m:968 g:0 s:10/30]
           
  bbw      
  bbt      
@@ -142,9 +142,9 @@ run for 20
     w     
 ----------
 destroy b
-# supply is returned, gas is lost
+# supply is returned, mineral is lost
 run
-----------  [t:345 g:968 s:8/15]
+----------  [t:345 m:968 g:0 s:8/15]
           
    w      
    t      

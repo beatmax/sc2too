@@ -5,12 +5,17 @@
 #include "ui/Camera.h"
 #include "ui/types.h"
 
+#include <functional>
+#include <initializer_list>
+
 namespace ui {
+  using MapList = std::initializer_list<std::reference_wrapper<const rts::Map>>;
+
   void grid(const Window& win);
   void render(
       const Window& win,
       const rts::World& w,
-      const rts::Map& m,
+      MapList maps,
       const Camera& camera,
       const rts::Selection& selection);
   void render(

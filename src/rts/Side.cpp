@@ -29,8 +29,25 @@ void rts::Side::destroyPrototype(World& w) {
 bool rts::Side::materializePrototype(World& w, Point p) {
   assert(prototype_);
   auto& proto{w[prototype_]};
+  auto& type{w[proto.type]};
   auto buildArea{rectangleCenteredAt(p, proto.area.size, w.map.area())};
-  if (!w.map.isEmpty(buildArea) || !prototypeMap_.isEmpty(buildArea)) {
+  bool invalidLocation{false};
+  if (!prototypeMap_.isEmpty(buildArea)) {
+    invalidLocation = true;
+  }
+  else if (type.extractedResource) {
+    if (auto* rf{w.resourceField(p)}; rf && rf->bag.resource == type.extractedResource) {
+      buildArea.topLeft = rf->area.topLeft;
+      proto.resourceField = w.id(*rf);
+    }
+    else {
+      invalidLocation = true;
+    }
+  }
+  else if (!w.map.isEmpty(buildArea) || !prototypeMap_.isEmpty(buildArea)) {
+    invalidLocation = true;
+  }
+  if (invalidLocation) {
     messages_.add(w, "INVALID LOCATION!");
     return false;
   }

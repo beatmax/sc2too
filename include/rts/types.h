@@ -67,6 +67,7 @@ namespace rts {
   using BlockerStableRef = StableRef<Blocker>;
   using BlockerWId = util::PoolObjectWeakId<Blocker>;
   using ControlGroupId = uint8_t;
+  using LayerId = uint32_t;
   using MapSegmentId = uint32_t;
   using ProductionQueueId = util::PoolObjectId<ProductionQueue>;
   using ProductionQueueWId = util::PoolObjectWeakId<ProductionQueue>;
@@ -114,7 +115,7 @@ namespace rts {
   };
 
   enum class Direction : uint32_t { Left, Right, Up, Down };
-  enum class RelativeContent : uint32_t { Friend, Foe, Ground, Resource, Count };
+  enum class RelativeContent : uint32_t { Friend, Foe, Ground, Resource, FriendResource, Count };
 
   class Ui {
   public:

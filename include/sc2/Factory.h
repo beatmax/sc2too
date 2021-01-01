@@ -8,6 +8,7 @@ namespace sc2 {
     void init(rts::World& w) final;
     rts::UnitId create(rts::World& w, rts::UnitTypeId t, rts::SideId sd) final;
 
+    static rts::UnitId assimilator(rts::World& w, rts::SideId sd, rts::ResourceFieldId rf = {});
     static rts::UnitId gateway(rts::World& w, rts::SideId sd);
     static rts::UnitId nexus(rts::World& w, rts::SideId sd);
     static rts::UnitId probe(rts::World& w, rts::SideId sd);

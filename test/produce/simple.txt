@@ -1,6 +1,6 @@
-option t,g,s
-b: building
-----------  [t:0 g:1000 s:0/15]
+option t,r,s
+b: base
+----------  [t:0 m:1000 g:0 s:0/15]
           
  bb       
  bb       
@@ -10,25 +10,25 @@ b: building
 select b
 trigger produce_worker
 run
-----------  [t:0 g:990 s:0/15]
+----------  [t:0 m:990 g:0 s:0/15]
           
  bb       
  bb       
  bb       
           
-==========  [t:1 g:990 s:2/15]
+==========  [t:1 m:990 g:0 s:2/15]
           
  bb       
  bb       
  bb       
           
-==========  [t:101 g:990 s:2/15]
+==========  [t:101 m:990 g:0 s:2/15]
           
  bb       
  bbw      
  bb       
           
-==========  [t:102 g:990 s:2/15]
+==========  [t:102 m:990 g:0 s:2/15]
           
  bb       
  bbw      

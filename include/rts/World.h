@@ -156,7 +156,10 @@ namespace rts {
     ProductionQueueWId weakId(const ProductionQueue& pq) const {
       return productionQueues.weakId(pq);
     }
-    ProductionQueueWId weakId(ProductionQueueId id) const { return weakId((*this)[id]); }
+    template<typename T>
+    util::PoolObjectWeakId<T> weakId(util::PoolObjectId<T> id) const {
+      return weakId((*this)[id]);
+    }
 
     bool inBounds(Point p) const { return map.area().contains(p); }
     Cell& operator[](Point p) { return map[p]; }
@@ -164,10 +167,13 @@ namespace rts {
 
     AbilityTarget abilityTarget(Point p) const;
     AbilityWeakTarget abilityWeakTarget(Point p) const;
+    AbilityWeakTarget abilityWeakTarget(const AbilityTarget& t) const;
     RelativeContent relativeContent(SideId side, Point p) const;
+    RelativeContent relativeContentForRally(SideId side, Point p) const;
 
     UnitId unitId(Point p) const { return map[p].unitId(); }
     ResourceFieldId resourceFieldId(Point p) const { return map[p].resourceFieldId(); }
+    ResourceFieldId resourceFieldId(Point p, SideId side) const;
     BlockerId blockerId(Point p) const { return map[p].blockerId(); }
 
     Unit* unit(const Cell& c) { return getPtrAt(c, units); }
@@ -179,6 +185,14 @@ namespace rts {
     const ResourceField* resourceField(const Cell& c) const { return getPtrAt(c, resourceFields); }
     ResourceField* resourceField(Point p) { return resourceField(map[p]); }
     const ResourceField* resourceField(Point p) const { return resourceField(map[p]); }
+    ResourceField* resourceField(Point p, SideId side);
+    const ResourceField* resourceField(Point p, SideId side) const {
+      return const_cast<World&>(*this).resourceField(p, side);
+    }
+    ResourceField* resourceField(const AbilityWeakTarget& t, SideId side);
+    const ResourceField* resourceField(const AbilityWeakTarget& t, SideId side) const {
+      return const_cast<World&>(*this).resourceField(t, side);
+    }
 
     Blocker* blocker(const Cell& c) { return getPtrAt(c, blockers); }
     const Blocker* blocker(const Cell& c) const { return getPtrAt(c, blockers); }

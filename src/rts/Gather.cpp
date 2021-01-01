@@ -14,9 +14,10 @@ namespace rts {
 
 rts::ActiveAbilityStateUPtr rts::abilities::state::Gather::trigger(
     World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, const AbilityTarget& target) {
-  if (!std::holds_alternative<ResourceFieldId>(target))
+  auto tp{w.center(target)};
+  if (!w.resourceFieldId(tp, u.side))
     return {};
-  return std::make_unique<Gather>(desc, w[std::get<ResourceFieldId>(target)].area.topLeft);
+  return std::make_unique<Gather>(desc, w.abilityWeakTarget(target), tp);
 }
 
 rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitStableRef u) {
@@ -27,19 +28,19 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitS
     case State::MovingToTarget:
       if (Unit::abilityState(u, w, Kind::Move).active())
         return MonitorTime;
-      if (auto rf{w[targetField_]}) {
+      if (auto* rf{w.resourceField(target_, u->side)}; rf && !rf->bag.empty()) {
         if (adjacent(u->area, rf->area))
-          return tryOccupy();
+          return tryOccupy(w.weakId(*rf));
       }
       state_ = State::Occupying;
       return MonitorTime;
 
     case State::Occupying: {
       bool findBlockedOk;
-      if (auto* rf{w[targetField_]}) {
+      if (auto* rf{w.resourceField(target_, u->side)}; rf && !rf->bag.empty()) {
         if (adjacent(u->area, rf->area)) {
           if (!rf->sem.blocked())
-            return tryOccupy();
+            return tryOccupy(w.weakId(*rf));
         }
         findBlockedOk = false;
       }
@@ -48,10 +49,10 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitS
       }
       if (targetGroup_) {
         if (auto* rf{w.closestResourceField(u->area.topLeft, targetGroup_, findBlockedOk)}) {
-          targetField_ = w.weakId(*rf);
-          target_ = rf->area.topLeft;
+          targetPoint_ = rf->area.center();
+          target_ = w.abilityWeakTarget(targetPoint_);
           state_ = State::MovingToTarget;
-          return moveTo(target_);
+          return moveTo(targetPoint_);
         }
       }
       return findBlockedOk ? 0 : MonitorTime;
@@ -86,7 +87,7 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitS
     case State::DeliveringDone:
       if (u->commandQueue.empty()) {
         state_ = State::MovingToTarget;
-        return moveTo(target_);
+        return moveTo(targetPoint_);
       }
       return GameTime{0};
   }
@@ -99,14 +100,13 @@ void rts::abilities::state::Gather::cleanup(World& w) {
 }
 
 rts::AbilityStepResult rts::abilities::state::Gather::init(const World& w, const Unit& unit) {
-  auto* rf{w.resourceField(target_)};
+  auto* rf{w.resourceField(target_, unit.side)};
   if (!rf)
     return GameTime{0};
-  targetField_ = w.weakId(*rf);
   targetGroup_ = rf->group;
 
   state_ = State::MovingToTarget;
-  return moveTo(target_);
+  return moveTo(targetPoint_);
 }
 
 rts::AbilityStepAction rts::abilities::state::Gather::moveTo(Point p) {
@@ -118,9 +118,9 @@ rts::AbilityStepAction rts::abilities::state::Gather::moveTo(Point p) {
   };
 }
 
-rts::AbilityStepAction rts::abilities::state::Gather::tryOccupy() {
-  return [this](World& w, Unit&) {
-    targetFieldLock_ = SemaphoreLock{w, targetField_};
+rts::AbilityStepAction rts::abilities::state::Gather::tryOccupy(ResourceFieldWId rf) {
+  return [this, rf](World& w, Unit&) {
+    targetFieldLock_ = SemaphoreLock{w, rf};
     if (targetFieldLock_) {
       state_ = State::Gathering;
       return desc_.gatherTime;
@@ -132,10 +132,10 @@ rts::AbilityStepAction rts::abilities::state::Gather::tryOccupy() {
 
 rts::AbilityStepAction rts::abilities::state::Gather::finishGathering() {
   return [this](World& w, Unit& u) {
-    if (auto rf{w[targetField_]}) {
+    if (auto* rf{w.resourceField(target_, u.side)}) {
       rf->bag.transferAllTo(u.bag);
       targetFieldLock_.release(w);
-      if (rf->bag.empty())
+      if (rf->bag.empty() && rf->destroyWhenEmpty == ResourceField::DestroyWhenEmpty::Yes)
         w.destroy(*rf);
       state_ = State::GatheringDone;
     }

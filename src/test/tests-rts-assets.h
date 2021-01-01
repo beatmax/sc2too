@@ -12,27 +12,31 @@ namespace test {
   constexpr rts::Quantity MaxSupplySlots{200};
 
   constexpr rts::AbilityInstanceIndex MoveAbilityIndex{0};
-  constexpr rts::AbilityInstanceIndex BuildAbilityIndex{1};
-  constexpr rts::AbilityInstanceIndex GatherAbilityIndex{2};
+  constexpr rts::AbilityInstanceIndex BuildBaseAbilityIndex{1};
+  constexpr rts::AbilityInstanceIndex BuildExtractorAbilityIndex{2};
+  constexpr rts::AbilityInstanceIndex GatherAbilityIndex{3};
 
   constexpr rts::AbilityInstanceIndex ProduceWorkerAbilityIndex{0};
   constexpr rts::AbilityInstanceIndex ProduceThirdyAbilityIndex{1};
   constexpr rts::AbilityInstanceIndex SetRallyPointAbilityIndex{2};
 
-  constexpr rts::Quantity BuildingGasCost{20};
-  constexpr rts::Quantity BuildingSupplyProvision{15};
-  constexpr rts::Quantity BuildingBuildTime{30};
-  constexpr rts::Quantity WorkerGasCost{10};
+  constexpr rts::Quantity BaseMineralCost{20};
+  constexpr rts::Quantity BaseSupplyProvision{15};
+  constexpr rts::Quantity BaseBuildTime{30};
+  constexpr rts::Quantity ExtractorMineralCost{20};
+  constexpr rts::Quantity ExtractorBuildTime{10};
+  constexpr rts::Quantity WorkerMineralCost{10};
   constexpr rts::Quantity WorkerSupplyCost{2};
   constexpr rts::GameTime WorkerBuildTime{100};
   constexpr rts::GameTime WorkerCargoCapacity{5};
-  constexpr rts::Quantity ThirdyGasCost{2};
+  constexpr rts::Quantity ThirdyMineralCost{2};
   constexpr rts::Quantity ThirdySupplyCost{4};
   constexpr rts::GameTime ThirdyBuildTime{20};
 
   extern const std::string map;
 
   extern rts::ResourceId gasResourceId;
+  extern rts::ResourceId mineralResourceId;
   extern rts::ResourceId supplyResourceId;
   extern rts::AbilityId moveAbilityId;
   extern rts::AbilityId buildAbilityId;
@@ -40,7 +44,8 @@ namespace test {
   extern rts::AbilityId produceWorkerAbilityId;
   extern rts::AbilityId produceThirdyAbilityId;
   extern rts::AbilityId setRallyPointAbilityId;
-  extern rts::UnitTypeId buildingTypeId;
+  extern rts::UnitTypeId baseTypeId;
+  extern rts::UnitTypeId extractorTypeId;
   extern rts::UnitTypeId workerTypeId;
   extern rts::UnitTypeId thirdyTypeId;
   extern rts::SideId side1Id;
@@ -62,6 +67,11 @@ namespace test {
     const char* msgCapReached() const final { return "Gas cap reached!"; }
   };
 
+  struct MineralUi : rts::ResourceUi {
+    const char* msgMoreRequired() const final { return "Not enough mineral!"; }
+    const char* msgCapReached() const final { return "Mineral cap reached!"; }
+  };
+
   struct SupplyUi : rts::ResourceUi {
     const char* msgMoreRequired() const final { return "Not enough supply!"; }
     const char* msgCapReached() const final { return "Supply cap reached!"; }
@@ -70,10 +80,12 @@ namespace test {
   struct Factory : rts::Factory {
     void init(rts::World& w) final;
     rts::UnitId create(rts::World& w, rts::UnitTypeId t, rts::SideId sd) final;
-    static rts::UnitId building(rts::World& w, rts::SideId sd);
+    static rts::UnitId base(rts::World& w, rts::SideId sd);
+    static rts::UnitId extractor(rts::World& w, rts::SideId sd);
     static rts::UnitId worker(rts::World& w, rts::SideId sd);
     static rts::UnitId thirdy(rts::World& w, rts::SideId sd);
     static rts::ResourceFieldId geyser(rts::World& w);
+    static rts::ResourceFieldId mineralPatch(rts::World& w);
     static rts::BlockerId rock(rts::World& w);
   };
 

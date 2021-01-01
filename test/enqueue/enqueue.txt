@@ -1,8 +1,8 @@
 option t
 1,2,3: worker
 --------------------  [t:0]
-gg 1 bb             
-gg 2 bb             
+mm 1 bb             
+mm 2 bb             
    3 bb             
                     
                     
@@ -12,417 +12,417 @@ select 1,2,3
 enqueue gather 0,0
 run for 200
 --------------------  [t:0]
-gg 1 bb             
-gg 2 bb             
+mm 1 bb             
+mm 2 bb             
    3 bb             
                     
                     
                     
 ====================  [t:105]
-gg1  bb             
-gg 2 bb             
+mm1  bb             
+mm 2 bb             
    3 bb             
                     
                     
                     
 ====================  [t:146]
-gg1  bb             
-gg32 bb             
+mm1  bb             
+mm32 bb             
      bb             
                     
                     
                     
 ====================  [t:148]
-gg1  bb             
-gg3  bb             
+mm1  bb             
+mm3  bb             
   2  bb             
                     
                     
                     
 ====================  [t:200]
-gg1  bb             
-gg3  bb             
+mm1  bb             
+mm3  bb             
   2  bb             
                     
                     
                     
 --------------------
-build_prototype building
-prototype: building
-enqueue build 8,2
-prototype: building
-enqueue build 11,2
-prototype: building
+build_prototype base
+prototype: base
+enqueue build_base 8,2
+prototype: base
+enqueue build_base 11,2
+prototype: base
 enqueue move 16,2
 prototype: none
 run
 --------------------  [t:200]
-gg1  bb             
-gg3  bb             
+mm1  bb             
+mm3  bb             
   2  bb             
                     
                     
                     
 ====================  [t:316]
-gg 1 bb             
-gg3  bb             
+mm 1 bb             
+mm3  bb             
   2  bb             
                     
                     
                     
 ====================  [t:416]
-gg  1bb             
-gg3  bb             
+mm  1bb             
+mm3  bb             
   2  bb             
                     
                     
                     
 ====================  [t:467]
-gg  1bb             
-gg32 bb             
+mm  1bb             
+mm32 bb             
      bb             
                     
                     
                     
 ====================  [t:536]
-gg   bb             
-gg321bb             
+mm   bb             
+mm321bb             
      bb             
                     
                     
                     
 ====================  [t:577]
-gg 3 bb             
-gg 21bb             
+mm 3 bb             
+mm 21bb             
      bb             
                     
                     
                     
 ====================  [t:636]
-gg 3 bb             
-gg 2 bb             
+mm 3 bb             
+mm 2 bb             
     1bb             
                     
                     
                     
 ====================  [t:637]
-gg 3 bb             
-gg  2bb             
+mm 3 bb             
+mm  2bb             
     1bb             
                     
                     
                     
 ====================  [t:677]
-gg  3bb             
-gg  2bb             
+mm  3bb             
+mm  2bb             
     1bb             
                     
                     
                     
 ====================  [t:777]
-gg  3bb             
-gg  2bb             
+mm  3bb             
+mm  2bb             
      bb             
      1              
                     
                     
 ====================  [t:787]
-gg  3bb             
-gg   bb             
+mm  3bb             
+mm   bb             
     2bb             
      1              
                     
                     
 ====================  [t:797]
-gg   bb             
-gg  3bb             
+mm   bb             
+mm  3bb             
     2bb             
      1              
                     
                     
 ====================  [t:877]
-gg   bb             
-gg  3bb             
+mm   bb             
+mm  3bb             
     2bb             
       1             
                     
                     
 ====================  [t:928]
-gg   bb             
-gg  3bb             
+mm   bb             
+mm  3bb             
      bb             
      21             
                     
                     
 ====================  [t:937]
-gg   bb             
-gg   bb             
+mm   bb             
+mm   bb             
     3bb             
      21             
                     
                     
 ====================  [t:1018]
-gg   bb             
-gg   bb             
+mm   bb             
+mm   bb             
     3bb1            
      2              
                     
                     
 ====================  [t:1028]
-gg   bb             
-gg   bb             
+mm   bb             
+mm   bb             
     3bb1            
       2             
                     
                     
 ====================  [t:1035]
-gg   bb             
-gg   bb bb          
+mm   bb             
+mm   bb bb          
     3bb1bb          
       2 bb          
                     
                     
 ====================  [t:1078]
-gg   bb             
-gg   bb bb          
+mm   bb             
+mm   bb bb          
      bb1bb          
      32 bb          
                     
                     
 ====================  [t:1157]
-gg   bb             
-gg   bb1bb          
+mm   bb             
+mm   bb1bb          
      bb bb          
      32 bb          
                     
                     
 ====================  [t:1169]
-gg   bb             
-gg   bb1bb          
+mm   bb             
+mm   bb1bb          
      bb2bb          
      3  bb          
                     
                     
 ====================  [t:1178]
-gg   bb             
-gg   bb1bb          
+mm   bb             
+mm   bb1bb          
      bb2bb          
       3 bb          
                     
                     
 ====================  [t:1298]
-gg   bb 1           
-gg   bb bb          
+mm   bb 1           
+mm   bb bb          
      bb2bb          
       3 bb          
                     
                     
 ====================  [t:1300]
-gg   bb 1           
-gg   bb2bb          
+mm   bb 1           
+mm   bb2bb          
      bb bb          
       3 bb          
                     
                     
 ====================  [t:1319]
-gg   bb 1           
-gg   bb2bb          
+mm   bb 1           
+mm   bb2bb          
      bb3bb          
         bb          
                     
                     
 ====================  [t:1398]
-gg   bb  1          
-gg   bb2bb          
+mm   bb  1          
+mm   bb2bb          
      bb3bb          
         bb          
                     
                     
 ====================  [t:1441]
-gg   bb 21          
-gg   bb bb          
+mm   bb 21          
+mm   bb bb          
      bb3bb          
         bb          
                     
                     
 ====================  [t:1450]
-gg   bb 21          
-gg   bb3bb          
+mm   bb 21          
+mm   bb3bb          
      bb bb          
         bb          
                     
                     
 ====================  [t:1498]
-gg   bb 2 1         
-gg   bb3bb          
+mm   bb 2 1         
+mm   bb3bb          
      bb bb          
         bb          
                     
                     
 ====================  [t:1541]
-gg   bb  21         
-gg   bb3bb          
+mm   bb  21         
+mm   bb3bb          
      bb bb          
         bb          
                     
                     
 ====================  [t:1591]
-gg   bb 321         
-gg   bb bb          
+mm   bb 321         
+mm   bb bb          
      bb bb          
         bb          
                     
                     
 ====================  [t:1598]
-gg   bb 32 1        
-gg   bb bb          
+mm   bb 32 1        
+mm   bb bb          
      bb bb          
         bb          
                     
                     
 ====================  [t:1682]
-gg   bb 3  1        
-gg   bb bb2         
+mm   bb 3  1        
+mm   bb bb2         
      bb bb          
         bb          
                     
                     
 ====================  [t:1691]
-gg   bb  3 1        
-gg   bb bb2         
+mm   bb  3 1        
+mm   bb bb2         
      bb bb          
         bb          
                     
                     
 ====================  [t:1696]
-gg   bb  3 1        
-gg   bb bb2bb       
+mm   bb  3 1        
+mm   bb bb2bb       
      bb bb bb       
         bb bb       
                     
                     
 ====================  [t:1698]
-gg   bb  3  1       
-gg   bb bb2bb       
+mm   bb  3  1       
+mm   bb bb2bb       
      bb bb bb       
         bb bb       
                     
                     
 ====================  [t:1791]
-gg   bb   3 1       
-gg   bb bb2bb       
+mm   bb   3 1       
+mm   bb bb2bb       
      bb bb bb       
         bb bb       
                     
                     
 ====================  [t:1798]
-gg   bb   3  1      
-gg   bb bb2bb       
+mm   bb   3  1      
+mm   bb bb2bb       
      bb bb bb       
         bb bb       
                     
                     
 ====================  [t:1840]
-gg   bb   32 1      
-gg   bb bb bb       
+mm   bb   32 1      
+mm   bb bb bb       
      bb bb bb       
         bb bb       
                     
                     
 ====================  [t:1898]
-gg   bb   32  1     
-gg   bb bb bb       
+mm   bb   32  1     
+mm   bb bb bb       
      bb bb bb       
         bb bb       
                     
                     
 ====================  [t:1940]
-gg   bb   3 2 1     
-gg   bb bb bb       
+mm   bb   3 2 1     
+mm   bb bb bb       
      bb bb bb       
         bb bb       
                     
                     
 ====================  [t:1941]
-gg   bb    32 1     
-gg   bb bb bb       
+mm   bb    32 1     
+mm   bb bb bb       
      bb bb bb       
         bb bb       
                     
                     
 ====================  [t:2039]
-gg   bb    32       
-gg   bb bb bb  1    
+mm   bb    32       
+mm   bb bb bb  1    
      bb bb bb       
         bb bb       
                     
                     
 ====================  [t:2040]
-gg   bb    3 2      
-gg   bb bb bb  1    
+mm   bb    3 2      
+mm   bb bb bb  1    
      bb bb bb       
         bb bb       
                     
                     
 ====================  [t:2041]
-gg   bb     32      
-gg   bb bb bb  1    
+mm   bb     32      
+mm   bb bb bb  1    
      bb bb bb       
         bb bb       
                     
                     
 ====================  [t:2141]
-gg   bb      2      
-gg   bb bb bb3 1    
+mm   bb      2      
+mm   bb bb bb3 1    
      bb bb bb       
         bb bb       
                     
                     
 ====================  [t:2180]
-gg   bb      2      
-gg   bb bb bb3      
+mm   bb      2      
+mm   bb bb bb3      
      bb bb bb   1   
         bb bb       
                     
                     
 ====================  [t:2181]
-gg   bb             
-gg   bb bb bb32     
+mm   bb             
+mm   bb bb bb32     
      bb bb bb   1   
         bb bb       
                     
                     
 ====================  [t:2281]
-gg   bb             
-gg   bb bb bb3 2    
+mm   bb             
+mm   bb bb bb3 2    
      bb bb bb   1   
         bb bb       
                     
                     
 ====================  [t:2282]
-gg   bb       3     
-gg   bb bb bb  2    
+mm   bb       3     
+mm   bb bb bb  2    
      bb bb bb   1   
         bb bb       
                     
                     
 ====================  [t:2423]
-gg   bb        3    
-gg   bb bb bb  2    
+mm   bb        3    
+mm   bb bb bb  2    
      bb bb bb   1   
         bb bb       
                     
                     
 ====================  [t:2564]
-gg   bb             
-gg   bb bb bb  23   
+mm   bb             
+mm   bb bb bb  23   
      bb bb bb   1   
         bb bb       
                     
                     
 ====================  [t:2664]
-gg   bb             
-gg   bb bb bb  23   
+mm   bb             
+mm   bb bb bb  23   
      bb bb bb   1   
         bb bb       
                     

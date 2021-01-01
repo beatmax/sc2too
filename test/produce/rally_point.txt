@@ -1,9 +1,9 @@
-option t,g,s
-b: building
-----------  [t:0 g:1000 s:0/15]
+option t,r,s
+b: base
+----------  [t:0 m:1000 g:0 s:0/15]
           
- bb  gg   
- bb  gg   
+ bb  mm   
+ bb  mm   
  bb       
           
 ----------
@@ -11,52 +11,52 @@ select b
 trigger set_rally_point 5,1
 trigger produce_worker
 run for 600
-----------  [t:0 g:990 s:0/15]
+----------  [t:0 m:990 g:0 s:0/15]
           
- bb  gg   
- bb  gg   
+ bb  mm   
+ bb  mm   
  bb       
           
-==========  [t:1 g:990 s:2/15]
+==========  [t:1 m:990 g:0 s:2/15]
           
- bb  gg   
- bb  gg   
+ bb  mm   
+ bb  mm   
  bb       
           
-==========  [t:101 g:990 s:2/15]
+==========  [t:101 m:990 g:0 s:2/15]
           
- bbw gg   
- bb  gg   
+ bbw mm   
+ bb  mm   
  bb       
           
-==========  [t:203 g:990 s:2/15]
+==========  [t:203 m:990 g:0 s:2/15]
           
- bb wgg   
- bb  gg   
+ bb wmm   
+ bb  mm   
  bb       
           
-==========  [t:414 g:990 s:2/15]
+==========  [t:414 m:990 g:0 s:2/15]
           
- bbw gg   
- bb  gg   
+ bbw mm   
+ bb  mm   
  bb       
           
-==========  [t:424 g:995 s:2/15]
+==========  [t:424 m:995 g:0 s:2/15]
           
- bbw gg   
- bb  gg   
+ bbw mm   
+ bb  mm   
  bb       
           
-==========  [t:526 g:995 s:2/15]
+==========  [t:526 m:995 g:0 s:2/15]
           
- bb wgg   
- bb  gg   
+ bb wmm   
+ bb  mm   
  bb       
           
-==========  [t:600 g:995 s:2/15]
+==========  [t:600 m:995 g:0 s:2/15]
           
- bb wgg   
- bb  gg   
+ bb wmm   
+ bb  mm   
  bb       
           
 ----------

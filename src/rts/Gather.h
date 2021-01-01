@@ -18,7 +18,8 @@ namespace rts::abilities::state {
         const Desc& desc,
         const AbilityTarget& target);
 
-    explicit Gather(const Desc& desc, Point target) : desc_{desc}, target_{target} {}
+    explicit Gather(const Desc& desc, AbilityWeakTarget target, Point tp)
+      : desc_{desc}, target_{target}, targetPoint_{tp} {}
 
     AbilityStepResult step(const World& w, UnitStableRef u) final;
     void cleanup(World& w) final;
@@ -27,16 +28,16 @@ namespace rts::abilities::state {
   private:
     AbilityStepResult init(const World& w, const Unit& unit);
     AbilityStepAction moveTo(Point p);
-    AbilityStepAction tryOccupy();
+    AbilityStepAction tryOccupy(ResourceFieldWId rf);
     AbilityStepAction finishGathering();
     AbilityStepAction finishDelivering();
 
     const Desc desc_;
     State state_{State::Init};
-    Point target_;
-    UnitWId base_;
-    ResourceFieldWId targetField_;
+    AbilityWeakTarget target_;
+    Point targetPoint_;
     SemaphoreLock<ResourceField> targetFieldLock_;
     ResourceGroupId targetGroup_{};
+    UnitWId base_;
   };
 }

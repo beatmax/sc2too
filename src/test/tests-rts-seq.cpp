@@ -106,6 +106,8 @@ namespace test::seq::item {
       std::vector<std::string> info;
       if (m.time)
         info.push_back("t:" + std::to_string(*m.time));
+      if (m.mineral)
+        info.push_back("m:" + std::to_string(*m.mineral));
       if (m.gas)
         info.push_back("g:" + std::to_string(*m.gas));
       if (m.supply)

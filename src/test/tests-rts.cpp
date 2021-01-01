@@ -25,13 +25,14 @@ TEST_CASE("Hello world!", "[rts]") {
   Side& side2{world[test::side2Id]};
   REQUIRE(test::repr(side1.ui()) == "1");
   REQUIRE(test::repr(side2.ui()) == "2");
-  REQUIRE(side1.resource(test::gasResourceId).available() == 1000);
-  REQUIRE(side2.resource(test::gasResourceId).available() == 1000);
+  REQUIRE(side1.resource(test::mineralResourceId).available() == 1000);
+  REQUIRE(side2.resource(test::mineralResourceId).available() == 1000);
 
   REQUIRE(test::repr(cworld[test::moveAbilityId].ui) == "move");
   REQUIRE(test::repr(cworld[test::produceWorkerAbilityId].ui) == "p.w");
   REQUIRE(test::repr(cworld[test::produceThirdyAbilityId].ui) == "p.t");
-  REQUIRE(test::repr(cworld[test::buildingTypeId].ui) == "B");
+  REQUIRE(test::repr(cworld[test::baseTypeId].ui) == "B");
+  REQUIRE(test::repr(cworld[test::extractorTypeId].ui) == "E");
   REQUIRE(test::repr(cworld[test::workerTypeId].ui) == "W");
   REQUIRE(test::repr(cworld[test::thirdyTypeId].ui) == "T");
 
@@ -45,15 +46,15 @@ TEST_CASE("Hello world!", "[rts]") {
   REQUIRE(test::repr(cworld.blocker({12, 1})->ui) == "r");
   REQUIRE(cworld.map(13, 1).empty());
 
-  const Rectangle buildingArea{Point{37, 6}, rts::Vector{2, 3}};
-  REQUIRE(cworld[buildingArea.topLeft].contains(Cell::Unit));
-  Unit* building{world.unit(buildingArea.topLeft)};
-  REQUIRE(building->area == buildingArea);
-  REQUIRE(test::repr(building->ui) == "b");
-  for (Point p : buildingArea.points()) {
+  const Rectangle baseArea{Point{37, 6}, rts::Vector{2, 3}};
+  REQUIRE(cworld[baseArea.topLeft].contains(Cell::Unit));
+  Unit* base{world.unit(baseArea.topLeft)};
+  REQUIRE(base->area == baseArea);
+  REQUIRE(test::repr(base->ui) == "b");
+  for (Point p : baseArea.points()) {
     auto* u{cworld.unit(p)};
     REQUIRE(u != nullptr);
-    REQUIRE(u == building);
+    REQUIRE(u == base);
   }
 
   const Rectangle geyserArea{Point{30, 0}, rts::Vector{2, 2}};
@@ -71,9 +72,9 @@ TEST_CASE("Hello world!", "[rts]") {
   side1.resources().provision({{test::supplyResourceId, 100}});
 
   test::TestResources expectedResources;
-  expectedResources.gas.available = 1000;
-  expectedResources.gas.allocated = test::BuildingGasCost;
-  expectedResources.supply.available = 100 + test::BuildingSupplyProvision;
+  expectedResources.mineral.available = 1000;
+  expectedResources.mineral.allocated = test::BaseMineralCost;
+  expectedResources.supply.available = 100 + test::BaseSupplyProvision;
   REQUIRE(test::TestResources{side1} == expectedResources);
 
   SECTION("A unit is added to the world") {
@@ -86,7 +87,7 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(test::repr(cu.ui) == "w");
     REQUIRE(test::Ui::count["w"] == 1);
 
-    expectedResources.gas.allocate(test::WorkerGasCost);
+    expectedResources.mineral.allocate(test::WorkerMineralCost);
     expectedResources.supply.allocate(test::WorkerSupplyCost);
     REQUIRE(test::TestResources{side1} == expectedResources);
 
@@ -96,7 +97,7 @@ TEST_CASE("Hello world!", "[rts]") {
       REQUIRE(cworld[pos].empty());
       REQUIRE(test::Ui::count["w"] == 0);
 
-      expectedResources.gas.lose(test::WorkerGasCost);
+      expectedResources.mineral.lose(test::WorkerMineralCost);
       expectedResources.supply.restore(test::WorkerSupplyCost);
       REQUIRE(test::TestResources{side1} == expectedResources);
     }
@@ -163,7 +164,7 @@ TEST_CASE("Hello world!", "[rts]") {
 
     REQUIRE(test::Ui::count["b"] == 1);
 
-    UnitId uid{world.add(test::Factory::building(world, test::side1Id), area.topLeft)};
+    UnitId uid{world.add(test::Factory::base(world, test::side1Id), area.topLeft)};
     const Unit& cu{*cworld.unit(area.topLeft)};
     REQUIRE(cu.area == area);
     REQUIRE(test::repr(cu.ui) == "b");
@@ -199,7 +200,7 @@ TEST_CASE("Hello world!", "[rts]") {
       ++world.time;
       WorldActionList actions{Unit::step(UnitStableRef{unit}, cworld)};
       REQUIRE(!actions.empty());
-      world.add(test::Factory::building(world, test::side1Id), {24, 4});
+      world.add(test::Factory::base(world, test::side1Id), {24, 4});
       world.update(actions);
       REQUIRE(unit.area.topLeft == Point{23, 5});
       REQUIRE(
@@ -272,20 +273,20 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(selectedUnits() == UnitIdList{u1});
     REQUIRE(subgroupType() == test::workerTypeId);
 
-    UnitId b1{world.units.id(*building)};
+    UnitId b1{world.units.id(*base)};
     UnitId t1{world.add(test::Factory::thirdy(world, test::side1Id), Point{24, 5})};
     UnitId t2{world.add(test::Factory::thirdy(world, test::side1Id), Point{25, 5})};
 
     test::select(world, test::side1Id, {u2, b1, t2, u1, t1});
     REQUIRE(selectedUnits() == UnitIdList{b1, u1, u2, t1, t2});
-    REQUIRE(subgroupType() == test::buildingTypeId);
+    REQUIRE(subgroupType() == test::baseTypeId);
 
     test::execCommand(world, test::side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
     REQUIRE(subgroupType() == test::workerTypeId);
     test::execCommand(world, test::side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
     REQUIRE(subgroupType() == test::thirdyTypeId);
     test::execCommand(world, test::side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
-    REQUIRE(subgroupType() == test::buildingTypeId);
+    REQUIRE(subgroupType() == test::baseTypeId);
     test::execCommand(world, test::side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Previous});
     REQUIRE(subgroupType() == test::thirdyTypeId);
     test::execCommand(world, test::side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Previous});
@@ -300,7 +301,7 @@ TEST_CASE("Hello world!", "[rts]") {
     REQUIRE(subgroupType() == UnitTypeId{});
 
     test::execCommand(world, test::side1Id, SelectionSubgroupCmd{SelectionSubgroupCmd::Next});
-    REQUIRE(subgroupType() == test::buildingTypeId);
+    REQUIRE(subgroupType() == test::baseTypeId);
 
     test::execCommand(world, test::side1Id, ControlGroupCmd{ControlGroupCmd::Select, false, 2});
     REQUIRE(selectedUnits() == UnitIdList{u3});

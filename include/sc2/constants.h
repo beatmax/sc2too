@@ -12,6 +12,9 @@ namespace sc2 {
   static constexpr rts::GameTime GatherTime{2 * rts::GameTimeSecond};
   static constexpr rts::GameTime DeliveryTime{3 * rts::GameTimeSecond / 10};
 
+  static constexpr rts::GameTime AssimilatorBuildTime{21 * rts::GameTimeSecond};
+  static constexpr rts::Quantity AssimilatorMineralCost{75};
+
   static constexpr rts::GameTime GatewayBuildTime{46 * rts::GameTimeSecond};
   static constexpr rts::Quantity GatewayMineralCost{150};
 

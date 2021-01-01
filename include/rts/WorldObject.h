@@ -1,5 +1,6 @@
 #pragma once
 
+#include "constants.h"
 #include "types.h"
 
 #include <utility>
@@ -7,6 +8,7 @@
 namespace rts {
   struct WorldObject {
     Rectangle area;
+    LayerId layer{LayerBottom};
     Direction direction{Direction::Right};
     UiUPtr ui;
 

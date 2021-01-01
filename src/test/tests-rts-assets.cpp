@@ -22,6 +22,7 @@ const std::string test::map{
 };
 
 rts::ResourceId test::gasResourceId;
+rts::ResourceId test::mineralResourceId;
 rts::ResourceId test::supplyResourceId;
 rts::AbilityId test::moveAbilityId;
 rts::AbilityId test::buildAbilityId;
@@ -29,7 +30,8 @@ rts::AbilityId test::gatherAbilityId;
 rts::AbilityId test::produceWorkerAbilityId;
 rts::AbilityId test::produceThirdyAbilityId;
 rts::AbilityId test::setRallyPointAbilityId;
-rts::UnitTypeId test::buildingTypeId;
+rts::UnitTypeId test::baseTypeId;
+rts::UnitTypeId test::extractorTypeId;
 rts::UnitTypeId test::workerTypeId;
 rts::UnitTypeId test::thirdyTypeId;
 rts::SideId test::side1Id;
@@ -41,6 +43,7 @@ void test::Factory::init(rts::World& w) {
   using RC = rts::RelativeContent;
 
   gasResourceId = w.createResource(std::make_unique<GasUi>());
+  mineralResourceId = w.createResource(std::make_unique<MineralUi>());
   supplyResourceId = w.createResource(std::make_unique<SupplyUi>());
 
   moveAbilityId = w.createAbility(std::make_unique<Ui>("move"));
@@ -51,43 +54,53 @@ void test::Factory::init(rts::World& w) {
   produceThirdyAbilityId = w.createAbility(std::make_unique<Ui>("p.t"));
   setRallyPointAbilityId = w.createAbility(std::make_unique<Ui>("p.r"));
 
-  buildingTypeId = w.createUnitType(
-      rts::UnitType::Kind::Structure, rts::ResourceQuantityList{{gasResourceId, BuildingGasCost}},
-      rts::ResourceQuantityList{{supplyResourceId, BuildingSupplyProvision}}, BuildingBuildTime,
+  baseTypeId = w.createUnitType(
+      rts::UnitType::Kind::Structure,
+      rts::ResourceQuantityList{{mineralResourceId, BaseMineralCost}},
+      rts::ResourceQuantityList{{supplyResourceId, BaseSupplyProvision}}, BaseBuildTime,
       std::make_unique<Ui>("B"));
+  extractorTypeId = w.createUnitType(
+      rts::UnitType::Kind::Structure,
+      rts::ResourceQuantityList{{mineralResourceId, ExtractorMineralCost}},
+      rts::ResourceQuantityList{}, ExtractorBuildTime, std::make_unique<Ui>("E"), gasResourceId);
   workerTypeId = w.createUnitType(
       rts::UnitType::Kind::Worker,
       rts::ResourceQuantityList{
-          {gasResourceId, WorkerGasCost}, {supplyResourceId, WorkerSupplyCost}},
+          {mineralResourceId, WorkerMineralCost}, {supplyResourceId, WorkerSupplyCost}},
       rts::ResourceQuantityList{}, WorkerBuildTime, std::make_unique<Ui>("W"));
   thirdyTypeId = w.createUnitType(
       rts::UnitType::Kind::Army,
       rts::ResourceQuantityList{
-          {gasResourceId, ThirdyGasCost}, {supplyResourceId, ThirdySupplyCost}},
+          {mineralResourceId, ThirdyMineralCost}, {supplyResourceId, ThirdySupplyCost}},
       rts::ResourceQuantityList{}, ThirdyBuildTime, std::make_unique<Ui>("T"));
 
-  w.unitTypes[buildingTypeId].addAbility(
+  w.unitTypes[baseTypeId].addAbility(
       ProduceWorkerAbilityIndex, rts::abilities::Produce{produceWorkerAbilityId, workerTypeId});
-  w.unitTypes[buildingTypeId].addAbility(
+  w.unitTypes[baseTypeId].addAbility(
       ProduceThirdyAbilityIndex, rts::abilities::Produce{produceThirdyAbilityId, thirdyTypeId});
-  w.unitTypes[buildingTypeId].addAbility(
+  w.unitTypes[baseTypeId].addAbility(
       SetRallyPointAbilityIndex, rts::abilities::SetRallyPoint{setRallyPointAbilityId});
 
   w.unitTypes[workerTypeId].addAbility(
       MoveAbilityIndex,
       rts::abilities::Move{moveAbilityId, rts::CellDistance / rts::GameTimeSecond});
   w.unitTypes[workerTypeId].addAbility(
-      BuildAbilityIndex, rts::abilities::Build{buildAbilityId, buildingTypeId});
+      BuildBaseAbilityIndex, rts::abilities::Build{buildAbilityId, baseTypeId});
+  w.unitTypes[workerTypeId].addAbility(
+      BuildExtractorAbilityIndex, rts::abilities::Build{buildAbilityId, extractorTypeId});
   w.unitTypes[workerTypeId].addAbility(
       GatherAbilityIndex,
-      rts::abilities::Gather{moveAbilityId, buildingTypeId, rts::GameTimeSecond, 1});
+      rts::abilities::Gather{moveAbilityId, baseTypeId, rts::GameTimeSecond, 1});
   w.unitTypes[workerTypeId].defaultAbility[uint32_t(RC::Ground)] = MoveAbilityIndex;
   w.unitTypes[workerTypeId].defaultAbility[uint32_t(RC::Resource)] = GatherAbilityIndex;
+  w.unitTypes[workerTypeId].defaultAbility[uint32_t(RC::FriendResource)] = GatherAbilityIndex;
 }
 
 rts::UnitId test::Factory::create(rts::World& w, rts::UnitTypeId t, rts::SideId sd) {
-  if (t == buildingTypeId)
-    return building(w, sd);
+  if (t == baseTypeId)
+    return base(w, sd);
+  if (t == extractorTypeId)
+    return extractor(w, sd);
   if (t == workerTypeId)
     return worker(w, sd);
   if (t == thirdyTypeId)
@@ -95,10 +108,14 @@ rts::UnitId test::Factory::create(rts::World& w, rts::UnitTypeId t, rts::SideId 
   return {};
 }
 
-rts::UnitId test::Factory::building(rts::World& w, rts::SideId sd) {
+rts::UnitId test::Factory::base(rts::World& w, rts::SideId sd) {
   return w.units.emplace(
-      rts::Vector{2, 3}, buildingTypeId, sd, std::make_unique<Ui>("b"), 0,
+      rts::Vector{2, 3}, baseTypeId, sd, std::make_unique<Ui>("b"), 0,
       w.createProductionQueue(sd));
+}
+
+rts::UnitId test::Factory::extractor(rts::World& w, rts::SideId sd) {
+  return w.units.emplace(rts::Vector{2, 2}, extractorTypeId, sd, std::make_unique<Ui>("e"));
 }
 
 rts::UnitId test::Factory::worker(rts::World& w, rts::SideId sd) {
@@ -111,7 +128,15 @@ rts::UnitId test::Factory::thirdy(rts::World& w, rts::SideId sd) {
 }
 
 rts::ResourceFieldId test::Factory::geyser(rts::World& w) {
-  return w.resourceFields.emplace(rts::Vector{2, 2}, gasResourceId, 100, std::make_unique<Ui>("g"));
+  return w.resourceFields.emplace(
+      rts::Vector{2, 2}, gasResourceId, 100, rts::ResourceField::DestroyWhenEmpty::No,
+      rts::ResourceField::RequiresBuilding::Yes, std::make_unique<Ui>("g"));
+}
+
+rts::ResourceFieldId test::Factory::mineralPatch(rts::World& w) {
+  return w.resourceFields.emplace(
+      rts::Vector{2, 2}, mineralResourceId, 100, rts::ResourceField::DestroyWhenEmpty::Yes,
+      rts::ResourceField::RequiresBuilding::No, std::make_unique<Ui>("m"));
 }
 
 rts::BlockerId test::Factory::rock(rts::World& w) {
@@ -127,9 +152,11 @@ rts::Cell::Content test::MapInitializer::operator()(
   }
   switch (c) {
     case 'b':
-      return Factory::building(w, side1Id);
+      return Factory::base(w, side1Id);
     case 'g':
       return Factory::geyser(w);
+    case 'm':
+      return Factory::mineralPatch(w);
     case 'r':
       return Factory::rock(w);
     default:
@@ -139,7 +166,7 @@ rts::Cell::Content test::MapInitializer::operator()(
 
 void test::makeSides(rts::World& w) {
   const rts::ResourceInitList resources{
-      {gasResourceId, 1000, rts::QuantityInf, rts::ResourceRecoverable::No},
+      {mineralResourceId, 1000, rts::QuantityInf, rts::ResourceRecoverable::No},
       {supplyResourceId, 0, MaxSupplySlots, rts::ResourceRecoverable::Yes}};
   side1Id = w.createSide(resources, std::make_unique<Ui>("1"));
   side2Id = w.createSide(resources, std::make_unique<Ui>("2"));

@@ -41,10 +41,12 @@ namespace test::seq {
       LineVector map;
       std::optional<rts::GameTime> time;
       std::optional<rts::Quantity> gas;
+      std::optional<rts::Quantity> mineral;
       std::optional<std::pair<rts::Quantity, rts::Quantity>> supply;
 
       bool diff(const Map& other) const {
-        return map != other.map || gas != other.gas || supply != other.supply;
+        return map != other.map || gas != other.gas || mineral != other.mineral ||
+            supply != other.supply;
       }
     };
 

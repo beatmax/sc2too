@@ -11,6 +11,11 @@
 void sc2::UnitTypes::init(rts::World& w) {
   using RC = rts::RelativeContent;
 
+  assimilator = w.createUnitType(
+      rts::UnitType::Kind::Structure,
+      rts::ResourceQuantityList{{Resources::mineral, AssimilatorMineralCost}},
+      rts::ResourceQuantityList{}, AssimilatorBuildTime, std::make_unique<ui::AssimilatorType>(),
+      Resources::gas);
   gateway = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{Resources::mineral, GatewayMineralCost}},
@@ -42,7 +47,7 @@ void sc2::UnitTypes::init(rts::World& w) {
     gatewayType.addAbility(
         Abilities::WarpInZealotIndex, rts::abilities::Produce{Abilities::warpInZealot, zealot});
 
-    for (auto rc : {RC::Friend, RC::Foe, RC::Ground, RC::Resource})
+    for (auto rc : {RC::Friend, RC::Foe, RC::Ground, RC::Resource, RC::FriendResource})
       gatewayType.defaultAbility[uint32_t(rc)] = Abilities::SetRallyPointIndex;
   }
   {
@@ -52,7 +57,7 @@ void sc2::UnitTypes::init(rts::World& w) {
     nexusType.addAbility(
         Abilities::WarpInProbeIndex, rts::abilities::Produce{Abilities::warpInProbe, probe});
 
-    for (auto rc : {RC::Friend, RC::Foe, RC::Ground, RC::Resource})
+    for (auto rc : {RC::Friend, RC::Foe, RC::Ground, RC::Resource, RC::FriendResource})
       nexusType.defaultAbility[uint32_t(rc)] = Abilities::SetRallyPointIndex;
   }
   {
@@ -66,6 +71,9 @@ void sc2::UnitTypes::init(rts::World& w) {
         Abilities::WarpInStructureIndex,
         rts::abilities::GoToPage{Abilities::warpInStructure, Abilities::WarpInStructurePage});
     probeType.addAbility(
+        Abilities::WarpInAssimilatorIndex,
+        rts::abilities::Build{Abilities::warpInAssimilator, assimilator});
+    probeType.addAbility(
         Abilities::WarpInGatewayIndex, rts::abilities::Build{Abilities::warpInGateway, gateway});
     probeType.addAbility(
         Abilities::WarpInNexusIndex, rts::abilities::Build{Abilities::warpInNexus, nexus});
@@ -74,18 +82,20 @@ void sc2::UnitTypes::init(rts::World& w) {
 
     for (auto rc : {RC::Friend, RC::Foe, RC::Ground})
       probeType.defaultAbility[uint32_t(rc)] = Abilities::MoveIndex;
-    probeType.defaultAbility[uint32_t(RC::Resource)] = Abilities::GatherIndex;
+    for (auto rc : {RC::Resource, RC::FriendResource})
+      probeType.defaultAbility[uint32_t(rc)] = Abilities::GatherIndex;
   }
   {
     auto& zealotType{w.unitTypes[zealot]};
     zealotType.addAbility(
         Abilities::MoveIndex, rts::abilities::Move{Abilities::move, rts::Speed{4}});
 
-    for (auto rc : {RC::Friend, RC::Foe, RC::Ground, RC::Resource})
+    for (auto rc : {RC::Friend, RC::Foe, RC::Ground, RC::Resource, RC::FriendResource})
       zealotType.defaultAbility[uint32_t(rc)] = Abilities::MoveIndex;
   }
 }
 
+rts::UnitTypeId sc2::UnitTypes::assimilator;
 rts::UnitTypeId sc2::UnitTypes::gateway;
 rts::UnitTypeId sc2::UnitTypes::nexus;
 rts::UnitTypeId sc2::UnitTypes::probe;

@@ -1,12 +1,12 @@
-option t,g
+option t,r
 w: worker
-----------  [t:0 g:1000]
+----------  [t:0 m:1000 g:0]
 w         
           
           
           
 ----------
 select w
-allocate gas 1000
-build_prototype building
-message: Not enough gas!
+allocate mineral 1000
+build_prototype base
+message: Not enough mineral!

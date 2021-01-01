@@ -42,6 +42,10 @@ namespace sc2::ui {
     const ::ui::Sprite& sprite(const rts::World&, rts::ResourceFieldStableRef) const final;
   };
 
+  struct AssimilatorType : ::ui::IconUi<rts::UnitType> {
+    const ::ui::Icon& icon() const final;
+  };
+
   struct GatewayType : ::ui::IconUi<rts::UnitType> {
     const ::ui::Icon& icon() const final;
   };
@@ -60,6 +64,11 @@ namespace sc2::ui {
 
   struct ZealotType : ::ui::IconUi<rts::UnitType> {
     const ::ui::Icon& icon() const final;
+  };
+
+  struct Assimilator : Unit {
+    using Unit::Unit;
+    const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
   };
 
   struct Gateway : Unit {
@@ -112,6 +121,10 @@ namespace sc2::ui {
   };
 
   struct WarpInStructureAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct WarpInAssimilatorAbility : ::ui::IconUi<rts::Ability> {
     const ::ui::Icon& icon() const final;
   };
 

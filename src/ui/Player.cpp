@@ -175,7 +175,7 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
                 selectingAbilityTarget->abilityIndex, mouseCell, enqueue};
           }
           auto rc{w.relativeContent(side, mouseCell)};
-          if (rc == RC::Friend) {
+          if (rc == RC::Friend || rc == RC::FriendResource) {
             auto unit{w.unitId(mouseCell)};
             auto units{
                 (event.state & ControlPressed) ? visibleSameType(w, unit) : rts::UnitIdList{unit}};

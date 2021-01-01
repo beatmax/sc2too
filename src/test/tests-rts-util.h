@@ -20,7 +20,7 @@ namespace test {
   };
 
   struct TestResources {
-    TestAccount gas{}, supply{};
+    TestAccount gas{}, mineral{}, supply{};
 
     TestResources() = default;
     explicit TestResources(const rts::Side& s);

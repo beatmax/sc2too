@@ -23,8 +23,10 @@ namespace {
       return test::MoveAbilityIndex;
     if (s == "gather")
       return test::GatherAbilityIndex;
-    if (s == "build")
-      return test::BuildAbilityIndex;
+    if (s == "build_base")
+      return test::BuildBaseAbilityIndex;
+    if (s == "build_extractor")
+      return test::BuildExtractorAbilityIndex;
     if (s == "produce_worker")
       return test::ProduceWorkerAbilityIndex;
     if (s == "produce_thirdy")
@@ -39,8 +41,10 @@ namespace {
   }
 
   rts::UnitTypeId toUnitTypeId(const std::string& s) {
-    if (s == "building")
-      return test::buildingTypeId;
+    if (s == "base")
+      return test::baseTypeId;
+    if (s == "extractor")
+      return test::extractorTypeId;
     if (s == "worker")
       return test::workerTypeId;
     if (s == "thirdy")
@@ -49,8 +53,10 @@ namespace {
   }
 
   std::string toString(rts::UnitTypeId t) {
-    if (t == test::buildingTypeId)
-      return "building";
+    if (t == test::baseTypeId)
+      return "base";
+    if (t == test::extractorTypeId)
+      return "extractor";
     if (t == test::workerTypeId)
       return "worker";
     if (t == test::thirdyTypeId)
@@ -61,6 +67,8 @@ namespace {
   rts::ResourceId toResourceId(const std::string& s) {
     if (s == "gas")
       return test::gasResourceId;
+    if (s == "mineral")
+      return test::mineralResourceId;
     if (s == "supply")
       return test::supplyResourceId;
     return {};
@@ -104,7 +112,7 @@ namespace test::seq {
   namespace {
     struct Options {
       bool mapTime{false};
-      bool mapGas{false};
+      bool mapResources{false};
       bool mapSupply{false};
     };
 
@@ -163,8 +171,8 @@ namespace test::seq {
       for (auto& opt : o.options) {
         if (opt == "t")
           options.mapTime = true;
-        else if (opt == "g")
-          options.mapGas = true;
+        else if (opt == "r")
+          options.mapResources = true;
         else if (opt == "s")
           options.mapSupply = true;
         else
@@ -288,8 +296,10 @@ namespace test::seq {
       }
       if (options.mapTime)
         m.time = world.time;
-      if (options.mapGas)
+      if (options.mapResources) {
         m.gas = world[side].resource(test::gasResourceId).available();
+        m.mineral = world[side].resource(test::mineralResourceId).available();
+      }
       if (options.mapSupply) {
         const auto& supply = world[side].resource(test::supplyResourceId);
         m.supply = {supply.allocated(), supply.totalSlots()};

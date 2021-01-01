@@ -35,4 +35,9 @@ namespace rts {
   constexpr Distance DistanceInf{std::numeric_limits<Distance>::max()};
   constexpr GameTime GameTimeInf{std::numeric_limits<GameTime>::max()};
   constexpr Quantity QuantityInf{std::numeric_limits<Quantity>::max()};
+
+  constexpr LayerId LayerBottom{0};
+  constexpr LayerId LayerPrototypes{1};
+  constexpr LayerId LayerUnits{2};
+  constexpr LayerId LayerCount{3};
 }

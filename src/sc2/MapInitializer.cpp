@@ -17,6 +17,8 @@ rts::Cell::Content sc2::MapInitializer::operator()(
       (p.y >= rts::Coordinate(lines.size() / 2) && side2It != w.sides.end()) ? *side2It
                                                                              : *side1It)};
   switch (c) {
+    case 'a':
+      return Factory::assimilator(w, side, w.add(Factory::geyser(w), p));
     case 'g':
       return Factory::geyser(w);
     case 'm':

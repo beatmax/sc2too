@@ -49,16 +49,26 @@ void ui::grid(const Window& win) {
 void ui::render(
     const Window& win,
     const rts::World& w,
-    const rts::Map& m,
+    MapList maps,
     const Camera& camera,
     const rts::Selection& selection) {
   auto selectedItems{selection.items(w)};
   const std::set<rts::WorldObjectCPtr> selectedObjects{selectedItems.begin(), selectedItems.end()};
 
-  for (rts::WorldObjectCPtr obj : w.objectsInArea(camera.area(), m)) {
-    render(win, w, camera, *obj);
-    if (selectedObjects.find(obj) != selectedObjects.end())
-      drawBoundingBox(win, camera, obj->area, graph::green());
+  std::set<rts::WorldObjectCPtr> layers[rts::LayerCount];
+  for (const rts::Map& m : maps) {
+    for (auto* obj : w.objectsInArea(camera.area(), m)) {
+      assert(obj->layer < rts::LayerCount);
+      layers[obj->layer].insert(obj);
+    }
+  }
+
+  for (const auto& layer : layers) {
+    for (auto* obj : layer) {
+      render(win, w, camera, *obj);
+      if (selectedObjects.find(obj) != selectedObjects.end())
+        drawBoundingBox(win, camera, obj->area, graph::green());
+    }
   }
 }
 

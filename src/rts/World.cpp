@@ -82,14 +82,18 @@ rts::UnitId rts::World::addForFree(UnitId id, Point p) {
 }
 
 void rts::World::place(Unit& u) {
-  assert(map.isEmpty(u.area));
+  assert(
+      map.isEmpty(u.area) ||
+      (u.resourceField && u.resourceField == resourceFieldId(u.area.topLeft)));
   map.setContent(u.area, id(u));
+  u.layer = LayerUnits;
   if (u.isStructure(*this))
     initMapSegments(*this);
 }
 
 bool rts::World::tryPlace(Unit& u) {
-  if (map.isEmpty(u.area)) {
+  if (map.isEmpty(u.area) ||
+      (u.resourceField && u.resourceField == resourceFieldId(u.area.topLeft))) {
     place(u);
     return true;
   }
@@ -98,7 +102,10 @@ bool rts::World::tryPlace(Unit& u) {
 
 void rts::World::remove(Unit& u) {
   assert(map[u.area.topLeft].contains(Cell::Unit));
-  map.setContent(u.area, Cell::Empty{});
+  if (u.resourceField)
+    map.setContent(u.area, u.resourceField);
+  else
+    map.setContent(u.area, Cell::Empty{});
   if (u.isStructure(*this))
     initMapSegments(*this);
 }
@@ -143,19 +150,65 @@ rts::AbilityTarget rts::World::abilityTarget(Point p) const {
 rts::AbilityWeakTarget rts::World::abilityWeakTarget(Point p) const {
   auto& cell{map[p]};
   if (auto u{cell.unitId()})
-    return weakId((*this)[u]);
+    return weakId(u);
   else if (auto rf{cell.resourceFieldId()})
-    return weakId((*this)[rf]);
+    return weakId(rf);
   return p;
+}
+
+rts::AbilityWeakTarget rts::World::abilityWeakTarget(const AbilityTarget& t) const {
+  return std::visit(
+      util::Overloaded{
+          [](Point p) -> AbilityWeakTarget { return p; },
+          [this](auto id) -> AbilityWeakTarget { return weakId(id); }},
+      t);
 }
 
 rts::RelativeContent rts::World::relativeContent(SideId side, Point p) const {
   auto& cell{map[p]};
   if (auto* u{unit(cell)})
-    return (u->side == side) ? RelativeContent::Friend : RelativeContent::Foe;
-  else if (cell.contains(Cell::ResourceField))
+    return (u->side == side)
+        ? (u->resourceField ? RelativeContent::FriendResource : RelativeContent::Friend)
+        : RelativeContent::Foe;
+  else if (auto* rf{resourceField(cell)};
+           rf && rf->requiresBuilding == ResourceField::RequiresBuilding::No)
     return RelativeContent::Resource;
   return RelativeContent::Ground;
+}
+
+rts::RelativeContent rts::World::relativeContentForRally(SideId side, Point p) const {
+  auto rc{relativeContent(side, p)};
+  switch (rc) {
+    case RelativeContent::Resource:
+    case RelativeContent::FriendResource:
+      return rc;
+    default:
+      return RelativeContent::Ground;
+  }
+}
+
+rts::ResourceFieldId rts::World::resourceFieldId(Point p, SideId side) const {
+  auto& cell{map[p]};
+  if (auto* u{unit(cell)})
+    return (u->resourceField && u->side == side) ? u->resourceField : ResourceFieldId{};
+  else if (auto* rf{resourceField(cell)};
+           rf && rf->requiresBuilding == ResourceField::RequiresBuilding::No)
+    return id(*rf);
+  return {};
+}
+
+rts::ResourceField* rts::World::resourceField(Point p, SideId side) {
+  if (auto id{resourceFieldId(p, side)})
+    return &(*this)[id];
+  return nullptr;
+}
+
+rts::ResourceField* rts::World::resourceField(const AbilityWeakTarget& t, SideId side) {
+  if (auto target{fromWeakTarget(t)}) {
+    if (auto* rf{resourceField(center(*target), side)})
+      return rf;
+  }
+  return nullptr;
 }
 
 rts::WorldObject* rts::World::object(const Cell& c) {

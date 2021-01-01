@@ -23,6 +23,7 @@ namespace rts {
     State state{State::New};
     ResourceFlexBag bag;
     ProductionQueueId productionQueue;
+    ResourceFieldId resourceField;
     std::array<bool, MaxUnitAbilityStates> abilityActive{};
     util::CircularBuffer<UnitCommand, MaxEnqueuedCommands> commandQueue;
 
@@ -32,7 +33,8 @@ namespace rts {
         SideId sd,
         UiUPtr ui,
         Quantity cargoCapacity = 0,
-        ProductionQueueId pq = {});
+        ProductionQueueId pq = {},
+        ResourceFieldId rf = {});
     void allocate(World& w, bool allocCheck = true);
     bool tryAllocate(World& w);
     void setBuildPoint(World& w, Point p);

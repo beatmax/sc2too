@@ -12,6 +12,7 @@ void sc2::Abilities::init(rts::World& w) {
   warpInZealot = w.createAbility(std::make_unique<ui::WarpInZealotAbility>());
 
   warpInStructure = w.createAbility(std::make_unique<ui::WarpInStructureAbility>());
+  warpInAssimilator = w.createAbility(std::make_unique<ui::WarpInAssimilatorAbility>());
   warpInGateway = w.createAbility(std::make_unique<ui::WarpInGatewayAbility>());
   warpInNexus = w.createAbility(std::make_unique<ui::WarpInNexusAbility>());
   warpInPylon = w.createAbility(std::make_unique<ui::WarpInPylonAbility>());
@@ -24,6 +25,7 @@ rts::AbilityId sc2::Abilities::warpInProbe;
 rts::AbilityId sc2::Abilities::warpInZealot;
 
 rts::AbilityId sc2::Abilities::warpInStructure;
+rts::AbilityId sc2::Abilities::warpInAssimilator;
 rts::AbilityId sc2::Abilities::warpInGateway;
 rts::AbilityId sc2::Abilities::warpInNexus;
 rts::AbilityId sc2::Abilities::warpInPylon;

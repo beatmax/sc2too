@@ -1,20 +1,20 @@
-option t,g,s
-b: building
-----------  [t:0 g:1000 s:0/15]
+option t,r,s
+b: base
+----------  [t:0 m:1000 g:0 s:0/15]
           
  bb       
  bb       
  bb       
           
 ----------
-allocate gas 998
+allocate mineral 998
 allocate supply 12
 select b
 
 trigger produce_worker
-message: Not enough gas!
+message: Not enough mineral!
 run
-----------  [t:0 g:2 s:12/15]
+----------  [t:0 m:2 g:0 s:12/15]
           
  bb       
  bb       
@@ -24,7 +24,7 @@ run
 
 trigger produce_thirdy
 run for 10
-----------  [t:0 g:0 s:12/15]
+----------  [t:0 m:0 g:0 s:12/15]
           
  bb       
  bb       
@@ -32,7 +32,7 @@ run for 10
           
 ----------
 message: Not enough supply!
-----------  [t:10 g:0 s:12/15]
+----------  [t:10 m:0 g:0 s:12/15]
           
  bb       
  bb       
@@ -42,25 +42,25 @@ message: Not enough supply!
 
 allocate supply -1
 run
-----------  [t:10 g:0 s:11/15]
+----------  [t:10 m:0 g:0 s:11/15]
           
  bb       
  bb       
  bb       
           
-==========  [t:11 g:0 s:15/15]
+==========  [t:11 m:0 g:0 s:15/15]
           
  bb       
  bb       
  bb       
           
-==========  [t:31 g:0 s:15/15]
+==========  [t:31 m:0 g:0 s:15/15]
           
  bb       
  bbt      
  bb       
           
-==========  [t:32 g:0 s:15/15]
+==========  [t:32 m:0 g:0 s:15/15]
           
  bb       
  bbt      
@@ -69,12 +69,12 @@ run
 ----------
 
 # resource cap should not be exceeded
-provision gas 1000
+provision mineral 1000
 provision supply 300
 allocate supply 184
 trigger produce_worker
 run for 10
-----------  [t:32 g:990 s:199/200]
+----------  [t:32 m:990 g:0 s:199/200]
           
  bb       
  bbt      
@@ -82,7 +82,7 @@ run for 10
           
 ----------
 message: Supply cap reached!
-----------  [t:42 g:990 s:199/200]
+----------  [t:42 m:990 g:0 s:199/200]
           
  bb       
  bbt      
@@ -91,25 +91,25 @@ message: Supply cap reached!
 ----------
 allocate supply -1
 run
-----------  [t:42 g:990 s:198/200]
+----------  [t:42 m:990 g:0 s:198/200]
           
  bb       
  bbt      
  bb       
           
-==========  [t:43 g:990 s:200/200]
+==========  [t:43 m:990 g:0 s:200/200]
           
  bb       
  bbt      
  bb       
           
-==========  [t:143 g:990 s:200/200]
+==========  [t:143 m:990 g:0 s:200/200]
           
  bbw      
  bbt      
  bb       
           
-==========  [t:144 g:990 s:200/200]
+==========  [t:144 m:990 g:0 s:200/200]
           
  bbw      
  bbt      

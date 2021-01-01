@@ -10,11 +10,27 @@
 namespace rts {
   class ResourceField : public WorldObject {
   public:
+    enum class DestroyWhenEmpty { No, Yes };
+    enum class RequiresBuilding { No, Yes };
+
     ResourceFlexBag bag;
     ResourceGroupId group;
+    DestroyWhenEmpty destroyWhenEmpty;
+    RequiresBuilding requiresBuilding;
     Semaphore sem{1};
 
-    ResourceField(Vector s, ResourceId r, Quantity q, UiUPtr ui, ResourceGroupId g = 0)
-      : WorldObject{{-1, -1}, s, std::move(ui)}, bag{r, q, q}, group{g} {}
+    ResourceField(
+        Vector s,
+        ResourceId r,
+        Quantity q,
+        DestroyWhenEmpty dwe,
+        RequiresBuilding rb,
+        UiUPtr ui,
+        ResourceGroupId g = 0)
+      : WorldObject{{-1, -1}, s, std::move(ui)},
+        bag{r, q, q},
+        group{g},
+        destroyWhenEmpty{dwe},
+        requiresBuilding{rb} {}
   };
 }

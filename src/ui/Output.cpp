@@ -316,8 +316,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   highlight(
       ios_.renderWin, camera, ios_.clickedTarget,
       ios_.mouseButtons ? graph::red() : graph::yellow());
-  render(ios_.renderWin, w, side.prototypeMap(), camera, side.selection());
-  render(ios_.renderWin, w, w.map, camera, side.selection());
+  render(ios_.renderWin, w, {w.map, side.prototypeMap()}, camera, side.selection());
   drawTargetPoints(ios_, w, camera, side.selection());
   if (player.selectionBox)
     drawBoundingBox(ios_.renderWin, camera, *player.selectionBox, graph::green());

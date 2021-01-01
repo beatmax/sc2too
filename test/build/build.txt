@@ -1,28 +1,28 @@
-option t,g,s
+option t,r,s
 x,y: worker
 t: thirdy
-----------  [t:0 g:1000 s:8/0]
+----------  [t:0 m:1000 g:0 s:8/0]
 x        r
 y         
 t         
           
 ----------
 select x
-build_prototype building
-prototype: building
+build_prototype base
+prototype: base
 
 # a command cancels the build and the prototype is destroyed
 select x,y,t
 prototype: none
 
 # build is attempted on occupied location
-build_prototype building
-prototype: building
-trigger build 8,0
+build_prototype base
+prototype: base
+trigger build_base 8,0
 message: INVALID LOCATION!
-prototype: building
+prototype: base
 run
-----------  [t:0 g:1000 s:8/0]
+----------  [t:0 m:1000 g:0 s:8/0]
 x        r
 y         
 t         
@@ -30,22 +30,20 @@ t
 ----------
 
 # begin a build
-build_prototype building
-prototype: building
-trigger build 3,2
+trigger build_base 3,2
 prototype: none
 run for 200
-----------  [t:0 g:980 s:8/0]
+----------  [t:0 m:980 g:0 s:8/0]
 x        r
 y         
 t         
           
-==========  [t:143 g:980 s:8/0]
+==========  [t:143 m:980 g:0 s:8/0]
          r
 yx        
 t         
           
-==========  [t:200 g:980 s:8/0]
+==========  [t:200 m:980 g:0 s:8/0]
          r
 yx        
 t         
@@ -53,77 +51,77 @@ t
 ----------
 
 # begin a second build
-build_prototype building
-prototype: building
-trigger build 7,2
+build_prototype base
+prototype: base
+trigger build_base 7,2
 prototype: none
 run
-----------  [t:200 g:960 s:8/0]
+----------  [t:200 m:960 g:0 s:8/0]
          r
 yx        
 t         
           
-==========  [t:243 g:960 s:8/0]
+==========  [t:243 m:960 g:0 s:8/0]
          r
 y x       
 t         
           
-==========  [t:261 g:960 s:8/0]
+==========  [t:261 m:960 g:0 s:8/0]
          r
 y xbb     
 t  bb     
    bb     
-==========  [t:291 g:960 s:8/15]
+==========  [t:291 m:960 g:0 s:8/15]
          r
 y xbb     
 t  bb     
    bb     
-==========  [t:302 g:960 s:8/15]
+==========  [t:302 m:960 g:0 s:8/15]
          r
  yxbb     
 t  bb     
    bb     
-==========  [t:402 g:960 s:8/15]
+==========  [t:402 m:960 g:0 s:8/15]
          r
   xbb     
 t ybb     
    bb     
-==========  [t:545 g:960 s:8/15]
+==========  [t:545 m:960 g:0 s:8/15]
          r
  yxbb     
 t  bb     
    bb     
-==========  [t:686 g:960 s:8/15]
+==========  [t:686 m:960 g:0 s:8/15]
   y      r
   xbb     
 t  bb     
    bb     
-==========  [t:786 g:960 s:8/15]
+==========  [t:786 m:960 g:0 s:8/15]
    y     r
   xbb     
 t  bb     
    bb     
-==========  [t:886 g:960 s:8/15]
+==========  [t:886 m:960 g:0 s:8/15]
     y    r
   xbb     
 t  bb     
    bb     
-==========  [t:986 g:960 s:8/15]
+==========  [t:986 m:960 g:0 s:8/15]
      y   r
   xbb     
 t  bb     
    bb     
-==========  [t:1127 g:960 s:8/15]
+==========  [t:1127 m:960 g:0 s:8/15]
          r
   xbb y   
 t  bb     
    bb     
-==========  [t:1141 g:960 s:8/15]
+==========  [t:1141 m:960 g:0 s:8/15]
          r
   xbb ybb 
 t  bb  bb 
    bb  bb 
-==========  [t:1171 g:960 s:8/30]
+==========  [t:1171 m:960 g:0 s:8/30]
          r
   xbb ybb 
 t  bb  bb 

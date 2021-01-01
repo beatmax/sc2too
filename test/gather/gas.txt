@@ -1,0 +1,150 @@
+option t,r
+w: worker
+----------  [t:0 m:1000 g:0]
+gg     bb 
+gg w   bb 
+       bb 
+          
+----------
+quantity(0,0) = 8
+select w
+trigger gather 0,0
+run
+----------  [t:0 m:1000 g:0]
+gg     bb 
+gg w   bb 
+       bb 
+          
+----------
+build_prototype extractor
+prototype: extractor
+trigger build_extractor 0,2
+message: INVALID LOCATION!
+prototype: extractor
+trigger build_extractor 0,0
+prototype: none
+run
+----------  [t:0 m:980 g:0]
+gg     bb 
+gg w   bb 
+       bb 
+          
+==========  [t:143 m:980 g:0]
+ggw    bb 
+gg     bb 
+       bb 
+          
+==========  [t:161 m:980 g:0]
+eew    bb 
+ee     bb 
+       bb 
+          
+==========  [t:171 m:980 g:0]
+eew    bb 
+ee     bb 
+       bb 
+          
+----------
+trigger gather 0,0
+run
+----------  [t:171 m:980 g:0]
+eew    bb 
+ee     bb 
+       bb 
+          
+==========  [t:384 m:980 g:0]
+ee w   bb 
+ee     bb 
+       bb 
+          
+==========  [t:484 m:980 g:0]
+ee  w  bb 
+ee     bb 
+       bb 
+          
+==========  [t:584 m:980 g:0]
+ee   w bb 
+ee     bb 
+       bb 
+          
+==========  [t:684 m:980 g:0]
+ee    wbb 
+ee     bb 
+       bb 
+          
+==========  [t:694 m:980 g:5]
+ee    wbb 
+ee     bb 
+       bb 
+          
+==========  [t:796 m:980 g:5]
+ee   w bb 
+ee     bb 
+       bb 
+          
+==========  [t:896 m:980 g:5]
+ee  w  bb 
+ee     bb 
+       bb 
+          
+==========  [t:996 m:980 g:5]
+ee w   bb 
+ee     bb 
+       bb 
+          
+==========  [t:1096 m:980 g:5]
+eew    bb 
+ee     bb 
+       bb 
+          
+==========  [t:1307 m:980 g:5]
+ee w   bb 
+ee     bb 
+       bb 
+          
+==========  [t:1407 m:980 g:5]
+ee  w  bb 
+ee     bb 
+       bb 
+          
+==========  [t:1507 m:980 g:5]
+ee   w bb 
+ee     bb 
+       bb 
+          
+==========  [t:1607 m:980 g:5]
+ee    wbb 
+ee     bb 
+       bb 
+          
+==========  [t:1617 m:980 g:8]
+ee    wbb 
+ee     bb 
+       bb 
+          
+==========  [t:1719 m:980 g:8]
+ee   w bb 
+ee     bb 
+       bb 
+          
+==========  [t:1819 m:980 g:8]
+ee  w  bb 
+ee     bb 
+       bb 
+          
+==========  [t:1919 m:980 g:8]
+ee w   bb 
+ee     bb 
+       bb 
+          
+==========  [t:2019 m:980 g:8]
+eew    bb 
+ee     bb 
+       bb 
+          
+==========  [t:2038 m:980 g:8]
+eew    bb 
+ee     bb 
+       bb 
+          
+----------
