@@ -242,6 +242,31 @@ rts::UnitIdList rts::World::unitsInArea(const Rectangle& area, SideId side, Unit
   return result;
 }
 
+rts::UnitIdList rts::World::unitsInAreaForSelection(const Rectangle& area, SideId side) const {
+  UnitIdList result;
+  bool structures{false}, others{false};
+  for (Point p : area.points()) {
+    if (auto uId{unitId(p)}) {
+      if (!util::contains(result, uId)) {
+        const auto& u{units[uId]};
+        bool isStruct{u.isStructure(*this)};
+        if (!(isStruct && others) && u.activeOrBuilding() && (!side || u.side == side)) {
+          result.push_back(uId);
+          structures |= isStruct;
+          others |= !isStruct;
+        }
+      }
+    }
+  }
+  if (structures && others) {
+    result.erase(
+        std::remove_if(
+            result.begin(), result.end(), [this](auto id) { return units[id].isStructure(*this); }),
+        result.end());
+  }
+  return result;
+}
+
 rts::Unit* rts::World::closestActiveUnit(Point p, SideId side, UnitTypeId type) {
   Unit* closest{nullptr};
   float closestDistance{std::numeric_limits<float>::infinity()};

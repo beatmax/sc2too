@@ -204,7 +204,8 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
       break;
     case InputType::MouseRelease:
       if (selectionBox && event.mouseButton == InputButton::Button1) {
-        auto units{w.unitsInArea(*selectionBox, side)};
+        auto units{w.unitsInAreaForSelection(*selectionBox, side)};
+
         selectionBox.reset();
         return SelectionCmd{
             (event.state & ShiftPressed) ? SelectionCmd::Add : SelectionCmd::Set, std::move(units)};

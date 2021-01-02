@@ -207,6 +207,7 @@ namespace rts {
     std::set<WorldObjectCPtr> objectsInArea(const Rectangle& area) const;
     std::set<WorldObjectCPtr> objectsInArea(const Rectangle& area, const Map& m) const;
     UnitIdList unitsInArea(const Rectangle& area, SideId side = {}, UnitTypeId type = {}) const;
+    UnitIdList unitsInAreaForSelection(const Rectangle& area, SideId side) const;
     Unit* closestActiveUnit(Point p, SideId side, UnitTypeId type);
     const Unit* closestActiveUnit(Point p, SideId side, UnitTypeId type) const {
       return const_cast<World&>(*this).closestActiveUnit(p, side, type);
