@@ -39,7 +39,12 @@ rts::AbilityStepResult rts::abilities::state::Produce::step(const World& w, Unit
     case State::Blocked:
       return startProduction();
     case State::Producing:
-      return finishProduction();
+      if (u->powered) {
+        if (timeLeft_ <= MonitorTime)
+          return finishProduction();
+        timeLeft_ -= MonitorTime;
+      }
+      return MonitorTime;
   }
   return GameTime{0};
 }
@@ -55,10 +60,12 @@ rts::AbilityStepAction rts::abilities::state::Produce::startProduction() {
     if (pq.empty())
       return 0;
     if (pq.startProduction(w, state_ == State::Blocked)) {
+      timeLeft_ = pq.buildTime(w);
       state_ = State::Producing;
-      return pq.buildTime(w);
     }
-    state_ = State::Blocked;
+    else {
+      state_ = State::Blocked;
+    }
     return MonitorTime;
   };
 }

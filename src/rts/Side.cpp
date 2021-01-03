@@ -51,6 +51,11 @@ bool rts::Side::materializePrototype(World& w, Point p) {
     messages_.add(w, "INVALID LOCATION!");
     return false;
   }
+  if (type.requiresPower == UnitType::RequiresPower::Yes &&
+      !powerMap_.isPowered(buildArea.center())) {
+    messages_.add(w, "YOU MUST PLACE THAT IN A POWER FIELD!");
+    return false;
+  }
   if (!proto.tryAllocate(w))
     return false;
   proto.setBuildPoint(w, buildArea.topLeft);
@@ -230,7 +235,8 @@ void rts::Side::exec(const World& w, WorldActionList& actions, const command::De
   }
 }
 
-void rts::Side::onMapLoaded(World& w) {
+void rts::Side::onMapCreated(World& w) {
+  powerMap_.initCells(w.map.size());
   prototypeMap_.initCells(w.map.size());
 }
 

@@ -18,9 +18,12 @@ namespace ui::graph {
   inline int magenta() { return colorAttr(Color::Magenta); }
   inline int cyan() { return colorAttr(Color::Cyan); }
   inline int white() { return colorAttr(Color::White); }
+  inline int gray() { return colorAttr(Color::Gray); }
   inline int lightGreen() { return colorAttr(Color::LightGreen); }
   inline int darkGreen() { return colorAttr(Color::DarkGreen); }
-  inline int darkGrey() { return colorAttr(Color::DarkGrey); }
+  inline int darkGray() { return colorAttr(Color::DarkGray); }
+  inline int electricBlue1() { return colorAttr(Color::ElectricBlue1); }
+  inline int electricBlue2() { return colorAttr(Color::ElectricBlue2); }
 
   enum class BoxSegment : int {
     None = 0b0000,

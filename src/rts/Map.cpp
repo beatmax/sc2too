@@ -37,6 +37,7 @@ void rts::Map::load(World& w, const MapInitializer& init, const std::vector<std:
   const Coordinate cols{lines.empty() ? 0 : Coordinate(lines.front().size())};
   const Coordinate rows(lines.size());
   initCells({cols, rows});
+  w.onMapCreated();
   for (Coordinate y = 0; y < rows; ++y) {
     const auto& line = lines[y];
     assert(Coordinate(line.size()) == cols);
@@ -46,6 +47,7 @@ void rts::Map::load(World& w, const MapInitializer& init, const std::vector<std:
         std::visit([&w, p](auto id) { w.addForFree(id, p); }, init(w, p, line[x], lines));
     }
   }
+  w.onMapLoaded();
 }
 
 bool rts::Map::isEmpty(const Rectangle& area) const {

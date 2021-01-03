@@ -21,7 +21,7 @@ namespace rts {
 
     void load(World& w, const MapInitializer& init, std::istream&& is);
     void load(World& w, const MapInitializer& init, const std::vector<std::string>& lines);
-    void initCells(Vector sz) { cells_ = CellMatrix{sz.y, sz.x}; }
+    void initCells(Vector sz) { cells_ = CellMatrix(sz.y, sz.x); }
 
     Vector size() const { return {cells_.cols(), cells_.rows()}; }
     Rectangle area() const { return Rectangle{{0, 0}, size()}; }

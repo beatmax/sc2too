@@ -6,11 +6,16 @@
 #include <iosfwd>
 #include <iterator>
 #include <limits>
+#include <map>
 #include <optional>
 #include <sys/types.h>
+#include <tuple>
+#include <vector>
 
 namespace util::geo {
-  using Coordinate = ssize_t;
+  using Coordinate = int32_t;
+
+  class Cache;
 
   struct Point {
     Coordinate x;
@@ -28,6 +33,9 @@ namespace util::geo {
     bool operator!=(const Vector& other) const { return !(*this == other); }
   };
 
+  using PointList = std::vector<Point>;
+  using VectorList = std::vector<Vector>;
+
   inline Point operator+(const Point& p, const Vector& v) { return {p.x + v.x, p.y + v.y}; }
   inline Point& operator+=(Point& p, const Vector& v) { return p = p + v; }
   inline Point operator-(const Point& p, const Vector& v) { return {p.x - v.x, p.y - v.y}; }
@@ -40,6 +48,20 @@ namespace util::geo {
   inline Vector operator-(const Vector& v) { return {-v.x, -v.y}; }
   inline Vector operator*(const Vector& v, Coordinate f) { return {v.x * f, v.y * f}; }
   inline Vector operator/(const Vector& v, Coordinate d) { return {v.x / d, v.y / d}; }
+  PointList operator+(const Point& p, const VectorList& vs);
+
+  constexpr float DirD{1.0};
+  constexpr float DiagD{1.41};
+
+  float diagonalDistance(Point a, Point b);
+
+  struct Circle {
+    Point center;
+    Coordinate radius;
+    Vector offset2{0, 0};
+
+    PointList points(Cache& c) const;
+  };
 
   struct Rectangle {
     Point topLeft;
@@ -132,6 +154,7 @@ namespace util::geo {
     return Rectangle{center - (size - Vector{1, 1}) / 2, size};
   }
   Rectangle rectangleCenteredAt(Point center, Vector size, const Rectangle& bounds);
+  Circle circleCenteredAt(const Rectangle& r, Coordinate radius);
 
   bool intersect(const Rectangle& r1, const Rectangle& r2);
   Rectangle intersection(const Rectangle& r1, const Rectangle& r2);
@@ -166,10 +189,15 @@ namespace util::geo {
 
   Rectangle fixNegativeSize(Rectangle r);
 
-  constexpr float DirD{1.0};
-  constexpr float DiagD{1.41};
+  class Cache {
+  public:
+    const VectorList& circle(Coordinate radius, Vector offset2);
 
-  float diagonalDistance(Point a, Point b);
+  private:
+    using CircleDesc = std::tuple<Coordinate, Coordinate, Coordinate>;
+
+    std::map<CircleDesc, VectorList> circles_;
+  };
 
   std::ostream& operator<<(std::ostream& os, const Point& p);
   std::ostream& operator<<(std::ostream& os, const Vector& v);

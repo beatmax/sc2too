@@ -25,9 +25,10 @@ namespace ui {
       const rts::World& w,
       const Camera& camera,
       const rts::WorldObject& object,
-      rts::Point center);
+      const rts::Rectangle& area);
   void highlight(const Window& win, const Camera& camera, rts::Point cell, int color);
   void highlight(const Window& win, const Camera& camera, const rts::Rectangle& area, int color);
+  void drawBoundingBox(const Window& win, const Camera& camera, rts::Point cell, int color);
   void drawBoundingBox(
       const Window& win, const Camera& camera, const rts::Rectangle& area, int color);
 

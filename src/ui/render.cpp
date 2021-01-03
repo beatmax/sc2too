@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <vector>
 #include <set>
 
 namespace ui {
@@ -28,7 +29,7 @@ namespace ui {
 }
 
 void ui::grid(const Window& win) {
-  wattrset(win.w, graph::darkGrey());
+  wattrset(win.w, graph::darkGray());
 
   int y = 0;
   for (rts::Coordinate cellY = 0;;) {
@@ -55,11 +56,11 @@ void ui::render(
   auto selectedItems{selection.items(w)};
   const std::set<rts::WorldObjectCPtr> selectedObjects{selectedItems.begin(), selectedItems.end()};
 
-  std::set<rts::WorldObjectCPtr> layers[rts::LayerCount];
+  std::vector<rts::WorldObjectCPtr> layers[rts::LayerCount];
   for (const rts::Map& m : maps) {
     for (auto* obj : w.objectsInArea(camera.area(), m)) {
       assert(obj->layer < rts::LayerCount);
-      layers[obj->layer].insert(obj);
+      layers[obj->layer].push_back(obj);
     }
   }
 
@@ -92,10 +93,8 @@ void ui::render(
     const rts::World& w,
     const Camera& camera,
     const rts::WorldObject& object,
-    rts::Point center) {
+    const rts::Rectangle& area) {
   const auto& spriteUi{getUpdatedSpriteUi(w, object)};
-
-  auto area{rectangleCenteredAt(center, object.area.size, w.map.area())};
   assert(spriteUi.sprite().area(area.topLeft) == area);
 
   if (auto visibleArea{maybeIntersection(area, camera.area())}) {
@@ -130,6 +129,11 @@ void ui::highlight(const Window& win, const Camera& camera, const rts::Rectangle
   graph::drawRectNoCorners(win, boundingBox(toScreenRect(camera, area)));
 }
 
+void ui::drawBoundingBox(const Window& win, const Camera& camera, rts::Point cell, int color) {
+  wattrset(win.w, color);
+  graph::drawRect(win, boundingBox(toScreenRect(camera, rts::Rectangle{cell, {1, 1}})));
+}
+
 void ui::drawBoundingBox(
     const Window& win, const Camera& camera, const rts::Rectangle& area, int color) {
   wattrset(win.w, color);
@@ -142,7 +146,7 @@ void ui::mapDebug(const Window& win, const rts::World& w, const Camera& camera) 
     if (w[p].debug.highlight)
       highlight(win, camera, p, graph::blue());
   }
-  wattrset(win.w, graph::darkGrey());
+  wattrset(win.w, graph::darkGray());
   for (rts::Point p : camera.area().points())
     printInCell(win, camera, p, std::to_string(w[p].segment).c_str());
 }

@@ -86,19 +86,22 @@ void rts::Unit::destroy(World& w) {
   if (productionQueue)
     w.destroy(productionQueue);
 
+  auto& s{w[side]};
   if (state != State::New) {
     const auto& t{w[type]};
-    auto& res{w[side].resources()};
+    auto& res{s.resources()};
     if (state == State::Building || state == State::Active) {
       res.deallocate(t.cost);
       w.remove(*this);
-      if (state == State::Active)
+      if (state == State::Active) {
         res.deprovision(t.provision);
+        if (auto er{t.powerRadius})
+          s.powerMap().update(w, side, circleCenteredAt(area, er), -1);
+      }
     }
     else {
-      if (state == State::Buildable) {
-        w[side].prototypeMap().setContent(area, Cell::Empty{});
-      }
+      if (state == State::Buildable)
+        s.prototypeMap().setContent(area, Cell::Empty{});
       res.restore(t.cost);
     }
   }
@@ -130,6 +133,8 @@ bool rts::Unit::isArmy(const World& w) const {
 bool rts::Unit::hasEnabledAbility(
     const World& w, AbilityInstanceIndex abilityIndex, AbilityId abilityId) const {
   const auto& abilityInstance{w[type].abilities[abilityIndex]};
+  if (!powered && abilityInstance.requiresPower)
+    return false;
   return abilityInstance.abilityId == abilityId &&
       (state == State::Active ||
        (state == State::Building && abilityInstance.availableWhileBuilding));
@@ -250,8 +255,13 @@ const rts::AbilityState& rts::Unit::abilityState(
 }
 
 void rts::Unit::doActivate(World& w) {
+  auto& s{w[side]};
   const auto& t{w[type]};
-  auto& res{w[side].resources()};
+  auto& res{s.resources()};
   res.provision(t.provision);
+  if (auto er{t.powerRadius})
+    s.powerMap().update(w, side, circleCenteredAt(area, er), 1);
+  if (t.requiresPower == UnitType::RequiresPower::Yes)
+    powered = s.powerMap().isPowered(area.center());
   state = State::Active;
 }

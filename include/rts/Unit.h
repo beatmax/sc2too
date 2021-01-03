@@ -26,6 +26,7 @@ namespace rts {
     ResourceFieldId resourceField;
     std::array<bool, MaxUnitAbilityStates> abilityActive{};
     util::CircularBuffer<UnitCommand, MaxEnqueuedCommands> commandQueue;
+    bool powered{true};
 
     Unit(
         Vector s,

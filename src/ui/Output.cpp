@@ -142,16 +142,18 @@ namespace ui {
     void drawProductionQueue(const IOState& ios, const rts::World& w, rts::UnitStableRef unit) {
       using ProduceState = rts::abilities::ProduceState;
       const rts::ProductionQueue& pq{w[unit->productionQueue]};
-      const bool blocked{rts::Unit::abilityState<ProduceState>(unit, w) == ProduceState::Blocked};
+      const bool frozen{
+          !unit->powered ||
+          rts::Unit::abilityState<ProduceState>(unit, w) == ProduceState::Blocked};
 
       const auto& win{ios.controlWin};
       const auto left{40};
       const auto right{left + (rts::MaxProductionQueueSize - 2) * (dim::cellWidth + 1)};
-      const auto iconColor{blocked ? Color::DarkGrey : getColor(w[pq.side()])};
+      const auto iconColor{frozen ? Color::DarkGray : getColor(w[pq.side()])};
       ScreenRect rect{{right, 4}, {dim::cellWidth, dim::cellHeight}};
 
       for (size_t i{0}; i < rts::MaxProductionQueueSize; ++i) {
-        wattrset(win.w, blocked ? graph::darkGrey() : graph::darkGreen());
+        wattrset(win.w, frozen ? graph::darkGray() : graph::darkGreen());
         graph::drawRect(win, boundingBox(rect));
         if (i < pq.size())
           graph::drawFrame(win, getIcon(w[pq.type(i)]).frame(), rect, {0, 0}, iconColor);
@@ -163,6 +165,40 @@ namespace ui {
         else {
           rect.topLeft.x += dim::cellWidth + 1;
         }
+      }
+    }
+
+    void drawPower(
+        IOState& ios,
+        const Camera& camera,
+        const rts::Rectangle& unitArea,
+        rts::Coordinate powerRadius,
+        int color) {
+      for (auto p : circleCenteredAt(unitArea, powerRadius).points(ios.geoCache)) {
+        if (camera.area().contains(p))
+          drawBoundingBox(ios.renderWin, camera, p, color);
+      }
+    }
+
+    void drawPower(
+        IOState& ios,
+        const rts::World& w,
+        const Camera& camera,
+        const rts::Selection::Subgroup& subgroup,
+        rts::Coordinate powerRadius) {
+      const auto color{graph::gray()};
+      for (auto id : subgroup.allIds) {
+        auto& u{w[id]};
+        if (u.type == subgroup.type)
+          drawPower(ios, camera, u.area, powerRadius, color);
+      }
+    }
+
+    void drawPower(IOState& ios, const Camera& camera, const rts::PowerMap& powerMap) {
+      const auto color{graph::electricBlue2()};
+      for (auto p : camera.area().points()) {
+        if (powerMap.isPowered(p))
+          drawBoundingBox(ios.renderWin, camera, p, color);
       }
     }
 
@@ -313,6 +349,20 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   mapDebug(ios_.renderWin, w, camera);
 #endif
 
+  const auto& subgroup{side.selection().subgroup(w)};
+
+  rts::Rectangle prototypeArea;
+  if (side.prototype()) {
+    const auto& proto{w[side.prototype()]};
+    prototypeArea = rectangleCenteredAt(ios_.mousePosition, proto.area.size, w.map.area());
+    drawPower(ios_, camera, side.powerMap());
+    if (auto pr{w[proto.type].powerRadius})
+      drawPower(ios_, camera, prototypeArea, pr, graph::electricBlue1());
+  }
+  else if (subgroup.type) {
+    if (auto pr{w[subgroup.type].powerRadius})
+      drawPower(ios_, w, camera, subgroup, pr);
+  }
   highlight(
       ios_.renderWin, camera, ios_.clickedTarget,
       ios_.mouseButtons ? graph::red() : graph::yellow());
@@ -321,7 +371,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   if (player.selectionBox)
     drawBoundingBox(ios_.renderWin, camera, *player.selectionBox, graph::green());
   if (side.prototype())
-    render(ios_.renderWin, w, camera, w[side.prototype()], ios_.mousePosition);
+    render(ios_.renderWin, w, camera, w[side.prototype()], prototypeArea);
   else if (player.selectingAbilityTarget)
     highlight(ios_.renderWin, camera, ios_.mousePosition, graph::lightGreen());
 
@@ -331,7 +381,6 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   drawFps(ios_, engine);
   drawControlGroups(ios_, w, side);
 
-  const auto& subgroup{side.selection().subgroup(w)};
   drawSelection(ios_, w, side.selection(), subgroup.type);
   drawAbilities(ios_, w, player, subgroup);
   drawMessages(ios_, w, side.messages());

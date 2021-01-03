@@ -17,5 +17,6 @@ namespace ui {
     rts::Point mousePosition{-1, -1};
     unsigned clicks{0};
     unsigned mouseButtons{0};
+    rts::GeoCache geoCache;
   };
 }

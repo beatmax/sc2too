@@ -4,4 +4,5 @@
 
 namespace ui::fx {
   Sprite flatten(const Sprite& s);
+  Sprite unpower(const Sprite& s);
 }

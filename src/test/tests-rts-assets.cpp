@@ -62,7 +62,8 @@ void test::Factory::init(rts::World& w) {
   extractorTypeId = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{mineralResourceId, ExtractorMineralCost}},
-      rts::ResourceQuantityList{}, ExtractorBuildTime, std::make_unique<Ui>("E"), gasResourceId);
+      rts::ResourceQuantityList{}, ExtractorBuildTime, std::make_unique<Ui>("E"),
+      rts::UnitType::RequiresPower::No, 0, gasResourceId);
   workerTypeId = w.createUnitType(
       rts::UnitType::Kind::Worker,
       rts::ResourceQuantityList{
@@ -110,8 +111,7 @@ rts::UnitId test::Factory::create(rts::World& w, rts::UnitTypeId t, rts::SideId 
 
 rts::UnitId test::Factory::base(rts::World& w, rts::SideId sd) {
   return w.units.emplace(
-      rts::Vector{2, 3}, baseTypeId, sd, std::make_unique<Ui>("b"), 0,
-      w.createProductionQueue(sd));
+      rts::Vector{2, 3}, baseTypeId, sd, std::make_unique<Ui>("b"), 0, w.createProductionQueue(sd));
 }
 
 rts::UnitId test::Factory::extractor(rts::World& w, rts::SideId sd) {

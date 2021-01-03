@@ -117,6 +117,7 @@ const ::ui::Sprite& sc2::ui::Gateway::sprite(const rts::World& w, rts::UnitStabl
   static const auto& spriteBuilding{Assets::getSprite("building3x3")};
   static const auto& spriteProducing{Assets::getSprite("gateway_producing")};
   static const auto spritePrototype{::ui::fx::flatten(sprite)};
+  static const auto spriteUnpowered{::ui::fx::unpower(sprite)};
 
   switch (u->state) {
     case State::New:
@@ -129,8 +130,9 @@ const ::ui::Sprite& sc2::ui::Gateway::sprite(const rts::World& w, rts::UnitStabl
     case State::Destroyed:
       break;
   }
-  return (rts::Unit::abilityState<ProduceState>(u, w) == ProduceState::Producing) ? spriteProducing
-                                                                                  : sprite;
+  return !u->powered                                                             ? spriteUnpowered
+      : (rts::Unit::abilityState<ProduceState>(u, w) == ProduceState::Producing) ? spriteProducing
+                                                                                 : sprite;
 }
 
 const ::ui::Sprite& sc2::ui::Nexus::sprite(const rts::World& w, rts::UnitStableRef u) const {

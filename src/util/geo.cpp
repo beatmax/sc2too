@@ -1,9 +1,26 @@
 #include "util/geo.h"
 
+#include "util/algorithm.h"
+
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstdlib>
 #include <ostream>
+
+auto util::geo::operator+(const Point& p, const VectorList& vs) -> PointList {
+  return util::transform(vs, [p](const Vector& v) { return p + v; });
+}
+
+float util::geo::diagonalDistance(Point a, Point b) {
+  auto dx{abs(a.x - b.x)};
+  auto dy{abs(a.y - b.y)};
+  return float(dx + dy) + (DiagD - 2.) * float(std::min(dx, dy));
+}
+
+auto util::geo::Circle::points(Cache& c) const -> PointList {
+  return center + c.circle(radius, offset2);
+}
 
 auto util::geo::rectangleCenteredAt(Point center, Vector size, const Rectangle& bounds)
     -> Rectangle {
@@ -22,6 +39,10 @@ auto util::geo::rectangleCenteredAt(Point center, Vector size, const Rectangle& 
       r.topLeft.y -= (r.size.y - i.size.y);
   }
   return r;
+}
+
+auto util::geo::circleCenteredAt(const Rectangle& r, Coordinate radius) -> Circle {
+  return Circle{r.center(), radius, {(r.size.x - 1) % 2, (r.size.y - 1) % 2}};
 }
 
 bool util::geo::intersect(const Rectangle& r1, const Rectangle& r2) {
@@ -68,10 +89,25 @@ auto util::geo::fixNegativeSize(Rectangle r) -> Rectangle {
   return r;
 }
 
-float util::geo::diagonalDistance(Point a, Point b) {
-  auto dx{abs(a.x - b.x)};
-  auto dy{abs(a.y - b.y)};
-  return float(dx + dy) + (DiagD - 2.) * float(std::min(dx, dy));
+auto util::geo::Cache::circle(Coordinate radius, Vector offset2) -> const VectorList& {
+  auto [it, b] = circles_.try_emplace({radius, offset2.x, offset2.y});
+  auto& vectors{it->second};
+  if (!b)
+    return vectors;
+
+  const float xoff{float(offset2.x) / 2.f};
+  const float yoff{float(offset2.y) / 2.f};
+  const float fr(radius);
+
+  for (Coordinate y{-radius}; y <= radius; ++y) {
+    for (Coordinate x{-radius}; x <= radius; ++x) {
+      float fx{float(x) - xoff}, fy{float(y) - yoff};
+      if (sqrtf(fx * fx + fy * fy) <= fr)
+        vectors.push_back({x, y});
+    }
+  }
+
+  return vectors;
 }
 
 std::ostream& util::geo::operator<<(std::ostream& os, const Point& p) {

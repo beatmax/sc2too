@@ -27,6 +27,7 @@ rts::abilities::Instance rts::abilities::instance(const D& desc, AbilityStateInd
       D::targetType,
       D::enqueable,
       D::availableWhileBuilding,
+      D::requiresPower,
       as,
       D::AbilityState::makeTrigger(desc),
       [desc]() -> const void* { return &desc; }};

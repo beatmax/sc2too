@@ -3,6 +3,17 @@
 #include "Frame.h"
 #include "graph.h"
 
+#include <map>
+
+namespace {
+  const std::map<int, int> UnpowerColorTr{{51, 6}, {208, 136}, {226, 142}};
+
+  int unpowerColorTr(int c) {
+    auto it{UnpowerColorTr.find(c)};
+    return it == UnpowerColorTr.end() ? c : it->second;
+  }
+}
+
 ui::Sprite ui::fx::flatten(const Sprite& s) {
   auto fp{std::make_unique<Frame>(s.frame())};
   auto& frame{*fp};
@@ -57,6 +68,30 @@ ui::Sprite ui::fx::flatten(const Sprite& s) {
       setcchar(&frame(y, x), wch, attrs, colorPair, nullptr);
     }
   }
+
+  return Sprite{std::move(fp)};
+}
+
+ui::Sprite ui::fx::unpower(const Sprite& s) {
+  auto fp{std::make_unique<Frame>(s.frame())};
+  auto& frame{*fp};
+
+  for (int y{0}; y < frame.rows(); ++y) {
+    for (int x{0}; x < frame.cols(); ++x) {
+      wchar_t wch[2];
+      attr_t attrs;
+      short colorPair;
+      getcchar(&frame(y, x), wch, &attrs, &colorPair, nullptr);
+      if (colorPair) {
+        short fg, bg;
+        pair_content(colorPair, &fg, &bg);
+        colorPair = graph::colorPair(unpowerColorTr(fg), unpowerColorTr(bg));
+        setcchar(&frame(y, x), wch, attrs, colorPair, nullptr);
+      }
+    }
+  }
+
+  frame.setDefaultBg(Color(unpowerColorTr(int(frame.defaultBg()))));
 
   return Sprite{std::move(fp)};
 }

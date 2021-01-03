@@ -11,6 +11,7 @@ namespace rts {
   class UnitType {
   public:
     enum class Kind { Structure, Worker, Army };
+    enum class RequiresPower { No, Yes };
 
     std::array<abilities::Instance, MaxUnitAbilities> abilities{};
     std::array<AbilityInstanceIndex, uint32_t(RelativeContent::Count)> defaultAbility{};
@@ -19,6 +20,8 @@ namespace rts {
     ResourceQuantityList provision;
     GameTime buildTime;
     UiUPtr ui;
+    RequiresPower requiresPower;
+    Coordinate powerRadius;
     ResourceId extractedResource;
 
     UnitType(
@@ -27,12 +30,16 @@ namespace rts {
         ResourceQuantityList p,
         GameTime bt,
         UiUPtr ui,
+        RequiresPower reqp = RequiresPower::No,
+        Coordinate pr = 0,
         ResourceId er = {})
       : kind{k},
         cost{std::move(c)},
         provision{std::move(p)},
         buildTime{bt},
         ui{std::move(ui)},
+        requiresPower{reqp},
+        powerRadius{pr},
         extractedResource{er} {}
 
     template<typename D>

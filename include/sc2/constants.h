@@ -30,6 +30,7 @@ namespace sc2 {
   static constexpr rts::GameTime PylonBuildTime{18 * rts::GameTimeSecond};
   static constexpr rts::Quantity PylonMineralCost{100};
   static constexpr rts::Quantity PylonSupplyProvision{8};
+  static constexpr rts::Coordinate PylonPowerRadius{6};
 
   static constexpr rts::GameTime ZealotBuildTime{27 * rts::GameTimeSecond};
   static constexpr rts::Quantity ZealotMineralCost{100};

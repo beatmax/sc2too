@@ -69,6 +69,7 @@ namespace rts {
   using ControlGroupId = uint8_t;
   using LayerId = uint32_t;
   using MapSegmentId = uint32_t;
+  using PowerCount = uint16_t;
   using ProductionQueueId = util::PoolObjectId<ProductionQueue>;
   using ProductionQueueWId = util::PoolObjectWeakId<ProductionQueue>;
   using ResourceFieldId = util::PoolObjectId<ResourceField>;
@@ -100,8 +101,12 @@ namespace rts {
 
   using util::geo::Coordinate;
   using util::geo::Point;
+  using util::geo::PointList;
+  using util::geo::Circle;
   using util::geo::Rectangle;
   using util::geo::Vector;
+  using util::geo::VectorList;
+  using GeoCache = util::geo::Cache;
 
   using AbilityTarget = std::variant<std::monostate, Point, UnitId, ResourceFieldId>;
   using AbilityWeakTarget = std::variant<std::monostate, Point, UnitWId, ResourceFieldWId>;

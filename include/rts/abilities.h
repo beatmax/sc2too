@@ -72,6 +72,7 @@ namespace rts::abilities {
     static constexpr auto targetType{TargetType::Ground};
     static constexpr auto enqueable{true};
     static constexpr auto availableWhileBuilding{false};
+    static constexpr auto requiresPower{false};
     AbilityId id;
     UnitTypeId type;
   };
@@ -83,6 +84,7 @@ namespace rts::abilities {
     static constexpr auto targetType{TargetType::Resource};
     static constexpr auto enqueable{true};
     static constexpr auto availableWhileBuilding{false};
+    static constexpr auto requiresPower{false};
     AbilityId id;
     UnitTypeId baseType;
     GameTime gatherTime;
@@ -102,6 +104,7 @@ namespace rts::abilities {
     static constexpr auto targetType{TargetType::Any};
     static constexpr auto enqueable{true};
     static constexpr auto availableWhileBuilding{false};
+    static constexpr auto requiresPower{false};
     AbilityId id;
     Speed speed;
   };
@@ -113,6 +116,7 @@ namespace rts::abilities {
     static constexpr auto targetType{TargetType::None};
     static constexpr auto enqueable{false};
     static constexpr auto availableWhileBuilding{false};
+    static constexpr auto requiresPower{true};
     AbilityId id;
     UnitTypeId type;
   };
@@ -124,6 +128,7 @@ namespace rts::abilities {
     static constexpr auto targetType{TargetType::Any};
     static constexpr auto enqueable{false};
     static constexpr auto availableWhileBuilding{true};
+    static constexpr auto requiresPower{false};
     AbilityId id;
   };
 
@@ -139,6 +144,7 @@ namespace rts::abilities {
     TargetType targetType{};
     bool enqueable{false};
     bool availableWhileBuilding{false};
+    bool requiresPower{false};
     AbilityStateIndex stateIndex{AbilityStateIndex::None};
     Trigger trigger;
     AbstractDesc abstractDesc;

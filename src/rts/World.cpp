@@ -46,12 +46,10 @@ rts::World::~World() {
 
 void rts::World::loadMap(const MapInitializer& init, std::istream&& is) {
   map.load(*this, init, std::move(is));
-  onMapLoaded();
 }
 
 void rts::World::loadMap(const MapInitializer& init, const std::vector<std::string>& lines) {
   map.load(*this, init, lines);
-  onMapLoaded();
 }
 
 void rts::World::exec(const SideCommand& cmd) {
@@ -267,6 +265,22 @@ rts::UnitIdList rts::World::unitsInAreaForSelection(const Rectangle& area, SideI
   return result;
 }
 
+rts::UnitIdList rts::World::unitsInPoints(
+    const PointList& points, SideId side, UnitType::Kind kind) const {
+  UnitIdList result;
+  for (Point p : points) {
+    if (auto uId{unitId(p)}) {
+      if (!util::contains(result, uId)) {
+        const auto& u{units[uId]};
+        const auto& t{unitTypes[u.type]};
+        if (u.activeOrBuilding() && (!side || u.side == side) && t.kind == kind)
+          result.push_back(uId);
+      }
+    }
+  }
+  return result;
+}
+
 rts::Unit* rts::World::closestActiveUnit(Point p, SideId side, UnitTypeId type) {
   Unit* closest{nullptr};
   float closestDistance{std::numeric_limits<float>::infinity()};
@@ -376,8 +390,11 @@ std::optional<rts::AbilityTarget> rts::World::fromWeakTarget(const AbilityWeakTa
       t);
 }
 
+void rts::World::onMapCreated() {
+  for (auto& s : sides)
+    s.onMapCreated(*this);
+}
+
 void rts::World::onMapLoaded() {
   initMapSegments(*this);
-  for (auto& s : sides)
-    s.onMapLoaded(*this);
 }

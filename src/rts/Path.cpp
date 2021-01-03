@@ -179,7 +179,7 @@ bool rts::dodge(const World& w, Point pos, Path& path) {
     }
   }
   else {
-    Vector vabs{labs(v.x), labs(v.y)};
+    Vector vabs{abs(v.x), abs(v.y)};
     if (vabs.x == 2 && vabs.y == 2) {
       Vector opts[2][2]{{{v.x / 2, 0}, {v.x, v.y / 2}}, {{0, v.y / 2}, {v.x / 2, v.y}}};
       for (int i{0}; i < 2; ++i) {

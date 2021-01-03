@@ -45,6 +45,7 @@ namespace rts {
     util::Pool<Blocker, MaxBlockers> blockers;
     util::Pool<ProductionQueue, MaxProductionQueues> productionQueues;
 
+    GeoCache geoCache;
     std::map<TriggerGroupId, TriggerGroup> triggerGroups;
     TriggerGroupId nextTriggerGroupId{};
 
@@ -208,6 +209,7 @@ namespace rts {
     std::set<WorldObjectCPtr> objectsInArea(const Rectangle& area, const Map& m) const;
     UnitIdList unitsInArea(const Rectangle& area, SideId side = {}, UnitTypeId type = {}) const;
     UnitIdList unitsInAreaForSelection(const Rectangle& area, SideId side) const;
+    UnitIdList unitsInPoints(const PointList& points, SideId side, UnitType::Kind kind) const;
     Unit* closestActiveUnit(Point p, SideId side, UnitTypeId type);
     const Unit* closestActiveUnit(Point p, SideId side, UnitTypeId type) const {
       return const_cast<World&>(*this).closestActiveUnit(p, side, type);
@@ -223,9 +225,10 @@ namespace rts {
     Point center(const AbilityTarget& t) const;
     std::optional<AbilityTarget> fromWeakTarget(const AbilityWeakTarget& t) const;
 
-  private:
+    void onMapCreated();
     void onMapLoaded();
 
+  private:
     template<typename P, typename... Args>
     auto create(P& pool, Args&&... args) {
       auto id{factory->create(*this, std::forward<Args>(args)...)};

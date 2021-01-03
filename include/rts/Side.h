@@ -3,6 +3,7 @@
 #include "Command.h"
 #include "Map.h"
 #include "Message.h"
+#include "PowerMap.h"
 #include "Resource.h"
 #include "Selection.h"
 #include "WorldAction.h"
@@ -29,6 +30,8 @@ namespace rts {
     const ResourceAccount& resource(ResourceId r) const { return resources_[r]; }
     MessageList& messages() { return messages_; }
     const MessageList& messages() const { return messages_; }
+    PowerMap& powerMap() { return powerMap_; }
+    const PowerMap& powerMap() const { return powerMap_; }
     Map& prototypeMap() { return prototypeMap_; }
     const Map& prototypeMap() const { return prototypeMap_; }
     void createPrototype(World& w, UnitTypeId t, UnitTypeId builderType);
@@ -39,7 +42,7 @@ namespace rts {
     UnitId prototype() const { return prototype_; }
     const Ui& ui() const { return *ui_; }
 
-    void onMapLoaded(World& w);
+    void onMapCreated(World& w);
     void onUnitDestroyed(World& w);
 
   private:
@@ -58,6 +61,7 @@ namespace rts {
     Selection selection_;
     ControlGroupArray groups_;
     MessageList messages_;
+    PowerMap powerMap_;
     Map prototypeMap_;
     UnitId prototype_;
     UnitTypeId prototypeBuilderType_;

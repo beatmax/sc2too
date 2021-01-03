@@ -33,9 +33,13 @@ namespace ui {
     Magenta,
     Cyan,
     White,
+    Gray,
     LightGreen = 10,
+    DarkBlue = 17,
     DarkGreen = 22,
-    DarkGrey = 237,
+    DarkGray = 237,
+    ElectricBlue1 = 27,
+    ElectricBlue2 = 33,
     Default = -1
   };
 
