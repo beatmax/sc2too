@@ -11,37 +11,40 @@
 void sc2::UnitTypes::init(rts::World& w) {
   using RC = rts::RelativeContent;
 
-  assimilator = w.createUnitType(
-      rts::UnitType::Kind::Structure,
-      rts::ResourceQuantityList{{Resources::mineral, AssimilatorMineralCost}},
-      rts::ResourceQuantityList{}, AssimilatorBuildTime, std::make_unique<ui::AssimilatorType>(),
-      rts::UnitType::RequiresPower::No, 0, Resources::gas);
-  gateway = w.createUnitType(
-      rts::UnitType::Kind::Structure,
-      rts::ResourceQuantityList{{Resources::mineral, GatewayMineralCost}},
-      rts::ResourceQuantityList{}, GatewayBuildTime, std::make_unique<ui::GatewayType>(),
-      rts::UnitType::RequiresPower::Yes);
+  // creation order of unit types determines subgroup order in selection
+
   nexus = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{Resources::mineral, NexusMineralCost}},
       rts::ResourceQuantityList{{Resources::supply, NexusSupplyProvision}}, NexusBuildTime,
       std::make_unique<ui::NexusType>());
-  probe = w.createUnitType(
-      rts::UnitType::Kind::Worker,
-      rts::ResourceQuantityList{
-          {Resources::mineral, ProbeMineralCost}, {Resources::supply, ProbeSupplyCost}},
-      rts::ResourceQuantityList{}, ProbeBuildTime, std::make_unique<ui::ProbeType>());
+  gateway = w.createUnitType(
+      rts::UnitType::Kind::Structure,
+      rts::ResourceQuantityList{{Resources::mineral, GatewayMineralCost}},
+      rts::ResourceQuantityList{}, GatewayBuildTime, std::make_unique<ui::GatewayType>(),
+      rts::UnitType::RequiresPower::Yes);
+  assimilator = w.createUnitType(
+      rts::UnitType::Kind::Structure,
+      rts::ResourceQuantityList{{Resources::mineral, AssimilatorMineralCost}},
+      rts::ResourceQuantityList{}, AssimilatorBuildTime, std::make_unique<ui::AssimilatorType>(),
+      rts::UnitType::RequiresPower::No, 0, Resources::gas);
   pylon = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{Resources::mineral, PylonMineralCost}},
       rts::ResourceQuantityList{{Resources::supply, PylonSupplyProvision}}, PylonBuildTime,
-      std::make_unique<ui::PylonType>(), rts::UnitType::RequiresPower::No, PylonPowerRadius,
-      rts::ResourceId{});
+      std::make_unique<ui::PylonType>(), rts::UnitType::RequiresPower::No, PylonPowerRadius);
+
   zealot = w.createUnitType(
       rts::UnitType::Kind::Army,
       rts::ResourceQuantityList{
           {Resources::mineral, ZealotMineralCost}, {Resources::supply, ZealotSupplyCost}},
       rts::ResourceQuantityList{}, ZealotBuildTime, std::make_unique<ui::ZealotType>());
+  probe = w.createUnitType(
+      rts::UnitType::Kind::Worker,
+      rts::ResourceQuantityList{
+          {Resources::mineral, ProbeMineralCost}, {Resources::supply, ProbeSupplyCost}},
+      rts::ResourceQuantityList{}, ProbeBuildTime, std::make_unique<ui::ProbeType>());
+
   {
     auto& gatewayType{w.unitTypes[gateway]};
     gatewayType.addAbility(

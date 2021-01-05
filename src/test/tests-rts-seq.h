@@ -31,6 +31,11 @@ namespace test::seq {
       std::string type;
     };
 
+    struct Reference {
+      std::string name;
+      rts::Point point;
+    };
+
     struct Assignment {
       rts::Point target;
       std::string property;
@@ -111,6 +116,7 @@ namespace test::seq {
       item::Comment,
       item::Option,
       item::Definition,
+      item::Reference,
       item::Assignment,
       item::Map,
       item::Message,

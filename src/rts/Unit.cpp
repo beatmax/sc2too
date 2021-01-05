@@ -133,9 +133,7 @@ bool rts::Unit::isArmy(const World& w) const {
 bool rts::Unit::hasEnabledAbility(
     const World& w, AbilityInstanceIndex abilityIndex, AbilityId abilityId) const {
   const auto& abilityInstance{w[type].abilities[abilityIndex]};
-  if (!powered && abilityInstance.requiresPower)
-    return false;
-  return abilityInstance.abilityId == abilityId &&
+  return abilityInstance.abilityId == abilityId && (powered || !abilityInstance.requiresPower) &&
       (state == State::Active ||
        (state == State::Building && abilityInstance.availableWhileBuilding));
 }

@@ -24,16 +24,24 @@ const std::string test::map{
 rts::ResourceId test::gasResourceId;
 rts::ResourceId test::mineralResourceId;
 rts::ResourceId test::supplyResourceId;
-rts::AbilityId test::moveAbilityId;
+
 rts::AbilityId test::buildAbilityId;
 rts::AbilityId test::gatherAbilityId;
-rts::AbilityId test::produceWorkerAbilityId;
+rts::AbilityId test::moveAbilityId;
+rts::AbilityId test::produceFighterAbilityId;
 rts::AbilityId test::produceThirdyAbilityId;
+rts::AbilityId test::produceWorkerAbilityId;
 rts::AbilityId test::setRallyPointAbilityId;
+
 rts::UnitTypeId test::baseTypeId;
+rts::UnitTypeId test::dojoTypeId;
 rts::UnitTypeId test::extractorTypeId;
+rts::UnitTypeId test::powerPlantTypeId;
+
+rts::UnitTypeId test::fighterTypeId;
 rts::UnitTypeId test::workerTypeId;
 rts::UnitTypeId test::thirdyTypeId;
+
 rts::SideId test::side1Id;
 rts::SideId test::side2Id;
 
@@ -46,24 +54,40 @@ void test::Factory::init(rts::World& w) {
   mineralResourceId = w.createResource(std::make_unique<MineralUi>());
   supplyResourceId = w.createResource(std::make_unique<SupplyUi>());
 
-  moveAbilityId = w.createAbility(std::make_unique<Ui>("move"));
   buildAbilityId = w.createAbility(std::make_unique<Ui>("build"));
   gatherAbilityId = w.createAbility(std::make_unique<Ui>("gather"));
-
-  produceWorkerAbilityId = w.createAbility(std::make_unique<Ui>("p.w"));
+  moveAbilityId = w.createAbility(std::make_unique<Ui>("move"));
+  produceFighterAbilityId = w.createAbility(std::make_unique<Ui>("p.f"));
   produceThirdyAbilityId = w.createAbility(std::make_unique<Ui>("p.t"));
-  setRallyPointAbilityId = w.createAbility(std::make_unique<Ui>("p.r"));
+  produceWorkerAbilityId = w.createAbility(std::make_unique<Ui>("p.w"));
+  setRallyPointAbilityId = w.createAbility(std::make_unique<Ui>("rally"));
 
   baseTypeId = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{mineralResourceId, BaseMineralCost}},
       rts::ResourceQuantityList{{supplyResourceId, BaseSupplyProvision}}, BaseBuildTime,
       std::make_unique<Ui>("B"));
+  dojoTypeId = w.createUnitType(
+      rts::UnitType::Kind::Structure,
+      rts::ResourceQuantityList{{mineralResourceId, DojoMineralCost}}, rts::ResourceQuantityList{},
+      DojoBuildTime, std::make_unique<Ui>("D"), rts::UnitType::RequiresPower::Yes);
   extractorTypeId = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{mineralResourceId, ExtractorMineralCost}},
       rts::ResourceQuantityList{}, ExtractorBuildTime, std::make_unique<Ui>("E"),
       rts::UnitType::RequiresPower::No, 0, gasResourceId);
+  powerPlantTypeId = w.createUnitType(
+      rts::UnitType::Kind::Structure,
+      rts::ResourceQuantityList{{mineralResourceId, PowerPlantMineralCost}},
+      rts::ResourceQuantityList{}, PowerPlantBuildTime, std::make_unique<Ui>("P"),
+      rts::UnitType::RequiresPower::No, PowerPlantPowerRadius);
+
+  // creation order of unit types determines subgroup order in selection
+  fighterTypeId = w.createUnitType(
+      rts::UnitType::Kind::Army,
+      rts::ResourceQuantityList{
+          {mineralResourceId, FighterMineralCost}, {supplyResourceId, FighterSupplyCost}},
+      rts::ResourceQuantityList{}, FighterBuildTime, std::make_unique<Ui>("F"));
   workerTypeId = w.createUnitType(
       rts::UnitType::Kind::Worker,
       rts::ResourceQuantityList{
@@ -75,37 +99,56 @@ void test::Factory::init(rts::World& w) {
           {mineralResourceId, ThirdyMineralCost}, {supplyResourceId, ThirdySupplyCost}},
       rts::ResourceQuantityList{}, ThirdyBuildTime, std::make_unique<Ui>("T"));
 
-  w.unitTypes[baseTypeId].addAbility(
-      ProduceWorkerAbilityIndex, rts::abilities::Produce{produceWorkerAbilityId, workerTypeId});
-  w.unitTypes[baseTypeId].addAbility(
+  w[baseTypeId].addAbility(
       ProduceThirdyAbilityIndex, rts::abilities::Produce{produceThirdyAbilityId, thirdyTypeId});
-  w.unitTypes[baseTypeId].addAbility(
+  w[baseTypeId].addAbility(
+      ProduceWorkerAbilityIndex, rts::abilities::Produce{produceWorkerAbilityId, workerTypeId});
+  w[baseTypeId].addAbility(
       SetRallyPointAbilityIndex, rts::abilities::SetRallyPoint{setRallyPointAbilityId});
 
-  w.unitTypes[workerTypeId].addAbility(
+  w[dojoTypeId].addAbility(
+      ProduceFighterAbilityIndex, rts::abilities::Produce{produceFighterAbilityId, fighterTypeId});
+  w[dojoTypeId].addAbility(
+      SetRallyPointAbilityIndex, rts::abilities::SetRallyPoint{setRallyPointAbilityId});
+
+  w[fighterTypeId].addAbility(
       MoveAbilityIndex,
       rts::abilities::Move{moveAbilityId, rts::CellDistance / rts::GameTimeSecond});
-  w.unitTypes[workerTypeId].addAbility(
+
+  w[workerTypeId].addAbility(
+      MoveAbilityIndex,
+      rts::abilities::Move{moveAbilityId, rts::CellDistance / rts::GameTimeSecond});
+  w[workerTypeId].addAbility(
       BuildBaseAbilityIndex, rts::abilities::Build{buildAbilityId, baseTypeId});
-  w.unitTypes[workerTypeId].addAbility(
+  w[workerTypeId].addAbility(
+      BuildDojoAbilityIndex, rts::abilities::Build{buildAbilityId, dojoTypeId});
+  w[workerTypeId].addAbility(
       BuildExtractorAbilityIndex, rts::abilities::Build{buildAbilityId, extractorTypeId});
-  w.unitTypes[workerTypeId].addAbility(
+  w[workerTypeId].addAbility(
+      BuildPowerPlantAbilityIndex, rts::abilities::Build{buildAbilityId, powerPlantTypeId});
+  w[workerTypeId].addAbility(
       GatherAbilityIndex,
       rts::abilities::Gather{moveAbilityId, baseTypeId, rts::GameTimeSecond, 1});
-  w.unitTypes[workerTypeId].defaultAbility[uint32_t(RC::Ground)] = MoveAbilityIndex;
-  w.unitTypes[workerTypeId].defaultAbility[uint32_t(RC::Resource)] = GatherAbilityIndex;
-  w.unitTypes[workerTypeId].defaultAbility[uint32_t(RC::FriendResource)] = GatherAbilityIndex;
+  w[workerTypeId].defaultAbility[uint32_t(RC::Ground)] = MoveAbilityIndex;
+  w[workerTypeId].defaultAbility[uint32_t(RC::Resource)] = GatherAbilityIndex;
+  w[workerTypeId].defaultAbility[uint32_t(RC::FriendResource)] = GatherAbilityIndex;
 }
 
 rts::UnitId test::Factory::create(rts::World& w, rts::UnitTypeId t, rts::SideId sd) {
   if (t == baseTypeId)
     return base(w, sd);
+  if (t == dojoTypeId)
+    return dojo(w, sd);
   if (t == extractorTypeId)
     return extractor(w, sd);
-  if (t == workerTypeId)
-    return worker(w, sd);
+  if (t == fighterTypeId)
+    return fighter(w, sd);
+  if (t == powerPlantTypeId)
+    return powerPlant(w, sd);
   if (t == thirdyTypeId)
     return thirdy(w, sd);
+  if (t == workerTypeId)
+    return worker(w, sd);
   return {};
 }
 
@@ -114,17 +157,30 @@ rts::UnitId test::Factory::base(rts::World& w, rts::SideId sd) {
       rts::Vector{2, 3}, baseTypeId, sd, std::make_unique<Ui>("b"), 0, w.createProductionQueue(sd));
 }
 
+rts::UnitId test::Factory::dojo(rts::World& w, rts::SideId sd) {
+  return w.units.emplace(
+      rts::Vector{2, 2}, dojoTypeId, sd, std::make_unique<Ui>("d"), 0, w.createProductionQueue(sd));
+}
+
 rts::UnitId test::Factory::extractor(rts::World& w, rts::SideId sd) {
   return w.units.emplace(rts::Vector{2, 2}, extractorTypeId, sd, std::make_unique<Ui>("e"));
+}
+
+rts::UnitId test::Factory::fighter(rts::World& w, rts::SideId sd) {
+  return w.units.emplace(rts::Vector{1, 1}, fighterTypeId, sd, std::make_unique<Ui>("f"));
+}
+
+rts::UnitId test::Factory::powerPlant(rts::World& w, rts::SideId sd) {
+  return w.units.emplace(rts::Vector{1, 1}, powerPlantTypeId, sd, std::make_unique<Ui>("p"));
+}
+
+rts::UnitId test::Factory::thirdy(rts::World& w, rts::SideId sd) {
+  return w.units.emplace(rts::Vector{1, 1}, thirdyTypeId, sd, std::make_unique<Ui>("t"));
 }
 
 rts::UnitId test::Factory::worker(rts::World& w, rts::SideId sd) {
   return w.units.emplace(
       rts::Vector{1, 1}, workerTypeId, sd, std::make_unique<Ui>("w"), WorkerCargoCapacity);
-}
-
-rts::UnitId test::Factory::thirdy(rts::World& w, rts::SideId sd) {
-  return w.units.emplace(rts::Vector{1, 1}, thirdyTypeId, sd, std::make_unique<Ui>("t"));
 }
 
 rts::ResourceFieldId test::Factory::geyser(rts::World& w) {
@@ -146,7 +202,7 @@ rts::BlockerId test::Factory::rock(rts::World& w) {
 rts::Cell::Content test::MapInitializer::operator()(
     rts::World& w, rts::Point p, char c, const std::vector<std::string>& lines) const {
   {
-    auto unitIt{predefinedUnits_.find(c)};
+    auto unitIt{predefinedUnits_.find(std::string{c})};
     if (unitIt != predefinedUnits_.end())
       return unitIt->second;
   }

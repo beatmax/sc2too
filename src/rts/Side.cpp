@@ -156,6 +156,7 @@ void rts::Side::exec(
 void rts::Side::exec(const World& w, WorldActionList& actions, const command::TriggerAbility& cmd) {
   const auto* a{selection_.subgroup(w).abilities[cmd.abilityIndex]};
   assert(a);
+  assert(a->kind != abilities::Kind::None);
 
   UnitIdList ids = util::filter(selection_.ids(w), [&](UnitId id) {
     return w[id].hasEnabledAbility(w, cmd.abilityIndex, a->abilityId);

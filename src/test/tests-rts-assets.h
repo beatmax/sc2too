@@ -12,42 +12,61 @@ namespace test {
   constexpr rts::Quantity MaxSupplySlots{200};
 
   constexpr rts::AbilityInstanceIndex MoveAbilityIndex{0};
-  constexpr rts::AbilityInstanceIndex BuildBaseAbilityIndex{1};
-  constexpr rts::AbilityInstanceIndex BuildExtractorAbilityIndex{2};
-  constexpr rts::AbilityInstanceIndex GatherAbilityIndex{3};
+  constexpr rts::AbilityInstanceIndex GatherAbilityIndex{1};
+  constexpr rts::AbilityInstanceIndex BuildBaseAbilityIndex{2};
+  constexpr rts::AbilityInstanceIndex BuildDojoAbilityIndex{3};
+  constexpr rts::AbilityInstanceIndex BuildExtractorAbilityIndex{4};
+  constexpr rts::AbilityInstanceIndex BuildPowerPlantAbilityIndex{5};
 
-  constexpr rts::AbilityInstanceIndex ProduceWorkerAbilityIndex{0};
-  constexpr rts::AbilityInstanceIndex ProduceThirdyAbilityIndex{1};
+  constexpr rts::AbilityInstanceIndex ProduceFighterAbilityIndex{0};
+  constexpr rts::AbilityInstanceIndex ProduceThirdyAbilityIndex{0};
+  constexpr rts::AbilityInstanceIndex ProduceWorkerAbilityIndex{1};
   constexpr rts::AbilityInstanceIndex SetRallyPointAbilityIndex{2};
 
   constexpr rts::Quantity BaseMineralCost{20};
   constexpr rts::Quantity BaseSupplyProvision{15};
   constexpr rts::Quantity BaseBuildTime{30};
+  constexpr rts::Quantity DojoMineralCost{20};
+  constexpr rts::Quantity DojoBuildTime{15};
   constexpr rts::Quantity ExtractorMineralCost{20};
   constexpr rts::Quantity ExtractorBuildTime{10};
+  constexpr rts::Quantity FighterMineralCost{10};
+  constexpr rts::Quantity FighterSupplyCost{1};
+  constexpr rts::GameTime FighterBuildTime{1000};
+  constexpr rts::Quantity PowerPlantMineralCost{40};
+  constexpr rts::Quantity PowerPlantBuildTime{5};
+  constexpr rts::Coordinate PowerPlantPowerRadius{5};
+  constexpr rts::Quantity ThirdyMineralCost{2};
+  constexpr rts::Quantity ThirdySupplyCost{4};
+  constexpr rts::GameTime ThirdyBuildTime{20};
   constexpr rts::Quantity WorkerMineralCost{10};
   constexpr rts::Quantity WorkerSupplyCost{2};
   constexpr rts::GameTime WorkerBuildTime{100};
   constexpr rts::GameTime WorkerCargoCapacity{5};
-  constexpr rts::Quantity ThirdyMineralCost{2};
-  constexpr rts::Quantity ThirdySupplyCost{4};
-  constexpr rts::GameTime ThirdyBuildTime{20};
 
   extern const std::string map;
 
   extern rts::ResourceId gasResourceId;
   extern rts::ResourceId mineralResourceId;
   extern rts::ResourceId supplyResourceId;
-  extern rts::AbilityId moveAbilityId;
+
   extern rts::AbilityId buildAbilityId;
   extern rts::AbilityId gatherAbilityId;
-  extern rts::AbilityId produceWorkerAbilityId;
+  extern rts::AbilityId moveAbilityId;
+  extern rts::AbilityId produceFighterAbilityId;
   extern rts::AbilityId produceThirdyAbilityId;
+  extern rts::AbilityId produceWorkerAbilityId;
   extern rts::AbilityId setRallyPointAbilityId;
+
   extern rts::UnitTypeId baseTypeId;
+  extern rts::UnitTypeId dojoTypeId;
   extern rts::UnitTypeId extractorTypeId;
-  extern rts::UnitTypeId workerTypeId;
+  extern rts::UnitTypeId powerPlantTypeId;
+
+  extern rts::UnitTypeId fighterTypeId;
   extern rts::UnitTypeId thirdyTypeId;
+  extern rts::UnitTypeId workerTypeId;
+
   extern rts::SideId side1Id;
   extern rts::SideId side2Id;
 
@@ -81,9 +100,12 @@ namespace test {
     void init(rts::World& w) final;
     rts::UnitId create(rts::World& w, rts::UnitTypeId t, rts::SideId sd) final;
     static rts::UnitId base(rts::World& w, rts::SideId sd);
+    static rts::UnitId dojo(rts::World& w, rts::SideId sd);
     static rts::UnitId extractor(rts::World& w, rts::SideId sd);
-    static rts::UnitId worker(rts::World& w, rts::SideId sd);
+    static rts::UnitId fighter(rts::World& w, rts::SideId sd);
+    static rts::UnitId powerPlant(rts::World& w, rts::SideId sd);
     static rts::UnitId thirdy(rts::World& w, rts::SideId sd);
+    static rts::UnitId worker(rts::World& w, rts::SideId sd);
     static rts::ResourceFieldId geyser(rts::World& w);
     static rts::ResourceFieldId mineralPatch(rts::World& w);
     static rts::BlockerId rock(rts::World& w);
@@ -92,13 +114,14 @@ namespace test {
   class MapInitializer : public rts::MapInitializer {
   public:
     MapInitializer() = default;
-    explicit MapInitializer(const std::map<char, rts::UnitId>& units) : predefinedUnits_{units} {}
+    explicit MapInitializer(const std::map<std::string, rts::UnitId>& units)
+      : predefinedUnits_{units} {}
 
     rts::Cell::Content operator()(
         rts::World& w, rts::Point p, char c, const std::vector<std::string>& lines) const final;
 
   private:
-    const std::map<char, rts::UnitId> predefinedUnits_;
+    const std::map<std::string, rts::UnitId> predefinedUnits_;
   };
 
   void makeSides(rts::World& w);

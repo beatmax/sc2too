@@ -82,6 +82,13 @@ namespace test::seq::item {
     }
     std::string toString(const Definition& d) { return util::join(d.names, ',') + ": " + d.type; }
 
+    const std::regex reReference{R"((\w+)\s*:\s*@(\d+),(\d+))"};
+    Reference parseReference(const std::smatch& match) {
+      rts::Point point{std::stoi(match[2]), std::stoi(match[3])};
+      return {match[1], point};
+    }
+    std::string toString(const Reference& r) { return r.name + ": @" + ::toString(r.point); }
+
     const std::regex reAssignment{R"((\w+)\((\d+),(\d+)\)\s*=\s*(\d+))"};
     Assignment parseAssignment(const std::smatch& match) {
       rts::Point target{std::stoi(match[2]), std::stoi(match[3])};
@@ -201,6 +208,8 @@ namespace test::seq {
         return ++loc.it, item::parsePrototype(match);
       if (std::regex_match(*loc.it, match, item::reDefinition))
         return ++loc.it, item::parseDefinition(match);
+      if (std::regex_match(*loc.it, match, item::reReference))
+        return ++loc.it, item::parseReference(match);
       if (std::regex_match(*loc.it, match, item::reAssignment))
         return ++loc.it, item::parseAssignment(match);
       if (std::regex_match(*loc.it, match, item::reMap))

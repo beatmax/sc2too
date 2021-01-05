@@ -1,0 +1,156 @@
+option t
+p: power_plant
+w: worker
+----------------  [t:0]
+              bb
+ p   w        bb
+              bb
+                
+                
+----------------
+select w
+build_prototype dojo
+prototype: dojo
+trigger build_dojo 6,2
+message: YOU MUST PLACE THAT IN A POWER FIELD!
+prototype: dojo
+trigger build_dojo 5,2
+prototype: none
+run
+----------------  [t:0]
+              bb
+ p   w        bb
+              bb
+                
+                
+================  [t:21]
+              bb
+ p   w        bb
+     dd       bb
+     dd         
+                
+================  [t:36]
+              bb
+ p   w        bb
+     dd       bb
+     dd         
+                
+----------------
+build_prototype power_plant
+prototype: power_plant
+trigger build_power_plant 5,0
+prototype: none
+run
+----------------  [t:36]
+              bb
+ p   w        bb
+     dd       bb
+     dd         
+                
+================  [t:57]
+     p        bb
+ p   w        bb
+     dd       bb
+     dd         
+                
+================  [t:62]
+     p        bb
+ p   w        bb
+     dd       bb
+     dd         
+                
+----------------
+destroy p
+run
+----------------  [t:62]
+     p        bb
+     w        bb
+     dd       bb
+     dd         
+                
+----------------
+Plant: @5,0
+Dojo: @5,2
+select Dojo
+trigger produce_fighter
+run
+----------------  [t:62]
+     P        bb
+     w        bb
+     DD       bb
+     DD         
+                
+================  [t:1063]
+     P        bb
+     w        bb
+     DDf      bb
+     DD         
+                
+================  [t:1064]
+     P        bb
+     w        bb
+     DDf      bb
+     DD         
+                
+----------------
+trigger produce_fighter
+run for 700
+----------------  [t:1064]
+     P        bb
+     w        bb
+     DDf      bb
+     DD         
+                
+================  [t:1764]
+     P        bb
+     w        bb
+     DDf      bb
+     DD         
+                
+----------------
+destroy Plant
+run for 2000
+----------------  [t:1764]
+              bb
+     w        bb
+     DDf      bb
+     DD         
+                
+================  [t:3764]
+              bb
+     w        bb
+     DDf      bb
+     DD         
+                
+----------------
+select w
+build_prototype power_plant
+prototype: power_plant
+trigger build_power_plant 5,0
+prototype: none
+run
+----------------  [t:3764]
+              bb
+     w        bb
+     DDf      bb
+     DD         
+                
+================  [t:3785]
+     p        bb
+     w        bb
+     DDf      bb
+     DD         
+                
+================  [t:4095]
+     p        bb
+     w f      bb
+     DDf      bb
+     DD         
+                
+================  [t:4096]
+     p        bb
+     w f      bb
+     DDf      bb
+     DD         
+                
+----------------
