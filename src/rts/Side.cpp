@@ -165,12 +165,18 @@ void rts::Side::exec(const World& w, WorldActionList& actions, const command::Tr
     return;
 
   if (a->groupMode == abilities::GroupMode::One) {
-    auto it{util::minElementBy(ids, [&w, a](UnitId id) {
-      auto& u{w[id]};
-      return u.commandQueue.size() +
-          (Unit::abilityState(UnitStableRef{u}, w, a->kind).active() ? 1000 : 0);
-    })};
-    ids = {*it};
+    UnitId uId;
+    if (a->kind == abilities::Kind::Produce) {
+      uId = *util::minElementBy(ids, [&w](UnitId id) { return w[w[id].productionQueue].size(); });
+    }
+    else {
+      uId = *util::minElementBy(ids, [&w, a](UnitId id) {
+        auto& u{w[id]};
+        return u.commandQueue.size() +
+            (Unit::abilityState(UnitStableRef{u}, w, a->kind).active() ? 1000 : 0);
+      });
+    }
+    ids = {uId};
   }
 
   actions +=

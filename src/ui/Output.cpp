@@ -25,6 +25,7 @@
 namespace ui {
   namespace {
     constexpr rts::GameTime MessageShowTime{4 * rts::GameTimeSecond};
+    const wchar_t productionDots[] = L" ⠁⠉⠋⠛⠟⠿";
 
     std::vector<const Window*> allWins;
     bool termResized{false};
@@ -235,15 +236,12 @@ namespace ui {
         rts::UnitTypeId subgroupType) {
       const auto& win{ios.controlWin};
 
-      int row{0}, col{0}, cnt{0};
+      int row{0}, col{0};
       const auto left{40};
       ScreenRect rect{{left, 2}, {dim::cellWidth, dim::cellHeight}};
 
-      const rts::Unit* last;
-      for (auto* u : selection.items(w)) {
-        ++cnt;
-        last = u;
-
+      const auto units{selection.items(w)};
+      for (auto* u : units) {
         if (col == 8) {
           col = 0;
           rect.topLeft.x = left;
@@ -255,13 +253,19 @@ namespace ui {
         graph::drawRect(win, boundingBox(rect));
         const auto color = (u->type == subgroupType) ? Color::LightGreen : Color::DarkGreen;
         graph::drawFrame(win, getIcon(w[u->type]).frame(), rect, {0, 0}, color);
+        if (units.size() > 1 && u->productionQueue) {
+          if (auto sz{w[u->productionQueue].size()}) {
+            assert(sz < sizeof(productionDots) / sizeof(productionDots[0]) - 1);
+            mvwaddnwstr(win.w, rect.topLeft.y, rect.topLeft.x + 2, &productionDots[sz], 1);
+          }
+        }
         rect.topLeft.x += dim::cellWidth + 1;
         ++col;
       }
       if (row == 3)
         mvwprintw(win.w, rect.topLeft.y, rect.topLeft.x, "...");
-      if (cnt == 1 && last->productionQueue)
-        drawProductionQueue(ios, w, rts::StableRef{*last});
+      if (units.size() == 1 && units.front()->productionQueue)
+        drawProductionQueue(ios, w, rts::StableRef{*units.front()});
     }
 
     void drawAbilities(

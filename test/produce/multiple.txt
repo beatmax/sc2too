@@ -1,0 +1,156 @@
+option t,r,s
+1,2: base
+------------  [t:0 m:1000 g:0 s:0/30]
+            
+            
+ 11      22 
+ 11      22 
+ 11      22 
+            
+            
+------------
+select 1
+trigger produce_worker
+trigger produce_worker
+trigger produce_worker
+select 1,2
+trigger produce_worker
+trigger produce_worker
+run
+------------  [t:0 m:950 g:0 s:0/30]
+            
+            
+ 11      22 
+ 11      22 
+ 11      22 
+            
+            
+============  [t:1 m:950 g:0 s:4/30]
+            
+            
+ 11      22 
+ 11      22 
+ 11      22 
+            
+            
+============  [t:101 m:950 g:0 s:4/30]
+            
+            
+ 11      22 
+ 11w    w22 
+ 11      22 
+            
+            
+============  [t:102 m:950 g:0 s:8/30]
+            
+            
+ 11      22 
+ 11w    w22 
+ 11      22 
+            
+            
+============  [t:202 m:950 g:0 s:8/30]
+            
+            
+ 11w    w22 
+ 11w    w22 
+ 11      22 
+            
+            
+============  [t:203 m:950 g:0 s:10/30]
+            
+            
+ 11w    w22 
+ 11w    w22 
+ 11      22 
+            
+            
+============  [t:303 m:950 g:0 s:10/30]
+            
+            
+ 11w    w22 
+ 11w    w22 
+ 11w     22 
+            
+            
+============  [t:304 m:950 g:0 s:10/30]
+            
+            
+ 11w    w22 
+ 11w    w22 
+ 11w     22 
+            
+            
+------------
+trigger produce_worker
+trigger produce_worker
+trigger produce_worker
+trigger produce_worker
+trigger produce_worker
+trigger produce_worker
+run
+------------  [t:304 m:890 g:0 s:10/30]
+            
+            
+ 11w    w22 
+ 11w    w22 
+ 11w     22 
+            
+            
+============  [t:305 m:890 g:0 s:14/30]
+            
+            
+ 11w    w22 
+ 11w    w22 
+ 11w     22 
+            
+            
+============  [t:405 m:890 g:0 s:14/30]
+            
+   w        
+ 11w    w22 
+ 11w    w22 
+ 11w    w22 
+            
+            
+============  [t:406 m:890 g:0 s:18/30]
+            
+   w        
+ 11w    w22 
+ 11w    w22 
+ 11w    w22 
+            
+            
+============  [t:506 m:890 g:0 s:18/30]
+            
+   w    w   
+ 11w    w22 
+ 11w    w22 
+ 11w    w22 
+   w        
+            
+============  [t:507 m:890 g:0 s:22/30]
+            
+   w    w   
+ 11w    w22 
+ 11w    w22 
+ 11w    w22 
+   w        
+            
+============  [t:607 m:890 g:0 s:22/30]
+            
+  ww    w   
+ 11w    w22 
+ 11w    w22 
+ 11w    w22 
+   w    w   
+            
+============  [t:608 m:890 g:0 s:22/30]
+            
+  ww    w   
+ 11w    w22 
+ 11w    w22 
+ 11w    w22 
+   w    w   
+            
+------------
