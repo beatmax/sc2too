@@ -62,6 +62,21 @@ void rts::World::update(const WorldActionList& actions) {
     action(*this);
 }
 
+rts::BlockerId rts::World::add(BlockerId id, Point p) {
+  auto& obj{(*this)[id]};
+  obj.area.topLeft = p;
+  map.setContent(obj.area, id);
+  return id;
+}
+
+rts::ResourceFieldId rts::World::add(ResourceFieldId id, Point p) {
+  auto& obj{(*this)[id]};
+  obj.area.topLeft = p;
+  map.setContent(obj.area, id);
+  resourceProximityMap.updateContour(*this, obj.area, ResourceProximityRadius, 1);
+  return id;
+}
+
 rts::UnitId rts::World::add(UnitId id, Point p, bool allocCheck) {
   auto& obj{(*this)[id]};
   obj.allocate(*this, allocCheck);
@@ -127,6 +142,7 @@ void rts::World::destroy(Unit& u) {
 
 void rts::World::destroy(ResourceField& rf) {
   assert(map[rf.area.topLeft].contains(Cell::ResourceField));
+  resourceProximityMap.updateContour(*this, rf.area, ResourceProximityRadius, -1);
   map.setContent(rf.area, Cell::Empty{});
   resourceFields.erase(id(rf));
 }
@@ -391,6 +407,7 @@ std::optional<rts::AbilityTarget> rts::World::fromWeakTarget(const AbilityWeakTa
 }
 
 void rts::World::onMapCreated() {
+  resourceProximityMap.initCells(map.size());
   for (auto& s : sides)
     s.onMapCreated(*this);
 }

@@ -89,7 +89,7 @@ namespace test::seq::item {
     }
     std::string toString(const Reference& r) { return r.name + ": @" + ::toString(r.point); }
 
-    const std::regex reAssignment{R"((\w+)\((\d+),(\d+)\)\s*=\s*(\d+))"};
+    const std::regex reAssignment{R"((\w+)\((\d+),(\d+)\)\s*=\s*(-?\d+))"};
     Assignment parseAssignment(const std::smatch& match) {
       rts::Point target{std::stoi(match[2]), std::stoi(match[3])};
       return {target, match[1], std::stoi(match[4])};

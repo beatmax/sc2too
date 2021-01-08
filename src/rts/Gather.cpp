@@ -62,7 +62,7 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitS
       return finishGathering();
 
     case State::GatheringDone: {
-      if (auto* b{w.closestActiveUnit(u->area.topLeft, u->side, desc_.baseType)}) {
+      if (auto* b{w.closestActiveUnit(u->area.topLeft, u->side, w[u->side].baseType())}) {
         base_ = w.weakId(*b);
         state_ = State::MovingToBase;
         return moveTo(b->area.topLeft);

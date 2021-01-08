@@ -6,6 +6,7 @@
 #include "Factory.h"
 #include "Map.h"
 #include "ProductionQueue.h"
+#include "ProximityMap.h"
 #include "Resource.h"
 #include "ResourceField.h"
 #include "Side.h"
@@ -33,6 +34,7 @@ namespace rts {
     }
 
     Map map;
+    ProximityMap resourceProximityMap;
     GameTime time{};
     FactoryUPtr factory;
 
@@ -94,13 +96,8 @@ namespace rts {
     bool tryPlace(Unit& u);
     void remove(Unit& u);
 
-    template<typename Id>
-    Id add(Id id, Point p) {
-      auto& obj{(*this)[id]};
-      obj.area.topLeft = p;
-      map.setContent(obj.area, id);
-      return id;
-    }
+    BlockerId add(BlockerId id, Point p);
+    ResourceFieldId add(ResourceFieldId id, Point p);
     UnitId add(UnitId id, Point p, bool allocCheck = true);
     void add(Cell::Empty) {}
 

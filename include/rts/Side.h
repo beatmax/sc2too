@@ -17,10 +17,11 @@
 namespace rts {
   class Side {
   public:
-    explicit Side(const ResourceInitList& resources, UiUPtr ui)
-      : resources_{resources}, ui_{std::move(ui)} {}
+    explicit Side(UnitTypeId baseType, const ResourceInitList& resources, UiUPtr ui)
+      : baseType_{baseType}, resources_{resources}, ui_{std::move(ui)} {}
 
     WorldActionList exec(const World& w, const Command& cmd) __attribute__((warn_unused_result));
+    const UnitTypeId baseType() const { return baseType_; }
     Selection& selection() { return selection_; }
     const Selection& selection() const { return selection_; }
     const Group& group(ControlGroupId group) const { return groups_[group]; }
@@ -57,6 +58,7 @@ namespace rts {
     void exec(const World& w, WorldActionList& actions, const command::TriggerDefaultAbility& cmd);
     void exec(const World& w, WorldActionList& actions, const command::Debug& cmd);
 
+    UnitTypeId baseType_;
     ResourceBank resources_;
     Selection selection_;
     ControlGroupArray groups_;

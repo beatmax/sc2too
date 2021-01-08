@@ -44,7 +44,11 @@ bool rts::Side::materializePrototype(World& w, Point p) {
       invalidLocation = true;
     }
   }
-  else if (!w.map.isEmpty(buildArea) || !prototypeMap_.isEmpty(buildArea)) {
+  else if (
+      !w.map.isEmpty(buildArea) ||
+      (proto.type == baseType_ && util::anyOf(buildArea.points(), [&](Point p) {
+         return w.resourceProximityMap.isActive(p);
+       }))) {
     invalidLocation = true;
   }
   if (invalidLocation) {
@@ -52,7 +56,7 @@ bool rts::Side::materializePrototype(World& w, Point p) {
     return false;
   }
   if (type.requiresPower == UnitType::RequiresPower::Yes &&
-      !powerMap_.isPowered(buildArea.center())) {
+      !powerMap_.isActive(buildArea.center())) {
     messages_.add(w, "YOU MUST PLACE THAT IN A POWER FIELD!");
     return false;
   }

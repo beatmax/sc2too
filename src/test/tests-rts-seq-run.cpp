@@ -234,7 +234,10 @@ namespace test::seq {
         case Property::Quantity:
           if (!cell.contains(rts::Cell::ResourceField))
             return error(a, "target is not a resource field");
-          world[cell.resourceFieldId()].bag.setQuantity(a.value);
+          if (a.value >= 0)
+            world[cell.resourceFieldId()].bag.setQuantity(a.value);
+          else
+            world.destroy(cell.resourceFieldId());
           break;
       }
       output.push_back(a);

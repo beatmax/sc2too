@@ -21,6 +21,7 @@ namespace ui::graph {
   inline int gray() { return colorAttr(Color::Gray); }
   inline int lightGreen() { return colorAttr(Color::LightGreen); }
   inline int darkGreen() { return colorAttr(Color::DarkGreen); }
+  inline int darkRed() { return colorAttr(Color::DarkRed); }
   inline int darkGray() { return colorAttr(Color::DarkGray); }
   inline int electricBlue1() { return colorAttr(Color::ElectricBlue1); }
   inline int electricBlue2() { return colorAttr(Color::ElectricBlue2); }
@@ -52,5 +53,10 @@ namespace ui::graph {
       const Frame& frame,
       const ScreenRect& drawRect,
       const ScreenVector& topLeftInFrame,
+      Color defaultColor = Color::White);
+  void drawFrame(
+      const Window& win,
+      const Frame& frame,
+      ScreenPoint screenTopLeft,
       Color defaultColor = Color::White);
 }

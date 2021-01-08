@@ -10,22 +10,19 @@
 
 #include <algorithm>
 #include <cassert>
-#include <vector>
 #include <set>
+#include <vector>
 
-namespace ui {
-  namespace {
-    ScreenVector toScreenVector(rts::Vector v) {
-      return {v.x * (dim::cellWidth + 1), v.y * (dim::cellHeight + 1)};
-    };
+ui::ScreenVector ui::toScreenVector(rts::Vector v) {
+  return {v.x * (dim::cellWidth + 1), v.y * (dim::cellHeight + 1)};
+}
 
-    ScreenRect toScreenRect(const Camera& camera, const rts::Rectangle& area) {
-      const rts::Vector relativeTopLeft{area.topLeft - camera.topLeft()};
-      return {
-          ScreenPoint{0, 0} + toScreenVector(relativeTopLeft),
-          toScreenVector(area.size) - ScreenVector{1, 1}};
-    }
-  }
+ui::ScreenPoint ui::toScreenPoint(const Camera& camera, rts::Point p) {
+  return ScreenPoint{0, 0} + toScreenVector(p - camera.topLeft());
+}
+
+ui::ScreenRect ui::toScreenRect(const Camera& camera, const rts::Rectangle& area) {
+  return {toScreenPoint(camera, area.topLeft), toScreenVector(area.size) - ScreenVector{1, 1}};
 }
 
 void ui::grid(const Window& win) {

@@ -37,6 +37,7 @@ namespace ui {
     LightGreen = 10,
     DarkBlue = 17,
     DarkGreen = 22,
+    DarkRed = 52,
     DarkGray = 237,
     ElectricBlue1 = 27,
     ElectricBlue2 = 33,

@@ -260,6 +260,6 @@ void rts::Unit::doActivate(World& w) {
   if (auto er{t.powerRadius})
     s.powerMap().update(w, side, circleCenteredAt(area, er), 1);
   if (t.requiresPower == UnitType::RequiresPower::Yes)
-    powered = s.powerMap().isPowered(area.center());
+    powered = s.powerMap().isActive(area.center());
   state = State::Active;
 }

@@ -199,3 +199,10 @@ void ui::graph::drawFrame(
         win.w, drawRect.topLeft.y + v.y, drawRect.topLeft.x, &frame(sp.y, sp.x), drawRect.size.x);
   }
 }
+
+void ui::graph::drawFrame(
+    const Window& win, const Frame& frame, ScreenPoint screenTopLeft, Color defaultColor) {
+  wattrset(win.w, graph::colorAttr(defaultColor, frame.defaultBg()));
+  for (int y{0}; y < frame.rows(); ++y)
+    mvwadd_wchnstr(win.w, screenTopLeft.y + y, screenTopLeft.x, &frame(y, 0), frame.cols());
+}

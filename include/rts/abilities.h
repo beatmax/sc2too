@@ -86,7 +86,6 @@ namespace rts::abilities {
     static constexpr auto availableWhileBuilding{false};
     static constexpr auto requiresPower{false};
     AbilityId id;
-    UnitTypeId baseType;
     GameTime gatherTime;
     GameTime deliverTime;
   };

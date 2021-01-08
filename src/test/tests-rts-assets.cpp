@@ -127,8 +127,7 @@ void test::Factory::init(rts::World& w) {
   w[workerTypeId].addAbility(
       BuildPowerPlantAbilityIndex, rts::abilities::Build{buildAbilityId, powerPlantTypeId});
   w[workerTypeId].addAbility(
-      GatherAbilityIndex,
-      rts::abilities::Gather{moveAbilityId, baseTypeId, rts::GameTimeSecond, 1});
+      GatherAbilityIndex, rts::abilities::Gather{moveAbilityId, rts::GameTimeSecond, 1});
   w[workerTypeId].defaultAbility[uint32_t(RC::Ground)] = MoveAbilityIndex;
   w[workerTypeId].defaultAbility[uint32_t(RC::Resource)] = GatherAbilityIndex;
   w[workerTypeId].defaultAbility[uint32_t(RC::FriendResource)] = GatherAbilityIndex;
@@ -224,6 +223,6 @@ void test::makeSides(rts::World& w) {
   const rts::ResourceInitList resources{
       {mineralResourceId, 1000, rts::QuantityInf, rts::ResourceRecoverable::No},
       {supplyResourceId, 0, MaxSupplySlots, rts::ResourceRecoverable::Yes}};
-  side1Id = w.createSide(resources, std::make_unique<Ui>("1"));
-  side2Id = w.createSide(resources, std::make_unique<Ui>("2"));
+  side1Id = w.createSide(baseTypeId, resources, std::make_unique<Ui>("1"));
+  side2Id = w.createSide(baseTypeId, resources, std::make_unique<Ui>("2"));
 }

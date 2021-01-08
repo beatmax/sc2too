@@ -19,8 +19,9 @@ namespace {
   std::vector<rts::SideId> makeSides(rts::World& w) {
     std::vector<rts::SideId> sides;
     for (int n = 0; n <= 1; ++n) {
-      sides.push_back(
-          w.createSide(sc2::Resources::initialResources(), std::make_unique<ui::SideUi>(n)));
+      sides.push_back(w.createSide(
+          sc2::UnitTypes::nexus, sc2::Resources::initialResources(),
+          std::make_unique<ui::SideUi>(n)));
     }
     return sides;
   }

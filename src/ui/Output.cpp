@@ -92,7 +92,7 @@ namespace ui {
         const auto& acc{side.resources()[id]};
         bool displayAlloc{ui.display == ResourceUi::Display::Allocated};
         x -= displayAlloc ? 13 : 9;
-        graph::drawFrame(win, ui.icon().frame(), {{x, 0}, {1, 1}}, {0, 0});
+        graph::drawFrame(win, ui.icon().frame(), {x, 0});
         if (displayAlloc) {
           if (acc.allocated() > acc.totalSlots())
             wattrset(win.w, graph::red() | A_BOLD);
@@ -157,7 +157,7 @@ namespace ui {
         wattrset(win.w, frozen ? graph::darkGray() : graph::darkGreen());
         graph::drawRect(win, boundingBox(rect));
         if (i < pq.size())
-          graph::drawFrame(win, getIcon(w[pq.type(i)]).frame(), rect, {0, 0}, iconColor);
+          graph::drawFrame(win, getIcon(w[pq.type(i)]).frame(), rect.topLeft, iconColor);
 
         if (i == 0) {
           rect.topLeft.x = left;
@@ -198,8 +198,18 @@ namespace ui {
     void drawPower(IOState& ios, const Camera& camera, const rts::PowerMap& powerMap) {
       const auto color{graph::electricBlue2()};
       for (auto p : camera.area().points()) {
-        if (powerMap.isPowered(p))
+        if (powerMap.isActive(p))
           drawBoundingBox(ios.renderWin, camera, p, color);
+      }
+    }
+
+    void drawResourceProximity(IOState& ios, const Camera& camera, const rts::ProximityMap& pm) {
+      wattrset(ios.renderWin.w, graph::darkRed());
+      for (auto p : camera.area().points()) {
+        if (pm.isActive(p)) {
+          auto sp{toScreenPoint(camera, p)};
+          mvwaddwstr(ios.renderWin.w, sp.y, sp.x, L"███");
+        }
       }
     }
 
@@ -252,7 +262,7 @@ namespace ui {
         wattrset(win.w, graph::green());
         graph::drawRect(win, boundingBox(rect));
         const auto color = (u->type == subgroupType) ? Color::LightGreen : Color::DarkGreen;
-        graph::drawFrame(win, getIcon(w[u->type]).frame(), rect, {0, 0}, color);
+        graph::drawFrame(win, getIcon(w[u->type]).frame(), rect.topLeft, color);
         if (units.size() > 1 && u->productionQueue) {
           if (auto sz{w[u->productionQueue].size()}) {
             assert(sz < sizeof(productionDots) / sizeof(productionDots[0]) - 1);
@@ -288,8 +298,6 @@ namespace ui {
             ScreenRect rect{
                 {79 + col * (dim::cellWidth + 2), 2 + row * (dim::cellHeight + 1)},
                 {dim::cellWidth + 1, dim::cellHeight}};
-            ScreenRect iconRect{
-                rect.topLeft + rts::Vector{1, 0}, {dim::cellWidth, dim::cellHeight}};
             wattrset(win.w, graph::lightGreen());
             graph::drawRect(win, boundingBox(rect));
             wattrset(
@@ -298,7 +306,8 @@ namespace ui {
                     ? (graph::white() | A_BOLD)
                     : graph::white());
             mvwaddch(win.w, rect.topLeft.y, rect.topLeft.x, ui::Layout::abilityKey(ai));
-            graph::drawFrame(win, getIcon(w[a]).frame(), iconRect, {0, 0}, Color::Green);
+            graph::drawFrame(
+                win, getIcon(w[a]).frame(), rect.topLeft + rts::Vector{1, 0}, Color::Green);
           }
         }
       }
@@ -362,6 +371,8 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
     drawPower(ios_, camera, side.powerMap());
     if (auto pr{w[proto.type].powerRadius})
       drawPower(ios_, camera, prototypeArea, pr, graph::electricBlue1());
+    if (proto.type == side.baseType())
+      drawResourceProximity(ios_, camera, w.resourceProximityMap);
   }
   else if (subgroup.type) {
     if (auto pr{w[subgroup.type].powerRadius})

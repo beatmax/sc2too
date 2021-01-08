@@ -69,7 +69,7 @@ void sc2::UnitTypes::init(rts::World& w) {
     auto& probeType{w.unitTypes[probe]};
     probeType.addAbility(
         Abilities::GatherIndex,
-        rts::abilities::Gather{Abilities::gather, nexus, GatherTime, DeliveryTime});
+        rts::abilities::Gather{Abilities::gather, GatherTime, DeliveryTime});
     probeType.addAbility(
         Abilities::MoveIndex, rts::abilities::Move{Abilities::move, rts::Speed{4}});
     probeType.addAbility(

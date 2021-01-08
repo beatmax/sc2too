@@ -1,12 +1,12 @@
 option t,r,s
 x,y: worker
 t: thirdy
-----------  [t:0 m:1000 g:0 s:8/0]
-x        r
-y         
-t         
-          
-----------
+-----------------  [t:0 m:1000 g:0 s:8/0]
+x       r        
+y                
+t              mm
+               mm
+-----------------
 select x
 build_prototype base
 prototype: base
@@ -18,112 +18,184 @@ prototype: none
 # build is attempted on occupied location
 build_prototype base
 prototype: base
-trigger build_base 8,0
+trigger build_base 7,0
 message: INVALID LOCATION!
 prototype: base
 run
-----------  [t:0 m:1000 g:0 s:8/0]
-x        r
-y         
-t         
-          
-----------
+-----------------  [t:0 m:1000 g:0 s:8/0]
+x       r        
+y                
+t              mm
+               mm
+-----------------
+
+# build base is attempted too close to resources
+trigger build_base 11,2
+message: INVALID LOCATION!
+prototype: base
 
 # begin a build
 trigger build_base 3,2
 prototype: none
 run for 200
-----------  [t:0 m:980 g:0 s:8/0]
-x        r
-y         
-t         
-          
-==========  [t:143 m:980 g:0 s:8/0]
-         r
-yx        
-t         
-          
-==========  [t:200 m:980 g:0 s:8/0]
-         r
-yx        
-t         
-          
-----------
+-----------------  [t:0 m:980 g:0 s:8/0]
+x       r        
+y                
+t              mm
+               mm
+=================  [t:143 m:980 g:0 s:8/0]
+        r        
+yx               
+t              mm
+               mm
+=================  [t:200 m:980 g:0 s:8/0]
+        r        
+yx               
+t              mm
+               mm
+-----------------
 
 # begin a second build
 build_prototype base
 prototype: base
-trigger build_base 7,2
+trigger build_base 10,2
 prototype: none
 run
-----------  [t:200 m:960 g:0 s:8/0]
-         r
-yx        
-t         
-          
-==========  [t:243 m:960 g:0 s:8/0]
-         r
-y x       
-t         
-          
-==========  [t:261 m:960 g:0 s:8/0]
-         r
-y xbb     
-t  bb     
-   bb     
-==========  [t:291 m:960 g:0 s:8/15]
-         r
-y xbb     
-t  bb     
-   bb     
-==========  [t:302 m:960 g:0 s:8/15]
-         r
- yxbb     
-t  bb     
-   bb     
-==========  [t:402 m:960 g:0 s:8/15]
-         r
-  xbb     
-t ybb     
-   bb     
-==========  [t:545 m:960 g:0 s:8/15]
-         r
- yxbb     
-t  bb     
-   bb     
-==========  [t:686 m:960 g:0 s:8/15]
-  y      r
-  xbb     
-t  bb     
-   bb     
-==========  [t:786 m:960 g:0 s:8/15]
-   y     r
-  xbb     
-t  bb     
-   bb     
-==========  [t:886 m:960 g:0 s:8/15]
-    y    r
-  xbb     
-t  bb     
-   bb     
-==========  [t:986 m:960 g:0 s:8/15]
-     y   r
-  xbb     
-t  bb     
-   bb     
-==========  [t:1127 m:960 g:0 s:8/15]
-         r
-  xbb y   
-t  bb     
-   bb     
-==========  [t:1141 m:960 g:0 s:8/15]
-         r
-  xbb ybb 
-t  bb  bb 
-   bb  bb 
-==========  [t:1171 m:960 g:0 s:8/30]
-         r
-  xbb ybb 
-t  bb  bb 
-   bb  bb 
-----------
+-----------------  [t:200 m:960 g:0 s:8/0]
+        r        
+yx               
+t              mm
+               mm
+=================  [t:243 m:960 g:0 s:8/0]
+        r        
+y x              
+t              mm
+               mm
+=================  [t:261 m:960 g:0 s:8/0]
+        r        
+y xbb            
+t  bb          mm
+   bb          mm
+=================  [t:291 m:960 g:0 s:8/15]
+        r        
+y xbb            
+t  bb          mm
+   bb          mm
+=================  [t:302 m:960 g:0 s:8/15]
+        r        
+ yxbb            
+t  bb          mm
+   bb          mm
+=================  [t:402 m:960 g:0 s:8/15]
+        r        
+  xbb            
+t ybb          mm
+   bb          mm
+=================  [t:545 m:960 g:0 s:8/15]
+        r        
+ yxbb            
+t  bb          mm
+   bb          mm
+=================  [t:686 m:960 g:0 s:8/15]
+  y     r        
+  xbb            
+t  bb          mm
+   bb          mm
+=================  [t:786 m:960 g:0 s:8/15]
+   y    r        
+  xbb            
+t  bb          mm
+   bb          mm
+=================  [t:886 m:960 g:0 s:8/15]
+    y   r        
+  xbb            
+t  bb          mm
+   bb          mm
+=================  [t:986 m:960 g:0 s:8/15]
+     y  r        
+  xbb            
+t  bb          mm
+   bb          mm
+=================  [t:1086 m:960 g:0 s:8/15]
+      y r        
+  xbb            
+t  bb          mm
+   bb          mm
+=================  [t:1227 m:960 g:0 s:8/15]
+        r        
+  xbb  y         
+t  bb          mm
+   bb          mm
+=================  [t:1327 m:960 g:0 s:8/15]
+        r        
+  xbb   y        
+t  bb          mm
+   bb          mm
+=================  [t:1427 m:960 g:0 s:8/15]
+        r        
+  xbb    y       
+t  bb          mm
+   bb          mm
+=================  [t:1441 m:960 g:0 s:8/15]
+        r        
+  xbb    ybb     
+t  bb     bb   mm
+   bb     bb   mm
+=================  [t:1471 m:960 g:0 s:8/30]
+        r        
+  xbb    ybb     
+t  bb     bb   mm
+   bb     bb   mm
+-----------------
+
+# build base possible after resource fields are destroyed
+quantity(15,2) = -1
+run
+-----------------  [t:1471 m:960 g:0 s:8/30]
+        r        
+  xbb    ybb     
+t  bb     bb     
+   bb     bb     
+-----------------
+select y
+build_prototype base
+prototype: base
+trigger build_base 14,1
+prototype: none
+run
+-----------------  [t:1471 m:940 g:0 s:8/30]
+        r        
+  xbb    ybb     
+t  bb     bb     
+   bb     bb     
+=================  [t:1614 m:940 g:0 s:8/30]
+        r y      
+  xbb     bb     
+t  bb     bb     
+   bb     bb     
+=================  [t:1714 m:940 g:0 s:8/30]
+        r  y     
+  xbb     bb     
+t  bb     bb     
+   bb     bb     
+=================  [t:1814 m:940 g:0 s:8/30]
+        r   y    
+  xbb     bb     
+t  bb     bb     
+   bb     bb     
+=================  [t:1914 m:940 g:0 s:8/30]
+        r    y   
+  xbb     bb     
+t  bb     bb     
+   bb     bb     
+=================  [t:1932 m:940 g:0 s:8/30]
+        r    ybb 
+  xbb     bb  bb 
+t  bb     bb  bb 
+   bb     bb     
+=================  [t:1962 m:940 g:0 s:8/45]
+        r    ybb 
+  xbb     bb  bb 
+t  bb     bb  bb 
+   bb     bb     
+-----------------

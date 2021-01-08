@@ -69,7 +69,7 @@ namespace rts {
   using ControlGroupId = uint8_t;
   using LayerId = uint32_t;
   using MapSegmentId = uint32_t;
-  using PowerCount = uint16_t;
+  using ProximityCount = uint16_t;
   using ProductionQueueId = util::PoolObjectId<ProductionQueue>;
   using ProductionQueueWId = util::PoolObjectWeakId<ProductionQueue>;
   using ResourceFieldId = util::PoolObjectId<ResourceField>;
