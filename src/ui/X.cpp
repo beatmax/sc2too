@@ -90,11 +90,26 @@ namespace {
       {XK_Alt_L, ui::AltPressed},           {XK_Alt_R, ui::AltPressed},
       {XK_ISO_Level3_Shift, ui::AltPressed}};
 
-  void initKeymap() {
+  void saveKeymap() {
     XDisplayKeycodes(display, &minKeyCode, &maxKeyCode);
     xKeymap =
         XGetKeyboardMapping(display, minKeyCode, maxKeyCode - minKeyCode + 1, &keySymsPerKeyCode);
+    xModmap = XGetModifierMapping(display);
+  }
 
+  void restoreKeymap() {
+    XChangeKeyboardMapping(
+        display, minKeyCode, keySymsPerKeyCode, xKeymap, maxKeyCode - minKeyCode + 1);
+    XFree(xKeymap);
+    xKeymap = nullptr;
+
+    XSetModifierMapping(display, xModmap);
+    XFreeModifiermap(xModmap);
+    xModmap = nullptr;
+  }
+
+  void initKeymap() {
+    assert(xKeymap);
     std::fill_n(uiKeymap, 256, ui::InputKeySym::Unknown);
     for (auto keyCode = minKeyCode; keyCode <= maxKeyCode; ++keyCode) {
       KeySym xkKeySym{xKeymap[(keyCode - minKeyCode) * keySymsPerKeyCode]};
@@ -111,21 +126,9 @@ namespace {
       }
     }
 
-    xModmap = XGetModifierMapping(display);
     auto* modmap{XNewModifiermap(0)};
     XSetModifierMapping(display, modmap);
     XFreeModifiermap(modmap);
-  }
-
-  void restoreKeymap() {
-    XChangeKeyboardMapping(
-        display, minKeyCode, keySymsPerKeyCode, xKeymap, maxKeyCode - minKeyCode + 1);
-    XFree(xKeymap);
-    xKeymap = nullptr;
-
-    XSetModifierMapping(display, xModmap);
-    XFreeModifiermap(xModmap);
-    xModmap = nullptr;
   }
 
   void getDisplaySize() {
@@ -145,6 +148,7 @@ void ui::X::init() {
   if (!display)
     throw std::runtime_error{"cannot connect to X server"};
 
+  saveKeymap();
   initKeymap();
   XAutoRepeatOff(display);
   getDisplaySize();
@@ -158,6 +162,29 @@ void ui::X::finish() {
     XCloseDisplay(display);
     display = nullptr;
   }
+}
+
+void ui::X::saveState() {
+  assert(!display);
+  display = XOpenDisplay(NULL);
+  if (!display)
+    throw std::runtime_error{"cannot connect to X server"};
+
+  saveKeymap();
+  XCloseDisplay(display);
+  display = nullptr;
+}
+
+void ui::X::restoreState() {
+  assert(!display);
+  display = XOpenDisplay(NULL);
+  if (!display)
+    throw std::runtime_error{"cannot connect to X server"};
+
+  XAutoRepeatOn(display);
+  restoreKeymap();
+  XCloseDisplay(display);
+  display = nullptr;
 }
 
 void ui::X::grabInput() {

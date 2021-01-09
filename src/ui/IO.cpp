@@ -8,12 +8,16 @@
 #include <clocale>
 #include <codecvt>
 #include <csignal>
+#include <cstdio>
 #include <cstdlib>
 #include <iostream>
 #include <langinfo.h>
 #include <locale>
 #include <string>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <thread>
+#include <unistd.h>
 
 namespace {
   ui::IO* gIO{};
@@ -25,6 +29,28 @@ namespace {
     gIO->~IO();
     std::_Exit(EXIT_FAILURE);
   }
+}
+
+void ui::IO::supervisor() {
+  X::saveState();
+  pid_t pid{fork()};
+  if (pid < 0) {
+    std::perror("fork");
+    std::_Exit(EXIT_FAILURE);
+  }
+  if (pid == 0)
+    return;
+
+  int status;
+  if (wait(&status) < 0) {
+    std::perror("wait");
+    std::_Exit(EXIT_FAILURE);
+  }
+  if (!WIFEXITED(status)) {
+    X::restoreState();
+    std::cerr << "Game crashed :-(" << std::endl;
+  }
+  std::exit(EXIT_SUCCESS);
 }
 
 ui::IO::IO() : state_{std::make_unique<IOState>()}, input{*state_}, output{*state_} {

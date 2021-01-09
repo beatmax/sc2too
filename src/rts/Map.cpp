@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <cassert>
+#include <fstream>
+#include <utility>
 
 namespace rts {
   namespace {
@@ -27,6 +29,13 @@ namespace rts {
       return lines;
     }
   }
+}
+
+void rts::Map::load(World& w, const MapInitializer& init, const std::string& fpath) {
+  std::ifstream f{fpath};
+  if (!f)
+    throw std::runtime_error{"cannot open map file: " + fpath};
+  load(w, init, std::move(f));
 }
 
 void rts::Map::load(World& w, const MapInitializer& init, std::istream&& is) {

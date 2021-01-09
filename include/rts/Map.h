@@ -19,6 +19,7 @@ namespace rts {
     Map(const Map&) = delete;
     Map& operator=(const Map&) = delete;
 
+    void load(World& w, const MapInitializer& init, const std::string& fpath);
     void load(World& w, const MapInitializer& init, std::istream&& is);
     void load(World& w, const MapInitializer& init, const std::vector<std::string>& lines);
     void initCells(Vector sz) { cells_ = CellMatrix(sz.y, sz.x); }

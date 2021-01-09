@@ -5,6 +5,8 @@
 namespace ui::X {
   void init();
   void finish();
+  void saveState();
+  void restoreState();
   void grabInput();
   void releaseInput();
   bool pendingEvent();

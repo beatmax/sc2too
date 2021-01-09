@@ -8,10 +8,10 @@
 #include "sc2/UnitTypes.h"
 #include "ui/IO.h"
 #include "ui/SideUi.h"
+#include "util/ProgramOptions.h"
 
 #include <cassert>
 #include <exception>
-#include <fstream>
 #include <iostream>
 #include <memory>
 
@@ -27,7 +27,14 @@ namespace {
   }
 }
 
-int main() try {
+int main(int argc, char** argv) try {
+  const util::ProgramOptions opts{argc, argv};
+  const auto mapfile{opts.arg("--map", "data/maps/ascii_jungle.txt")};
+  const auto supervisor{!opts["--no-supervisor"]};
+
+  if (supervisor)
+    ui::IO::supervisor();
+
   ui::IO io;
 
   sc2::Assets::init();
@@ -36,7 +43,7 @@ int main() try {
 
   const auto sides{makeSides(world)};
   const auto side{sides[0]};
-  world.loadMap(sc2::Assets::mapInitializer(), std::ifstream{"data/maps/ascii_jungle.txt"});
+  world.loadMap(sc2::Assets::mapInitializer(), mapfile);
   ui::Player player{side, ui::Camera{{2, 6}, world.map.area()}};
 
   auto* nexus{world.closestActiveUnit(player.camera.area().center(), side, sc2::UnitTypes::nexus)};

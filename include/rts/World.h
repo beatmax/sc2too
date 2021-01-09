@@ -57,6 +57,7 @@ namespace rts {
     World(const World&) = delete;
     World& operator=(const World&) = delete;
 
+    void loadMap(const MapInitializer& init, const std::string& fpath);
     void loadMap(const MapInitializer& init, std::istream&& is);
     void loadMap(const MapInitializer& init, const std::vector<std::string>& lines);
     void exec(const SideCommand& cmd);

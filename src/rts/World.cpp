@@ -44,6 +44,10 @@ rts::World::~World() {
     destroy(rf);
 }
 
+void rts::World::loadMap(const MapInitializer& init, const std::string& fpath) {
+  map.load(*this, init, fpath);
+}
+
 void rts::World::loadMap(const MapInitializer& init, std::istream&& is) {
   map.load(*this, init, std::move(is));
 }

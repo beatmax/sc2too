@@ -13,6 +13,8 @@ namespace ui {
     std::unique_ptr<IOState> state_;
 
   public:
+    static void supervisor();
+
     IO();
     ~IO();
 
