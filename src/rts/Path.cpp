@@ -105,7 +105,8 @@ rts::Point rts::closestConnectedPoint(const World& w, Point p, Point goal) {
 std::pair<rts::Path, bool> rts::findPath(
     const World& w, Point start, Point goal, const ExcludedPointSet& excl) {
   auto object{w.object(goal)};
-  auto goalArea{object ? boundingBox(object->area) : Rectangle{goal, {1, 1}}};
+  auto goalArea{
+      object ? intersection(w.map.area(), boundingBox(object->area)) : Rectangle{goal, {1, 1}}};
   return findPath(w, start, goal, goalArea, excl);
 }
 
@@ -117,6 +118,9 @@ std::pair<rts::Path, bool> rts::findPath(
 std::pair<rts::Path, bool> rts::findPath(
     const World& w, Point start, Point goal, Rectangle goalArea, const ExcludedPointSet& excl) {
   using AStar = util::AStar<Graph>;
+
+  assert(goalArea.contains(goal));
+  assert(w.map.area().contains(goalArea));
 
   const bool reachable{util::anyOf(
       goalArea.outerPoints(),
@@ -148,7 +152,9 @@ std::pair<rts::Path, bool> rts::findPathToTarget(
       util::Overloaded{
           [](std::monostate) { return std::make_pair(rts::Path{}, false); },
           [&](Point p) { return findPath(w, start, p, excl); },
-          [&](auto id) { return findPath(w, start, boundingBox(w[id].area), excl); }},
+          [&](auto id) {
+            return findPath(w, start, intersection(w.map.area(), boundingBox(w[id].area)), excl);
+          }},
       target);
 }
 

@@ -29,45 +29,45 @@ gg     bb
 gg w   bb 
        bb 
           
-==========  [t:143 m:980 g:0]
-ggw    bb 
+==========  [t:102 m:980 g:0]
 gg     bb 
+ggw    bb 
        bb 
           
-==========  [t:161 m:980 g:0]
-eew    bb 
+==========  [t:121 m:980 g:0]
 ee     bb 
+eew    bb 
        bb 
           
-==========  [t:171 m:980 g:0]
-eew    bb 
+==========  [t:131 m:980 g:0]
 ee     bb 
+eew    bb 
        bb 
           
 ----------
 trigger gather 0,0
 run
-----------  [t:171 m:980 g:0]
-eew    bb 
+----------  [t:131 m:980 g:0]
 ee     bb 
+eew    bb 
        bb 
           
-==========  [t:384 m:980 g:0]
+==========  [t:385 m:980 g:0]
 ee w   bb 
 ee     bb 
        bb 
           
-==========  [t:484 m:980 g:0]
+==========  [t:485 m:980 g:0]
 ee  w  bb 
 ee     bb 
        bb 
           
-==========  [t:584 m:980 g:0]
+==========  [t:585 m:980 g:0]
 ee   w bb 
 ee     bb 
        bb 
           
-==========  [t:684 m:980 g:0]
+==========  [t:685 m:980 g:0]
 ee    wbb 
 ee     bb 
        bb 

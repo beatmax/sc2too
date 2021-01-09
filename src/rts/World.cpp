@@ -346,7 +346,7 @@ const rts::ResourceField* rts::World::closestResourceField(Point p, ResourceId r
 }
 
 std::optional<rts::Point> rts::World::emptyCellAround(const Rectangle& area, Point towards) const {
-  auto points{util::geo::boundingBox(area).outerPoints()};
+  auto points{intersection(map.area(), boundingBox(area)).outerPoints()};
   auto it{util::minElementBy(points, [&](Point p) {
     return map[p].empty() ? diagonalDistance(p, towards) : std::numeric_limits<float>::max();
   })};

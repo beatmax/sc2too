@@ -43,14 +43,14 @@ x       r
 y                
 t              mm
                mm
-=================  [t:143 m:980 g:0 s:8/0]
-        r        
-yx               
+=================  [t:102 m:980 g:0 s:8/0]
+ x      r        
+y                
 t              mm
                mm
 =================  [t:200 m:980 g:0 s:8/0]
-        r        
-yx               
+ x      r        
+y                
 t              mm
                mm
 -----------------
@@ -62,88 +62,78 @@ trigger build_base 10,2
 prototype: none
 run
 -----------------  [t:200 m:960 g:0 s:8/0]
-        r        
-yx               
+ x      r        
+y                
 t              mm
                mm
-=================  [t:243 m:960 g:0 s:8/0]
-        r        
-y x              
+=================  [t:202 m:960 g:0 s:8/0]
+  x     r        
+y                
 t              mm
                mm
-=================  [t:261 m:960 g:0 s:8/0]
-        r        
-y xbb            
+=================  [t:221 m:960 g:0 s:8/0]
+  x     r        
+y  bb            
 t  bb          mm
    bb          mm
-=================  [t:291 m:960 g:0 s:8/15]
-        r        
-y xbb            
+=================  [t:251 m:960 g:0 s:8/15]
+  x     r        
+y  bb            
 t  bb          mm
    bb          mm
 =================  [t:302 m:960 g:0 s:8/15]
-        r        
- yxbb            
+  x     r        
+ y bb            
 t  bb          mm
    bb          mm
 =================  [t:402 m:960 g:0 s:8/15]
-        r        
-  xbb            
-t ybb          mm
-   bb          mm
-=================  [t:545 m:960 g:0 s:8/15]
-        r        
- yxbb            
+  x     r        
+  ybb            
 t  bb          mm
    bb          mm
-=================  [t:686 m:960 g:0 s:8/15]
-  y     r        
-  xbb            
+=================  [t:502 m:960 g:0 s:8/15]
+  xy    r        
+   bb            
 t  bb          mm
    bb          mm
-=================  [t:786 m:960 g:0 s:8/15]
-   y    r        
-  xbb            
+=================  [t:643 m:960 g:0 s:8/15]
+  x y   r        
+   bb            
 t  bb          mm
    bb          mm
-=================  [t:886 m:960 g:0 s:8/15]
-    y   r        
-  xbb            
+=================  [t:784 m:960 g:0 s:8/15]
+  x     r        
+   bby           
 t  bb          mm
    bb          mm
-=================  [t:986 m:960 g:0 s:8/15]
-     y  r        
-  xbb            
+=================  [t:884 m:960 g:0 s:8/15]
+  x     r        
+   bb y          
 t  bb          mm
    bb          mm
-=================  [t:1086 m:960 g:0 s:8/15]
-      y r        
-  xbb            
+=================  [t:984 m:960 g:0 s:8/15]
+  x     r        
+   bb  y         
 t  bb          mm
    bb          mm
-=================  [t:1227 m:960 g:0 s:8/15]
-        r        
-  xbb  y         
+=================  [t:1084 m:960 g:0 s:8/15]
+  x     r        
+   bb   y        
 t  bb          mm
    bb          mm
-=================  [t:1327 m:960 g:0 s:8/15]
-        r        
-  xbb   y        
+=================  [t:1184 m:960 g:0 s:8/15]
+  x     r        
+   bb    y       
 t  bb          mm
    bb          mm
-=================  [t:1427 m:960 g:0 s:8/15]
-        r        
-  xbb    y       
-t  bb          mm
-   bb          mm
-=================  [t:1441 m:960 g:0 s:8/15]
-        r        
-  xbb    ybb     
+=================  [t:1201 m:960 g:0 s:8/15]
+  x     r        
+   bb    ybb     
 t  bb     bb   mm
    bb     bb   mm
-=================  [t:1471 m:960 g:0 s:8/30]
-        r        
-  xbb    ybb     
+=================  [t:1231 m:960 g:0 s:8/30]
+  x     r        
+   bb    ybb     
 t  bb     bb   mm
    bb     bb   mm
 -----------------
@@ -151,9 +141,9 @@ t  bb     bb   mm
 # build base possible after resource fields are destroyed
 quantity(15,2) = -1
 run
------------------  [t:1471 m:960 g:0 s:8/30]
-        r        
-  xbb    ybb     
+-----------------  [t:1231 m:960 g:0 s:8/30]
+  x     r        
+   bb    ybb     
 t  bb     bb     
    bb     bb     
 -----------------
@@ -163,39 +153,39 @@ prototype: base
 trigger build_base 14,1
 prototype: none
 run
------------------  [t:1471 m:940 g:0 s:8/30]
-        r        
-  xbb    ybb     
+-----------------  [t:1231 m:940 g:0 s:8/30]
+  x     r        
+   bb    ybb     
 t  bb     bb     
    bb     bb     
-=================  [t:1614 m:940 g:0 s:8/30]
-        r y      
-  xbb     bb     
+=================  [t:1374 m:940 g:0 s:8/30]
+  x     r y      
+   bb     bb     
 t  bb     bb     
    bb     bb     
-=================  [t:1714 m:940 g:0 s:8/30]
-        r  y     
-  xbb     bb     
+=================  [t:1474 m:940 g:0 s:8/30]
+  x     r  y     
+   bb     bb     
 t  bb     bb     
    bb     bb     
-=================  [t:1814 m:940 g:0 s:8/30]
-        r   y    
-  xbb     bb     
+=================  [t:1574 m:940 g:0 s:8/30]
+  x     r   y    
+   bb     bb     
 t  bb     bb     
    bb     bb     
-=================  [t:1914 m:940 g:0 s:8/30]
-        r    y   
-  xbb     bb     
+=================  [t:1674 m:940 g:0 s:8/30]
+  x     r    y   
+   bb     bb     
 t  bb     bb     
    bb     bb     
-=================  [t:1932 m:940 g:0 s:8/30]
-        r    ybb 
-  xbb     bb  bb 
+=================  [t:1692 m:940 g:0 s:8/30]
+  x     r    ybb 
+   bb     bb  bb 
 t  bb     bb  bb 
    bb     bb     
-=================  [t:1962 m:940 g:0 s:8/45]
-        r    ybb 
-  xbb     bb  bb 
+=================  [t:1722 m:940 g:0 s:8/45]
+  x     r    ybb 
+   bb     bb  bb 
 t  bb     bb  bb 
    bb     bb     
 -----------------

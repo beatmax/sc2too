@@ -80,6 +80,12 @@ namespace util::geo {
       const auto& bro{bottomRightOut()};
       return p.x >= topLeft.x && p.y >= topLeft.y && p.x < bro.x && p.y < bro.y;
     }
+    bool contains(const Rectangle& r) const {
+      const auto& bro1{bottomRightOut()};
+      const auto& bro2{r.bottomRightOut()};
+      return topLeft.x <= r.topLeft.x && topLeft.y <= r.topLeft.y && bro1.x >= bro2.x &&
+          bro1.y >= bro2.y;
+    }
 
     struct PointIterator {
       using iterator_category = std::forward_iterator_tag;
