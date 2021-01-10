@@ -5,11 +5,10 @@
 namespace ui {
   class Camera {
   public:
-    constexpr static rts::Coordinate width{27};
-    constexpr static rts::Coordinate height{18};
+    constexpr static rts::Vector Size{27, 18};
 
     Camera(rts::Point topLeft, const rts::Rectangle& mapArea)
-      : area_{topLeft, {width, height}}, bounds_{mapArea} {}
+      : area_{topLeft, Size}, bounds_{mapArea} {}
 
     const rts::Rectangle& area() const { return area_; }
     const rts::Point topLeft() const { return area_.topLeft; }

@@ -154,10 +154,7 @@ const ui::Frame& ui::Sprite::frame(FrameIndex frame, rts::Direction direction) c
 }
 
 rts::Rectangle ui::Sprite::area(rts::Point topLeft) const {
-  return {
-      topLeft,
-      {rts::Coordinate((frame().cols() + 1) / (dim::cellWidth + 1)),
-       rts::Coordinate((frame().rows() + 1) / (dim::cellHeight + 1))}};
+  return {topLeft, scaleDiv(rts::Vector{frame().cols() + 1, frame().rows() + 1}, dim::CellSizeEx)};
 }
 
 void ui::SpriteUiBase::update(const rts::World& w, const rts::WorldObject& obj) {

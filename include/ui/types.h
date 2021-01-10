@@ -15,6 +15,7 @@ namespace ui {
   class Sprite;
 
   using FrameIndex = uint32_t;
+  using ScreenCoordinate = util::geo::Coordinate;
   using ScreenPoint = util::geo::Point;
   using ScreenVector = util::geo::Vector;
   using ScreenRect = util::geo::Rectangle;

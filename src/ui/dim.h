@@ -5,24 +5,22 @@
 #include <sys/types.h>
 
 namespace ui::dim {
-  constexpr int cellWidth{3};
-  constexpr int cellHeight{1};
+  constexpr ScreenVector CellSize{3, 1};
+  constexpr ScreenVector CellSizeEx{CellSize + ScreenVector{1, 1}};
 
-  constexpr int totalCellWidth{int(Camera::width) * (1 + cellWidth) - 1};
-  constexpr int totalCellHeight{int(Camera::height) * (1 + cellHeight) - 1};
+  constexpr ScreenVector MapViewSize{scale(Camera::Size, CellSizeEx) - ScreenVector{1, 1}};
 
-  constexpr int defaultWinLeft{1};
-  constexpr int defaultWinWidth{totalCellWidth};
+  constexpr ScreenCoordinate DefaultWinLeft{1};
+  constexpr ScreenCoordinate DefaultWinWidth{MapViewSize.x};
 
-  constexpr int headerWinTop{1};
-  constexpr int headerWinHeight{1};
+  constexpr ScreenCoordinate HeaderWinTop{1};
+  constexpr ScreenCoordinate HeaderWinHeight{1};
 
-  constexpr int renderWinTop{headerWinTop + headerWinHeight + 1};
-  constexpr int renderWinHeight{totalCellHeight};
+  constexpr ScreenCoordinate RenderWinTop{HeaderWinTop + HeaderWinHeight + 1};
+  constexpr ScreenCoordinate RenderWinHeight{MapViewSize.y};
 
-  constexpr int controlWinTop{renderWinTop + renderWinHeight + 1};
-  constexpr int controlWinHeight{9};
+  constexpr ScreenCoordinate ControlWinTop{RenderWinTop + RenderWinHeight + 1};
+  constexpr ScreenCoordinate ControlWinHeight{9};
 
-  constexpr int totalWidth{defaultWinWidth + 2};
-  constexpr int totalHeight{controlWinTop + controlWinHeight + 1};
+  constexpr ScreenVector TotalSize{DefaultWinWidth + 2, ControlWinTop + ControlWinHeight + 1};
 }

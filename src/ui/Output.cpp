@@ -56,20 +56,20 @@ namespace ui {
     void initWins(IOState& ios) {
       int maxY, maxX;
       getmaxyx(stdscr, maxY, maxX);
-      termTooSmall = maxY < dim::totalHeight || maxX < dim::totalWidth;
+      termTooSmall = maxY < dim::TotalSize.y || maxX < dim::TotalSize.x;
 
-      const int top{maxY < dim::totalHeight ? 0 : (maxY - dim::totalHeight) / 2};
-      const int left{maxX < dim::totalWidth ? 0 : (maxX - dim::totalWidth) / 2};
+      const int top{maxY < dim::TotalSize.y ? 0 : (maxY - dim::TotalSize.y) / 2};
+      const int left{maxX < dim::TotalSize.x ? 0 : (maxX - dim::TotalSize.x) / 2};
 
       newWin(
-          &ios.headerWin, dim::headerWinHeight, dim::defaultWinWidth, top + dim::headerWinTop,
-          left + dim::defaultWinLeft);
+          &ios.headerWin, dim::HeaderWinHeight, dim::DefaultWinWidth, top + dim::HeaderWinTop,
+          left + dim::DefaultWinLeft);
       newWin(
-          &ios.renderWin, dim::renderWinHeight, dim::defaultWinWidth, top + dim::renderWinTop,
-          left + dim::defaultWinLeft);
+          &ios.renderWin, dim::RenderWinHeight, dim::DefaultWinWidth, top + dim::RenderWinTop,
+          left + dim::DefaultWinLeft);
       newWin(
-          &ios.controlWin, dim::controlWinHeight, dim::defaultWinWidth, top + dim::controlWinTop,
-          left + dim::defaultWinLeft);
+          &ios.controlWin, dim::ControlWinHeight, dim::DefaultWinWidth, top + dim::ControlWinTop,
+          left + dim::DefaultWinLeft);
 
       graph::drawBorders(allWins);
       refresh();
@@ -85,7 +85,7 @@ namespace ui {
 
     void drawResourceQuantities(const IOState& ios, const rts::World& w, const rts::Side& side) {
       const auto& win{ios.headerWin};
-      int x = dim::defaultWinWidth;
+      int x = dim::DefaultWinWidth;
       const auto& resources{side.resources()};
       for (auto id{resources.maxId()}; id >= resources.minId(); --id) {
         const auto& ui{getUi(w[id])};
@@ -149,9 +149,9 @@ namespace ui {
 
       const auto& win{ios.controlWin};
       const auto left{40};
-      const auto right{left + (rts::MaxProductionQueueSize - 2) * (dim::cellWidth + 1)};
+      const auto right{left + (rts::MaxProductionQueueSize - 2) * dim::CellSizeEx.x};
       const auto iconColor{frozen ? Color::DarkGray : getColor(w[pq.side()])};
-      ScreenRect rect{{right, 4}, {dim::cellWidth, dim::cellHeight}};
+      ScreenRect rect{{right, 4}, dim::CellSize};
 
       for (size_t i{0}; i < rts::MaxProductionQueueSize; ++i) {
         wattrset(win.w, frozen ? graph::darkGray() : graph::darkGreen());
@@ -161,10 +161,10 @@ namespace ui {
 
         if (i == 0) {
           rect.topLeft.x = left;
-          rect.topLeft.y += dim::cellHeight + 1;
+          rect.topLeft.y += dim::CellSizeEx.y;
         }
         else {
-          rect.topLeft.x += dim::cellWidth + 1;
+          rect.topLeft.x += dim::CellSizeEx.x;
         }
       }
     }
@@ -248,14 +248,14 @@ namespace ui {
 
       int row{0}, col{0};
       const auto left{40};
-      ScreenRect rect{{left, 2}, {dim::cellWidth, dim::cellHeight}};
+      ScreenRect rect{{left, 2}, dim::CellSize};
 
       const auto units{selection.items(w)};
       for (auto* u : units) {
         if (col == 8) {
           col = 0;
           rect.topLeft.x = left;
-          rect.topLeft.y += dim::cellHeight + 1;
+          rect.topLeft.y += dim::CellSizeEx.y;
           if (++row == 3)
             break;
         }
@@ -269,7 +269,7 @@ namespace ui {
             mvwaddnwstr(win.w, rect.topLeft.y, rect.topLeft.x + 2, &productionDots[sz], 1);
           }
         }
-        rect.topLeft.x += dim::cellWidth + 1;
+        rect.topLeft.x += dim::CellSizeEx.x;
         ++col;
       }
       if (row == 3)
@@ -296,8 +296,8 @@ namespace ui {
             continue;
           if (const auto a{subgroup.abilities[ai]->abilityId}) {
             ScreenRect rect{
-                {79 + col * (dim::cellWidth + 2), 2 + row * (dim::cellHeight + 1)},
-                {dim::cellWidth + 1, dim::cellHeight}};
+                {79 + col * (dim::CellSizeEx.x + 1), 2 + row * dim::CellSizeEx.y},
+                dim::CellSize + ScreenVector{1, 0}};
             wattrset(win.w, graph::lightGreen());
             graph::drawRect(win, boundingBox(rect));
             wattrset(
@@ -405,7 +405,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
     mvwprintw(
         ios_.headerWin.w, 0, 0,
         "=== PLEASE RESIZE TERMINAL TO AT LEAST %d LINES AND %d COLUMNS (press Q to quit) ===",
-        dim::totalHeight, dim::totalWidth);
+        dim::TotalSize.y, dim::TotalSize.x);
     if (!ios_.menu.active()) {
       ios_.menu.show();
       X::finish();

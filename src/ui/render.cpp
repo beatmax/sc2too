@@ -14,7 +14,7 @@
 #include <vector>
 
 ui::ScreenVector ui::toScreenVector(rts::Vector v) {
-  return {v.x * (dim::cellWidth + 1), v.y * (dim::cellHeight + 1)};
+  return scale(v, dim::CellSizeEx);
 }
 
 ui::ScreenPoint ui::toScreenPoint(const Camera& camera, rts::Point p) {
@@ -30,15 +30,15 @@ void ui::grid(const Window& win) {
 
   int y = 0;
   for (rts::Coordinate cellY = 0;;) {
-    for (rts::Coordinate cellX = 1; cellX < Camera::width; ++cellX)
-      mvwvline(win.w, y, cellX * (dim::cellWidth + 1) - 1, 0, dim::cellHeight);
-    if (++cellY == Camera::height)
+    for (rts::Coordinate cellX = 1; cellX < Camera::Size.x; ++cellX)
+      mvwvline(win.w, y, cellX * dim::CellSizeEx.x - 1, 0, dim::CellSize.y);
+    if (++cellY == Camera::Size.y)
       break;
-    y += dim::cellHeight;
-    mvwhline(win.w, y, 0, 0, dim::cellWidth);
-    for (rts::Coordinate cellX = 1; cellX < Camera::width; ++cellX) {
-      mvwaddch(win.w, y, cellX * (dim::cellWidth + 1) - 1, ACS_PLUS);
-      whline(win.w, 0, dim::cellWidth);
+    y += dim::CellSize.y;
+    mvwhline(win.w, y, 0, 0, dim::CellSize.x);
+    for (rts::Coordinate cellX = 1; cellX < Camera::Size.x; ++cellX) {
+      mvwaddch(win.w, y, cellX * dim::CellSizeEx.x - 1, ACS_PLUS);
+      whline(win.w, 0, dim::CellSize.x);
     }
     ++y;
   }
@@ -112,13 +112,13 @@ void ui::highlight(const Window& win, const Camera& camera, rts::Point cell, int
   util::geo::AtBorder atBorder{camera.area(), cell};
   wattrset(win.w, color);
   if (!atBorder.top)
-    mvwhline(win.w, topLeft.y - 1, topLeft.x, 0, dim::cellWidth);
+    mvwhline(win.w, topLeft.y - 1, topLeft.x, 0, dim::CellSize.x);
   if (!atBorder.bottom)
-    mvwhline(win.w, topLeft.y + dim::cellHeight, topLeft.x, 0, dim::cellWidth);
+    mvwhline(win.w, topLeft.y + dim::CellSize.y, topLeft.x, 0, dim::CellSize.x);
   if (!atBorder.left)
-    mvwvline(win.w, topLeft.y, topLeft.x - 1, 0, dim::cellHeight);
+    mvwvline(win.w, topLeft.y, topLeft.x - 1, 0, dim::CellSize.y);
   if (!atBorder.right)
-    mvwvline(win.w, topLeft.y, topLeft.x + dim::cellWidth, 0, dim::cellHeight);
+    mvwvline(win.w, topLeft.y, topLeft.x + dim::CellSize.x, 0, dim::CellSize.y);
 }
 
 void ui::highlight(const Window& win, const Camera& camera, const rts::Rectangle& area, int color) {

@@ -179,8 +179,7 @@ void ui::Input::updateMouseCell(const Camera& camera) {
 
   if (wenclose(ios_.renderWin.w, event.y, event.x) &&
       wmouse_trafo(ios_.renderWin.w, &event.y, &event.x, false)) {
-    mouseCell = camera.area().topLeft +
-        rts::Vector{event.x / (dim::cellWidth + 1), event.y / (dim::cellHeight + 1)};
+    mouseCell = camera.area().topLeft + scaleDiv(ScreenVector{event.x, event.y}, dim::CellSizeEx);
   }
   else {
     mouseCell.reset();
@@ -239,9 +238,13 @@ ui::InputEvent ui::Input::edgeScrollEvent() {
   auto x = X::pointerX;
   auto y = X::pointerY;
   auto hDirection{
-      (x == 0) ? ScrollDirectionLeft : (x == int(X::displayWidth - 1)) ? ScrollDirectionRight : 0};
+      (x == 0)                              ? ScrollDirectionLeft
+          : (x == int(X::displayWidth - 1)) ? ScrollDirectionRight
+                                            : 0};
   auto vDirection{
-      (y == 0) ? ScrollDirectionUp : (y == int(X::displayHeight - 1)) ? ScrollDirectionDown : 0};
+      (y == 0)                               ? ScrollDirectionUp
+          : (y == int(X::displayHeight - 1)) ? ScrollDirectionDown
+                                             : 0};
   ScrollDirection direction{hDirection | vDirection};
 
   if (edgeScrollDirection != direction) {

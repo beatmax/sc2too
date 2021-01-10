@@ -36,19 +36,26 @@ namespace util::geo {
   using PointList = std::vector<Point>;
   using VectorList = std::vector<Vector>;
 
-  inline Point operator+(const Point& p, const Vector& v) { return {p.x + v.x, p.y + v.y}; }
-  inline Point& operator+=(Point& p, const Vector& v) { return p = p + v; }
-  inline Point operator-(const Point& p, const Vector& v) { return {p.x - v.x, p.y - v.y}; }
-  inline Point& operator-=(Point& p, const Vector& v) { return p = p - v; }
-  inline Vector operator-(const Point& a, const Point& b) { return {a.x - b.x, a.y - b.y}; }
-  inline Vector operator+(const Vector& v1, const Vector& v2) { return {v1.x + v2.x, v1.y + v2.y}; }
-  inline Vector& operator+=(Vector& v1, const Vector& v2) { return v1 = v1 + v2; }
-  inline Vector operator-(const Vector& v1, const Vector& v2) { return {v1.x - v2.x, v1.y - v2.y}; }
-  inline Vector& operator-=(Vector& v1, const Vector& v2) { return v1 = v1 - v2; }
-  inline Vector operator-(const Vector& v) { return {-v.x, -v.y}; }
-  inline Vector operator*(const Vector& v, Coordinate f) { return {v.x * f, v.y * f}; }
-  inline Vector operator/(const Vector& v, Coordinate d) { return {v.x / d, v.y / d}; }
+  constexpr Point operator+(const Point& p, const Vector& v) { return {p.x + v.x, p.y + v.y}; }
+  constexpr Point& operator+=(Point& p, const Vector& v) { return p = p + v; }
+  constexpr Point operator-(const Point& p, const Vector& v) { return {p.x - v.x, p.y - v.y}; }
+  constexpr Point& operator-=(Point& p, const Vector& v) { return p = p - v; }
+  constexpr Vector operator-(const Point& a, const Point& b) { return {a.x - b.x, a.y - b.y}; }
+  constexpr Vector operator+(const Vector& v1, const Vector& v2) {
+    return {v1.x + v2.x, v1.y + v2.y};
+  }
+  constexpr Vector& operator+=(Vector& v1, const Vector& v2) { return v1 = v1 + v2; }
+  constexpr Vector operator-(const Vector& v1, const Vector& v2) {
+    return {v1.x - v2.x, v1.y - v2.y};
+  }
+  constexpr Vector& operator-=(Vector& v1, const Vector& v2) { return v1 = v1 - v2; }
+  constexpr Vector operator-(const Vector& v) { return {-v.x, -v.y}; }
+  constexpr Vector operator*(const Vector& v, Coordinate f) { return {v.x * f, v.y * f}; }
+  constexpr Vector operator/(const Vector& v, Coordinate d) { return {v.x / d, v.y / d}; }
   PointList operator+(const Point& p, const VectorList& vs);
+
+  constexpr Vector scale(const Vector& v, const Vector& s) { return {v.x * s.x, v.y * s.y}; }
+  constexpr Vector scaleDiv(const Vector& v, const Vector& s) { return {v.x / s.x, v.y / s.y}; }
 
   constexpr float DirD{1.0};
   constexpr float DiagD{1.41};
