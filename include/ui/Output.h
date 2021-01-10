@@ -12,9 +12,11 @@ namespace ui {
     ~Output();
 
     void init();
-    void update(const rts::Engine& engine, const rts::World& w, const Player& player);
+    void update(const rts::Engine& engine, const rts::World& w, Player& player);
 
   private:
+    void doUpdate(const rts::Engine& engine, const rts::World& w, const Player& player);
+
     IOState& ios_;
   };
 }

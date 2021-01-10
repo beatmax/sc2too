@@ -3,8 +3,8 @@
 #include "IOState.h"
 #include "MenuImpl.h"
 #include "X.h"
-#include "dim.h"
 #include "rts/Engine.h"
+#include "ui/dim.h"
 
 #include <cassert>
 #include <optional>
@@ -18,7 +18,7 @@
 
 namespace {
   ui::InputState buttons{};
-  std::optional<rts::Point> mouseCell;
+  ui::InputMousePosition mousePosition{ui::InputMouseArea::None, {-1, -1}};
   bool mouseCellUpdated{false};
   ui::ScrollDirection edgeScrollDirection{};
   bool motionReportingEnabled{false};
@@ -72,18 +72,16 @@ void ui::Input::finish() {
 
 std::optional<rts::SideCommand> ui::Input::process(
     rts::Engine& engine, const rts::World& w, Player& player) {
-  if (ios_.menu.active()) {
+  if (ios_.paused()) {
     nodelay(stdscr, false);
     MenuImpl::processInput(ios_.menu, ios_.quit);
-    if (!ios_.menu.active()) {
+    if (!ios_.paused()) {
       X::init();
       X::grabInput();
       nodelay(stdscr, true);
     }
     return std::nullopt;
   }
-
-  player.update(w);
 
   auto sideCommand = [&](std::optional<rts::Command>&& cmd) -> std::optional<rts::SideCommand> {
     ios_.clickedTarget = getTarget(cmd);
@@ -120,7 +118,7 @@ std::optional<rts::SideCommand> ui::Input::process(
   while (X::pendingEvent()) {
     InputEvent event{X::nextEvent()};
     if (processKbInput(engine, event)) {
-      if (ios_.menu.active()) {
+      if (ios_.paused()) {
         X::finish();
         return std::nullopt;
       }
@@ -159,8 +157,8 @@ bool ui::Input::processMouseInput(const InputEvent& event) {
   ios_.mouseButtons = buttons >> 8;
   if (event.type != InputType::MousePosition)
     ++ios_.clicks;
-  if (event.mouseCell)
-    ios_.mousePosition = *event.mouseCell;
+  if (event.mousePosition.area == InputMouseArea::Map)
+    ios_.mousePosition = event.mousePosition.point;
 
   if (!motionReportingEnabled && event.type == InputType::MousePress) {
     // on some terminals ncurses gets stuck if motion reporting is enabled before a click;
@@ -177,20 +175,35 @@ void ui::Input::updateMouseCell(const Camera& camera) {
   if (getmouse(&event) != OK)
     return;
 
-  if (wenclose(ios_.renderWin.w, event.y, event.x) &&
-      wmouse_trafo(ios_.renderWin.w, &event.y, &event.x, false)) {
-    mouseCell = camera.area().topLeft + scaleDiv(ScreenVector{event.x, event.y}, dim::CellSizeEx);
-  }
-  else {
-    mouseCell.reset();
-  }
-
+  mousePosition.area = InputMouseArea::None;
   mouseCellUpdated = true;
+
+  if (wenclose(ios_.renderWin.w, event.y, event.x)) {
+    if (wmouse_trafo(ios_.renderWin.w, &event.y, &event.x, false)) {
+      mousePosition.area = InputMouseArea::Map;
+      mousePosition.point =
+          camera.area().topLeft + scaleDiv(ScreenVector{event.x, event.y}, dim::CellSizeEx);
+    }
+  }
+  else if (wenclose(ios_.controlWin.w, event.y, event.x)) {
+    if (wmouse_trafo(ios_.controlWin.w, &event.y, &event.x, false)) {
+      ScreenPoint p{event.x, event.y};
+      if (dim::SelectionAreaEx.contains(p)) {
+        mousePosition.area = InputMouseArea::Selection;
+        if (event.x == dim::SelectionAreaEx.topLeft.x)
+          ++event.x;
+        if (event.y == dim::SelectionAreaEx.topLeft.y)
+          ++event.y;
+        mousePosition.point = transformDiv(
+            ScreenPoint{event.x, event.y}, dim::CellSizeEx, dim::SelectionArea.topLeft, {0, 0});
+      }
+    }
+  }
 }
 
 ui::InputEvent ui::Input::nextMouseEvent() {
   InputEvent ievent;
-  ievent.mouseCell = mouseCell;
+  ievent.mousePosition = mousePosition;
   ievent.state = X::inputState;
 
   // use button state from X to generate mouse events; ncurses misses events

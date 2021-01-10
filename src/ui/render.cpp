@@ -1,11 +1,11 @@
 #include "render.h"
 
-#include "dim.h"
 #include "graph.h"
 #include "rts/Selection.h"
 #include "rts/Unit.h"
 #include "rts/World.h"
 #include "ui/Sprite.h"
+#include "ui/dim.h"
 #include "util/geo.h"
 
 #include <algorithm>

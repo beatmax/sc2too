@@ -6,6 +6,7 @@
 #include <ncurses.h>
 #endif
 
+#include "util/Matrix.h"
 #include "util/geo.h"
 
 #include <cstdint>
@@ -15,10 +16,25 @@ namespace ui {
   class Sprite;
 
   using FrameIndex = uint32_t;
+
+  using MatrixCoordinate = util::geo::Coordinate;
+  using MatrixPoint = util::geo::Point;
+  using MatrixVector = util::geo::Vector;
+  using MatrixRect = util::geo::Rectangle;
+
   using ScreenCoordinate = util::geo::Coordinate;
   using ScreenPoint = util::geo::Point;
   using ScreenVector = util::geo::Vector;
   using ScreenRect = util::geo::Rectangle;
+
+  template<typename T>
+  class Matrix : public util::Matrix<T, MatrixCoordinate> {
+    using Inherited = util::Matrix<T, MatrixCoordinate>;
+  public:
+    explicit Matrix(MatrixVector sz) : Inherited{sz.y, sz.x} {}
+    T& operator[](MatrixPoint p) { return (*this)(p.y, p.x); }
+    const T& operator[](MatrixPoint p) const { return (*this)(p.y, p.x); }
+  };
 
   struct Window {
     WINDOW* w{};

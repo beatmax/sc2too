@@ -4,7 +4,6 @@
 #include "Layout.h"
 #include "MenuImpl.h"
 #include "X.h"
-#include "dim.h"
 #include "graph.h"
 #include "render.h"
 #include "rts/Engine.h"
@@ -13,6 +12,7 @@
 #include "ui/ResourceUi.h"
 #include "ui/SideUi.h"
 #include "ui/Sprite.h"
+#include "ui/dim.h"
 
 #include <cassert>
 #include <signal.h>
@@ -242,40 +242,39 @@ namespace ui {
     void drawSelection(
         const IOState& ios,
         const rts::World& w,
-        const rts::Selection& selection,
+        const WorldView& wv,
         rts::UnitTypeId subgroupType) {
       const auto& win{ios.controlWin};
+      const auto& selection{wv.selection};
 
-      int row{0}, col{0};
-      const auto left{40};
-      ScreenRect rect{{left, 2}, dim::CellSize};
+      for (auto p : MatrixRect{{0, 0}, {selection.cols(), selection.rows()}}.points()) {
+        if (auto id{selection[p]}) {
+          const auto& u{w[id]};
+          const ScreenRect rect{
+              transform(p, dim::CellSizeEx, dim::SelectionArea.topLeft), dim::CellSize};
 
-      const auto units{selection.items(w)};
-      for (auto* u : units) {
-        if (col == 8) {
-          col = 0;
-          rect.topLeft.x = left;
-          rect.topLeft.y += dim::CellSizeEx.y;
-          if (++row == 3)
-            break;
-        }
-        wattrset(win.w, graph::green());
-        graph::drawRect(win, boundingBox(rect));
-        const auto color = (u->type == subgroupType) ? Color::LightGreen : Color::DarkGreen;
-        graph::drawFrame(win, getIcon(w[u->type]).frame(), rect.topLeft, color);
-        if (units.size() > 1 && u->productionQueue) {
-          if (auto sz{w[u->productionQueue].size()}) {
-            assert(sz < sizeof(productionDots) / sizeof(productionDots[0]) - 1);
-            mvwaddnwstr(win.w, rect.topLeft.y, rect.topLeft.x + 2, &productionDots[sz], 1);
+          wattrset(win.w, graph::green());
+          graph::drawRect(win, boundingBox(rect));
+          const auto color = (u.type == subgroupType) ? Color::LightGreen : Color::DarkGreen;
+          graph::drawFrame(win, getIcon(w[u.type]).frame(), rect.topLeft, color);
+          if (wv.selectionTotalSize > 1 && u.productionQueue) {
+            if (auto sz{w[u.productionQueue].size()}) {
+              assert(sz < sizeof(productionDots) / sizeof(productionDots[0]) - 1);
+              mvwaddnwstr(win.w, rect.topLeft.y, rect.topLeft.x + 2, &productionDots[sz], 1);
+            }
           }
         }
-        rect.topLeft.x += dim::CellSizeEx.x;
-        ++col;
       }
-      if (row == 3)
-        mvwprintw(win.w, rect.topLeft.y, rect.topLeft.x, "...");
-      if (units.size() == 1 && units.front()->productionQueue)
-        drawProductionQueue(ios, w, rts::StableRef{*units.front()});
+
+      if (wv.selectionTotalSize > selection.size()) {
+        auto pos{transform({0, selection.rows()}, dim::CellSizeEx, dim::SelectionArea.topLeft)};
+        mvwprintw(win.w, pos.y, pos.x, "...");
+      }
+      if (wv.selectionTotalSize == 1) {
+        assert(selection(0, 0));
+        if (const auto& u{w[selection(0, 0)]}; u.productionQueue)
+          drawProductionQueue(ios, w, rts::StableRef{u});
+      }
     }
 
     void drawAbilities(
@@ -344,7 +343,13 @@ void ui::Output::init() {
   initWins(ios_);
 }
 
-void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Player& player) {
+void ui::Output::update(const rts::Engine& engine, const rts::World& w, Player& player) {
+  if (!ios_.paused())
+    player.update(w);
+  doUpdate(engine, w, player);
+}
+
+void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const Player& player) {
   const auto& camera{player.camera};
   const auto& side{w[player.side]};
 
@@ -396,7 +401,7 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
   drawFps(ios_, engine);
   drawControlGroups(ios_, w, side);
 
-  drawSelection(ios_, w, side.selection(), subgroup.type);
+  drawSelection(ios_, w, player.worldView, subgroup.type);
   drawAbilities(ios_, w, player, subgroup);
   drawMessages(ios_, w, side.messages());
 
@@ -406,12 +411,12 @@ void ui::Output::update(const rts::Engine& engine, const rts::World& w, const Pl
         ios_.headerWin.w, 0, 0,
         "=== PLEASE RESIZE TERMINAL TO AT LEAST %d LINES AND %d COLUMNS (press Q to quit) ===",
         dim::TotalSize.y, dim::TotalSize.x);
-    if (!ios_.menu.active()) {
+    if (!ios_.paused()) {
       ios_.menu.show();
       X::finish();
     }
   }
-  else if (ios_.menu.active()) {
+  else if (ios_.paused()) {
     MenuImpl::print(ios_.menu, ios_.headerWin);
     mvwprintw(ios_.headerWin.w, 0, 40, "=== GAME PAUSED ===");
   }

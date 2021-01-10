@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <vector>
 
@@ -23,6 +24,13 @@ namespace util {
     const T& operator()(Dim i, Dim j) const {
       assert(i >= 0 && j >= 0 && i < rows_ && j < cols_);
       return data_[i * cols_ + j];
+    }
+
+    void setRaw(const std::vector<T>& d) {
+      const auto sz{data_.size()};
+      const auto n{std::min(d.size(), sz)};
+      data_.assign(d.begin(), d.begin() + n);
+      data_.resize(sz);
     }
 
   private:

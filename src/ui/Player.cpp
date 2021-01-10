@@ -6,6 +6,7 @@
 #include "rts/World.h"
 #include "rts/abilities.h"
 #include "util/ScopeExit.h"
+#include "util/algorithm.h"
 #include "util/geo.h"
 
 #include <cassert>
@@ -41,6 +42,8 @@ namespace ui {
 }
 
 void ui::Player::update(const rts::World& w) {
+  worldView.update(w, w[side]);
+
   if (state_ != State::Default) {
     if (state_ == State::BuildingPrototype && w[side].prototype()) {
       selectingAbilityTarget = {lastBuildAbilityIndex_};
@@ -159,8 +162,8 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
       }
       break;
     case InputType::MousePress:
-      if (event.mouseCell) {
-        auto mouseCell{*event.mouseCell};
+      if (event.mousePosition.area == InputMouseArea::Map) {
+        const auto& mousePoint{event.mousePosition.point};
 
         if (event.mouseButton == InputButton::Button1) {
           if (selectingAbilityTarget) {
@@ -172,11 +175,11 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
             const bool enqueue(event.state & ShiftPressed);
             selectingAbilityTarget->afterEnqueue = enqueue;
             return rts::command::TriggerAbility{
-                selectingAbilityTarget->abilityIndex, mouseCell, enqueue};
+                selectingAbilityTarget->abilityIndex, mousePoint, enqueue};
           }
-          auto rc{w.relativeContent(side, mouseCell)};
+          auto rc{w.relativeContent(side, mousePoint)};
           if (rc == RC::Friend || rc == RC::FriendResource) {
-            auto unit{w.unitId(mouseCell)};
+            auto unit{w.unitId(mousePoint)};
             auto units{
                 (event.state & ControlPressed) ? visibleSameType(w, unit) : rts::UnitIdList{unit}};
             if (event.state & ShiftPressed) {
@@ -189,8 +192,8 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
             }
           }
           else if (rc == RC::Ground) {
-            selectionBox = {mouseCell, {1, 1}};
-            selectionBoxStart_ = mouseCell;
+            selectionBox = {mousePoint, {1, 1}};
+            selectionBoxStart_ = mousePoint;
           }
           else if (!(event.state & ShiftPressed)) {
             return SelectionCmd{SelectionCmd::Set, {}};
@@ -198,7 +201,17 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
         }
         else if (event.mouseButton == InputButton::Button3) {
           const bool enqueue(event.state & ShiftPressed);
-          return rts::command::TriggerDefaultAbility{mouseCell, enqueue};
+          return rts::command::TriggerDefaultAbility{mousePoint, enqueue};
+        }
+      }
+      else if (
+          event.mouseButton == InputButton::Button1 &&
+          event.mousePosition.area == InputMouseArea::Selection) {
+        if (auto unit{worldView.selection[event.mousePosition.point]}) {
+          auto units{
+              (event.state & ControlPressed) ? selectedSameType(w, unit) : rts::UnitIdList{unit}};
+          return SelectionCmd{
+              (event.state & ShiftPressed) ? SelectionCmd::Remove : SelectionCmd::Set, units};
         }
       }
       break;
@@ -212,9 +225,10 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
       }
       break;
     case InputType::MousePosition:
-      if (selectionBox && event.mouseCell) {
+      if (selectionBox && event.mousePosition.area == InputMouseArea::Map) {
         selectionBox = util::geo::fixNegativeSize(
-            {selectionBoxStart_, *event.mouseCell - selectionBoxStart_ + rts::Vector{1, 1}});
+            {selectionBoxStart_,
+             event.mousePosition.point - selectionBoxStart_ + rts::Vector{1, 1}});
       }
       break;
     case InputType::EdgeScroll:
@@ -226,6 +240,11 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
   finishTargetSelection.reset();
   goToMainAbilityPage.reset();
   return std::nullopt;
+}
+
+rts::UnitIdList ui::Player::selectedSameType(const rts::World& w, rts::UnitId unit) {
+  const auto type{w[unit].type};
+  return util::filter(w[side].selection().ids(w), [&](rts::UnitId u) { return w[u].type == type; });
 }
 
 rts::UnitIdList ui::Player::visibleSameType(const rts::World& w, rts::UnitId unit) {

@@ -57,6 +57,20 @@ namespace util::geo {
   constexpr Vector scale(const Vector& v, const Vector& s) { return {v.x * s.x, v.y * s.y}; }
   constexpr Vector scaleDiv(const Vector& v, const Vector& s) { return {v.x / s.x, v.y / s.y}; }
 
+  constexpr Point transform(const Point& p, const Vector& s, const Point& osrc, const Point& dsrc) {
+    return dsrc + scale(p - osrc, s);
+  }
+  constexpr Point transform(const Point& p, const Vector& s, const Point& t) {
+    return transform(p, s, {0, 0}, t);
+  }
+  constexpr Point transformDiv(
+      const Point& p, const Vector& s, const Point& osrc, const Point& dsrc) {
+    return dsrc + scaleDiv(p - osrc, s);
+  }
+  constexpr Point transformDiv(const Point& p, const Vector& s, const Point& t) {
+    return transformDiv(p, s, {0, 0}, t);
+  }
+
   constexpr float DirD{1.0};
   constexpr float DiagD{1.41};
 

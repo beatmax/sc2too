@@ -1,6 +1,7 @@
 #pragma once
 
-#include "ui/Camera.h"
+#include "Camera.h"
+#include "types.h"
 
 #include <sys/types.h>
 
@@ -23,4 +24,9 @@ namespace ui::dim {
   constexpr ScreenCoordinate ControlWinHeight{9};
 
   constexpr ScreenVector TotalSize{DefaultWinWidth + 2, ControlWinTop + ControlWinHeight + 1};
+
+  constexpr MatrixVector SelectionMatrixSize{8, 3};
+  constexpr ScreenRect SelectionArea{{40, 2}, scale(SelectionMatrixSize, CellSizeEx)};
+  constexpr ScreenRect SelectionAreaEx{
+      SelectionArea.topLeft - ScreenVector{1, 1}, SelectionArea.size + ScreenVector{1, 1}};
 }

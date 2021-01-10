@@ -1,6 +1,5 @@
 #pragma once
 
-#include "rts/types.h"
 #include "types.h"
 
 #include <optional>
@@ -102,13 +101,19 @@ namespace ui {
   constexpr InputState ButtonMask{0b0011100000000};
 
   enum class InputButton { Unknown, Button1, Button2, Button3 };
+  enum class InputMouseArea { None, Map, Selection };
+
+  struct InputMousePosition {
+    InputMouseArea area;
+    MatrixPoint point;
+  };
 
   struct InputEvent {
     InputType type;
     InputState state;
     InputKeySym symbol;
     InputButton mouseButton;
-    std::optional<rts::Point> mouseCell;
+    InputMousePosition mousePosition;
     ScrollDirection scrollDirection;
 
     operator bool() const { return type != InputType::Unknown; }

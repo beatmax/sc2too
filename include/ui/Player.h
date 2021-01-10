@@ -2,6 +2,7 @@
 
 #include "Camera.h"
 #include "InputEvent.h"
+#include "WorldView.h"
 #include "rts/Command.h"
 #include "rts/types.h"
 
@@ -21,6 +22,7 @@ namespace ui {
 
     rts::SideId side;
     Camera camera;
+    WorldView worldView;
     rts::AbilityPage abilityPage{0};
     std::array<std::optional<rts::Point>, MaxCameraPositions> cameraPositions_;
     std::optional<rts::Rectangle> selectionBox;
@@ -46,6 +48,7 @@ namespace ui {
     rts::AbilityInstanceIndex lastBuildAbilityIndex_;
 
     std::optional<rts::Command> doProcessInput(const rts::World& w, const InputEvent& event);
+    rts::UnitIdList selectedSameType(const rts::World& w, rts::UnitId unit);
     rts::UnitIdList visibleSameType(const rts::World& w, rts::UnitId unit);
   };
 }

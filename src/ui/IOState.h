@@ -18,5 +18,7 @@ namespace ui {
     unsigned clicks{0};
     unsigned mouseButtons{0};
     rts::GeoCache geoCache;
+
+    bool paused() const { return menu.active(); }
   };
 }

@@ -73,7 +73,7 @@ ui::IO::~IO() {
 }
 
 bool ui::IO::paused() const {
-  return state_->menu.active();
+  return state_->paused();
 }
 
 bool ui::IO::quit() const {

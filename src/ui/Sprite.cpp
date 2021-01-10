@@ -1,9 +1,9 @@
 #include "ui/Sprite.h"
 
 #include "Frame.h"
-#include "dim.h"
 #include "graph.h"
 #include "rts/World.h"
+#include "ui/dim.h"
 #include "util/algorithm.h"
 #include "util/fs.h"
 
