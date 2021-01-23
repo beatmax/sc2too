@@ -12,6 +12,7 @@ namespace ui {
     ~Output();
 
     void init();
+    void onGameStart(const rts::World& w);
     void update(const rts::Engine& engine, const rts::World& w, Player& player);
 
   private:

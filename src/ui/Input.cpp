@@ -19,7 +19,7 @@
 namespace {
   ui::InputState buttons{};
   ui::InputMousePosition mousePosition{ui::InputMouseArea::None, {-1, -1}};
-  bool mouseCellUpdated{false};
+  bool mousePositionUpdated{false};
   ui::ScrollDirection edgeScrollDirection{};
   bool motionReportingEnabled{false};
 
@@ -41,6 +41,19 @@ namespace {
   }
 
   void finishMouse() { finishMouseMotionReporting(); }
+
+  std::optional<ui::ScreenPoint> absoluteMousePosition() {
+    std::optional<ui::ScreenPoint> p;
+    int c;
+    while ((c = getch()) != ERR) {
+      if (c == KEY_MOUSE) {
+        MEVENT event;
+        if (getmouse(&event) == OK)
+          p = {event.x, event.y};
+      }
+    }
+    return p;
+  }
 
   rts::Point getTarget(const std::optional<rts::Command>& cmd) {
     if (cmd) {
@@ -94,15 +107,13 @@ std::optional<rts::SideCommand> ui::Input::process(
     }
   };
 
-  mouseCellUpdated = false;
-
-  int c;
-  while ((c = getch()) != ERR) {
-    if (c == KEY_MOUSE)
-      updateMouseCell(player.camera);
-  }
-
   X::updatePointerState();
+
+  mousePositionUpdated = false;
+  if (auto ap{absoluteMousePosition()}) {
+    ios_.pixelTr.update({*ap, {X::pointerX, X::pointerY}});
+    updateMousePosition(w, *ap, player.camera);
+  }
 
   while (InputEvent event{nextMouseEvent()}) {
     if (!processMouseInput(event)) {
@@ -169,36 +180,45 @@ bool ui::Input::processMouseInput(const InputEvent& event) {
   return false;
 }
 
-void ui::Input::updateMouseCell(const Camera& camera) {
-  MEVENT event;
-
-  if (getmouse(&event) != OK)
-    return;
-
+void ui::Input::updateMousePosition(const rts::World& w, ScreenPoint p, const Camera& camera) {
   mousePosition.area = InputMouseArea::None;
-  mouseCellUpdated = true;
+  mousePositionUpdated = true;
 
-  if (wenclose(ios_.renderWin.w, event.y, event.x)) {
-    if (wmouse_trafo(ios_.renderWin.w, &event.y, &event.x, false)) {
+  if (wenclose(ios_.renderWin.w, p.y, p.x)) {
+    if (wmouse_trafo(ios_.renderWin.w, &p.y, &p.x, false)) {
       mousePosition.area = InputMouseArea::Map;
-      mousePosition.point =
-          camera.area().topLeft + scaleDiv(ScreenVector{event.x, event.y}, dim::CellSizeEx);
+      mousePosition.point = transformDiv(p, dim::CellSizeEx, {0, 0}, camera.area().topLeft);
     }
   }
-  else if (wenclose(ios_.controlWin.w, event.y, event.x)) {
-    if (wmouse_trafo(ios_.controlWin.w, &event.y, &event.x, false)) {
-      ScreenPoint p{event.x, event.y};
-      if (dim::SelectionAreaEx.contains(p)) {
+  else if (wenclose(ios_.controlWin.w, p.y, p.x)) {
+    if (wmouse_trafo(ios_.controlWin.w, &p.y, &p.x, false)) {
+      if (dim::MinimapArea.contains(p)) {
+        auto subp{relativeSubcharPoint(ios_.controlWin, p, dim::MinimapArea)};
+        mousePosition.area = InputMouseArea::Minimap;
+        mousePosition.point = clamp(
+            toPoint(w.minimap.minimapToMap(scale(subp.point + subp.subchar, FVector{1.f, 2.f}))),
+            w.map.area());
+      }
+      else if (dim::SelectionAreaEx.contains(p)) {
         mousePosition.area = InputMouseArea::Selection;
-        if (event.x == dim::SelectionAreaEx.topLeft.x)
-          ++event.x;
-        if (event.y == dim::SelectionAreaEx.topLeft.y)
-          ++event.y;
-        mousePosition.point = transformDiv(
-            ScreenPoint{event.x, event.y}, dim::CellSizeEx, dim::SelectionArea.topLeft, {0, 0});
+        if (p.x == dim::SelectionAreaEx.topLeft.x)
+          ++p.x;
+        if (p.y == dim::SelectionAreaEx.topLeft.y)
+          ++p.y;
+        mousePosition.point = transformDiv(p, dim::CellSizeEx, dim::SelectionArea.topLeft, {0, 0});
       }
     }
   }
+}
+
+ui::SubcharPoint ui::Input::relativeSubcharPoint(
+    const Window& win, ScreenPoint p, const ScreenRect& area) const {
+  if (auto subp{ios_.pixelTr.toSubcharPoint({X::pointerX, X::pointerY})}) {
+    auto q{toPoint(subp->point - ScreenVector{win.beginX, win.beginY} - area.topLeft)};
+    if (area.contains(q))
+      return {q, subp->subchar};
+  }
+  return {toPoint(p - area.topLeft), {0.5f, 0.5f}};
 }
 
 ui::InputEvent ui::Input::nextMouseEvent() {
@@ -229,8 +249,8 @@ ui::InputEvent ui::Input::nextMouseEvent() {
     buttons ^= diff;
     ievent.type = (X::inputState & diff) ? InputType::MousePress : InputType::MouseRelease;
   }
-  else if (mouseCellUpdated) {
-    mouseCellUpdated = false;
+  else if (mousePositionUpdated) {
+    mousePositionUpdated = false;
     ievent.type = InputType::MousePosition;
     ievent.mouseButton = InputButton::Unknown;
   }

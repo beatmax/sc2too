@@ -229,7 +229,7 @@ void rts::Side::exec(
     const World& w, WorldActionList& actions, const command::TriggerDefaultAbility& cmd) {
   const auto& subgroup{selection_.subgroup(w)};
 
-  auto rc{w.relativeContent(w.id(*this), cmd.target)};
+  auto rc{cmd.minimap ? RelativeContent::Ground : w.relativeContent(w.id(*this), cmd.target)};
   auto abilityIndex{subgroup.defaultAbility[uint32_t(rc)]};
   if (abilityIndex == AbilityInstanceIndex::None)
     return;

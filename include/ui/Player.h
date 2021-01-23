@@ -27,6 +27,7 @@ namespace ui {
     std::array<std::optional<rts::Point>, MaxCameraPositions> cameraPositions_;
     std::optional<rts::Rectangle> selectionBox;
     std::optional<SelectingAbilityTarget> selectingAbilityTarget;
+    bool minimapDrag{false};
 
     Player(rts::SideId s, Camera&& c) : side{s}, camera{std::move(c)} {}
     void update(const rts::World& w);

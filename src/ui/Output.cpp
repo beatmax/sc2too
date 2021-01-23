@@ -3,6 +3,7 @@
 #include "IOState.h"
 #include "Layout.h"
 #include "MenuImpl.h"
+#include "Minimap.h"
 #include "X.h"
 #include "graph.h"
 #include "render.h"
@@ -30,6 +31,7 @@ namespace ui {
     std::vector<const Window*> allWins;
     bool termResized{false};
     bool termTooSmall{false};
+    Minimap uiMinimap;
 
     void handleWinch(int) { termResized = true; }
 
@@ -81,6 +83,7 @@ namespace ui {
       clear();
       delAllWins();
       initWins(ios);
+      ios.pixelTr.reset();
     }
 
     void drawResourceQuantities(const IOState& ios, const rts::World& w, const rts::Side& side) {
@@ -108,19 +111,19 @@ namespace ui {
       const auto& win{ios.controlWin};
       auto tsec = w.time / engine.initialGameSpeed();
       wattrset(win.w, graph::green());
-      mvwprintw(win.w, 0, 0, "%02d:%02d:%02d", tsec / 3600, (tsec / 60) % 60, tsec % 60);
+      mvwprintw(win.w, 6, 19, "%02d:%02d:%02d", tsec / 3600, (tsec / 60) % 60, tsec % 60);
     }
 
     void drawGameSpeed(const IOState& ios, const rts::Engine& engine) {
       const auto& win{ios.controlWin};
       wattrset(win.w, graph::magenta());
-      mvwprintw(ios.controlWin.w, 8, 0, "Speed: %d (F11/F12)", engine.gameSpeed());
+      mvwprintw(ios.controlWin.w, 8, 19, "Speed: %d (F11/F12)", engine.gameSpeed());
     }
 
     void drawFps(const IOState& ios, const rts::Engine& engine) {
       const auto& win{ios.controlWin};
       wattrset(win.w, graph::magenta());
-      mvwprintw(win.w, 7, 0, "%u FPS", engine.fps());
+      mvwprintw(win.w, 7, 19, "%u FPS", engine.fps());
     }
 
     void drawControlGroups(const IOState& ios, const rts::World& w, const rts::Side& side) {
@@ -251,7 +254,7 @@ namespace ui {
         if (auto id{selection[p]}) {
           const auto& u{w[id]};
           const ScreenRect rect{
-              transform(p, dim::CellSizeEx, dim::SelectionArea.topLeft), dim::CellSize};
+              transform(p, dim::CellSizeEx, {0, 0}, dim::SelectionArea.topLeft), dim::CellSize};
 
           wattrset(win.w, graph::green());
           graph::drawRect(win, boundingBox(rect));
@@ -267,7 +270,8 @@ namespace ui {
       }
 
       if (wv.selectionTotalSize > selection.size()) {
-        auto pos{transform({0, selection.rows()}, dim::CellSizeEx, dim::SelectionArea.topLeft)};
+        auto pos{transform(
+            MatrixPoint{0, selection.rows()}, dim::CellSizeEx, {0, 0}, dim::SelectionArea.topLeft)};
         mvwprintw(win.w, pos.y, pos.x, "...");
       }
       if (wv.selectionTotalSize == 1) {
@@ -343,9 +347,12 @@ void ui::Output::init() {
   initWins(ios_);
 }
 
+void ui::Output::onGameStart(const rts::World& w) {
+  uiMinimap.init(w);
+}
+
 void ui::Output::update(const rts::Engine& engine, const rts::World& w, Player& player) {
-  if (!ios_.paused())
-    player.update(w);
+  player.update(w);
   doUpdate(engine, w, player);
 }
 
@@ -405,6 +412,8 @@ void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const 
   drawAbilities(ios_, w, player, subgroup);
   drawMessages(ios_, w, side.messages());
 
+  uiMinimap.update(ios_.controlWin, w, camera, player.side);
+
   if (termTooSmall) {
     werase(ios_.headerWin.w);
     mvwprintw(
@@ -429,5 +438,6 @@ void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const 
   }
 
   for (const Window* win : allWins)
-    wrefresh(win->w);
+    wnoutrefresh(win->w);
+  doupdate();
 }

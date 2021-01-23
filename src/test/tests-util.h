@@ -1,6 +1,7 @@
 #pragma once
 
 #include "catch2/catch.hpp"
+#include "rts/types.h"
 #include "util/Pool.h"
 
 #include <chrono>
@@ -9,6 +10,7 @@
 
 namespace test {
   struct FakeController {
+    void onGameStart(const rts::World&) {}
     bool paused() const { return paused_; }
     bool quit() const { return quit_; }
 

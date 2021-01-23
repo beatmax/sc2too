@@ -17,6 +17,8 @@ namespace rts {
   class Engine;
   class Factory;
   class Map;
+  class Minimap;
+  class MinimapCell;
   class ProductionQueue;
   class Resource;
   class ResourceBank;
@@ -69,6 +71,7 @@ namespace rts {
   using ControlGroupId = uint8_t;
   using LayerId = uint32_t;
   using MapSegmentId = uint32_t;
+  using MinimapCellId = uint32_t;
   using ProximityCount = uint16_t;
   using ProductionQueueId = util::PoolObjectId<ProductionQueue>;
   using ProductionQueueWId = util::PoolObjectWeakId<ProductionQueue>;
@@ -106,6 +109,7 @@ namespace rts {
   using util::geo::Rectangle;
   using util::geo::Vector;
   using util::geo::VectorList;
+  using util::geo::FVector;
   using GeoCache = util::geo::Cache;
 
   using AbilityTarget = std::variant<std::monostate, Point, UnitId, ResourceFieldId>;

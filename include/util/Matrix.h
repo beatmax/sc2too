@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <functional>
 #include <vector>
 
 namespace util {
@@ -10,8 +11,7 @@ namespace util {
   class Matrix {
   public:
     Matrix() : rows_{0}, cols_{0} {}
-    Matrix(Dim rows, Dim cols) : rows_{rows}, cols_{cols}, data_(rows * cols) {}
-    Matrix(std::initializer_list<T> list) : rows_{1}, cols_{list.size()}, data_(list) {}
+    explicit Matrix(Dim rows, Dim cols) : rows_{rows}, cols_{cols}, data_(rows * cols) {}
 
     Dim rows() const { return rows_; }
     Dim cols() const { return cols_; }
@@ -26,11 +26,34 @@ namespace util {
       return data_[i * cols_ + j];
     }
 
-    void setRaw(const std::vector<T>& d) {
+    friend Matrix operator+(Matrix a, const Matrix& b) {
+      assert(a.rows() == b.rows() && a.cols() == b.cols());
+      std::transform(
+          a.data_.begin(), a.data_.end(), b.data_.begin(), a.data_.begin(), std::plus<T>());
+      return a;
+    }
+
+    friend Matrix operator-(Matrix a, const Matrix& b) {
+      assert(a.rows() == b.rows() && a.cols() == b.cols());
+      std::transform(
+          a.data_.begin(), a.data_.end(), b.data_.begin(), a.data_.begin(), std::minus<T>());
+      return a;
+    }
+
+    void assign(const std::vector<T>& d) {
       const auto sz{data_.size()};
       const auto n{std::min(d.size(), sz)};
       data_.assign(d.begin(), d.begin() + n);
       data_.resize(sz);
+    }
+
+    T& data(size_t idx) {
+      assert(idx < data_.size());
+      return data_[idx];
+    }
+    const T& data(size_t idx) const {
+      assert(idx < data_.size());
+      return data_[idx];
     }
 
   private:

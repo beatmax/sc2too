@@ -5,6 +5,7 @@ constexpr auto ITKeyPress = ui::InputType::KeyPress;
 constexpr auto ITKeyRelease = ui::InputType::KeyRelease;
 
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include <algorithm>
 #include <cassert>
@@ -239,6 +240,26 @@ void ui::X::updatePointerState() {
   unsigned int mask;
   if (XQueryPointer(display, window, &root, &child, &pointerX, &pointerY, &winX, &winY, &mask))
     inputState = (inputState & ~ButtonMask) | (mask & ButtonMask);
+}
+
+ui::X::PixelMatrix ui::X::getImage(const PixelRect& area) {
+  ::Window window = DefaultRootWindow(display);
+  ui::X::PixelMatrix result(MatrixVector{area.size.x, area.size.y});
+  XImage* img{XGetImage(
+      display, window, area.topLeft.x, area.topLeft.y, area.size.x, area.size.y, AllPlanes,
+      XYPixmap)};
+  for (auto p : result.rect().points())
+    result[p] = XGetPixel(img, p.x, p.y);
+  XFree(img);
+  return result;
+}
+
+unsigned long ui::X::getPixel(PixelPoint p) {
+  ::Window window = DefaultRootWindow(display);
+  XImage* img{XGetImage(display, window, p.x, p.y, 1, 1, AllPlanes, XYPixmap)};
+  auto result = XGetPixel(img, 0, 0);
+  XFree(img);
+  return result;
 }
 
 unsigned int ui::X::displayWidth, ui::X::displayHeight;

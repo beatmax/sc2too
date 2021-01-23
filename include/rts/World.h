@@ -5,6 +5,7 @@
 #include "Command.h"
 #include "Factory.h"
 #include "Map.h"
+#include "Minimap.h"
 #include "ProductionQueue.h"
 #include "ProximityMap.h"
 #include "Resource.h"
@@ -34,6 +35,7 @@ namespace rts {
     }
 
     Map map;
+    Minimap minimap;
     ProximityMap resourceProximityMap;
     GameTime time{};
     FactoryUPtr factory;

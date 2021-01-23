@@ -72,6 +72,8 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
   if (abilityPage)
     goToMainAbilityPage = [this]() { abilityPage = 0; };
 
+  const auto& mousePoint{event.mousePosition.point};
+
   switch (event.type) {
     case InputType::Unknown:
       break;
@@ -162,57 +164,77 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
       }
       break;
     case InputType::MousePress:
-      if (event.mousePosition.area == InputMouseArea::Map) {
-        const auto& mousePoint{event.mousePosition.point};
-
-        if (event.mouseButton == InputButton::Button1) {
-          if (selectingAbilityTarget) {
-            if (w[side].prototype()) {
-              finishTargetSelection.reset();
-              goToMainAbilityPage.reset();
-              state_ = State::BuildTriggered;
+      switch (event.mousePosition.area) {
+        case InputMouseArea::Map:
+          if (event.mouseButton == InputButton::Button1) {
+            if (selectingAbilityTarget) {
+              if (w[side].prototype()) {
+                finishTargetSelection.reset();
+                goToMainAbilityPage.reset();
+                state_ = State::BuildTriggered;
+              }
+              const bool enqueue(event.state & ShiftPressed);
+              selectingAbilityTarget->afterEnqueue = enqueue;
+              return rts::command::TriggerAbility{
+                  selectingAbilityTarget->abilityIndex, mousePoint, enqueue};
             }
+            auto rc{w.relativeContent(side, mousePoint)};
+            if (rc == RC::Friend || rc == RC::FriendResource) {
+              auto unit{w.unitId(mousePoint)};
+              auto units{
+                  (event.state & ControlPressed) ? visibleSameType(w, unit)
+                                                 : rts::UnitIdList{unit}};
+              if (event.state & ShiftPressed) {
+                bool alreadySelected{w[side].selection().contains(unit)};
+                return SelectionCmd{
+                    alreadySelected ? SelectionCmd::Remove : SelectionCmd::Add, units};
+              }
+              else {
+                return SelectionCmd{SelectionCmd::Set, std::move(units)};
+              }
+            }
+            else if (rc == RC::Ground) {
+              selectionBox = {mousePoint, {1, 1}};
+              selectionBoxStart_ = mousePoint;
+            }
+            else if (!(event.state & ShiftPressed)) {
+              return SelectionCmd{SelectionCmd::Set, {}};
+            }
+          }
+          else if (event.mouseButton == InputButton::Button3) {
             const bool enqueue(event.state & ShiftPressed);
-            selectingAbilityTarget->afterEnqueue = enqueue;
-            return rts::command::TriggerAbility{
-                selectingAbilityTarget->abilityIndex, mousePoint, enqueue};
+            return rts::command::TriggerDefaultAbility{mousePoint, enqueue};
           }
-          auto rc{w.relativeContent(side, mousePoint)};
-          if (rc == RC::Friend || rc == RC::FriendResource) {
-            auto unit{w.unitId(mousePoint)};
-            auto units{
-                (event.state & ControlPressed) ? visibleSameType(w, unit) : rts::UnitIdList{unit}};
-            if (event.state & ShiftPressed) {
-              bool alreadySelected{w[side].selection().contains(unit)};
+          break;
+        case InputMouseArea::Minimap:
+          if (event.mouseButton == InputButton::Button1) {
+            if (selectingAbilityTarget && !w[side].prototype()) {
+              const bool enqueue(event.state & ShiftPressed);
+              selectingAbilityTarget->afterEnqueue = enqueue;
+              return rts::command::TriggerAbility{
+                  selectingAbilityTarget->abilityIndex, mousePoint, enqueue};
+            }
+            camera.setCenter(mousePoint);
+            minimapDrag = true;
+          }
+          else if (event.mouseButton == InputButton::Button3) {
+            const bool enqueue(event.state & ShiftPressed);
+            return rts::command::TriggerDefaultAbility{mousePoint, enqueue, true};
+          }
+          break;
+        case InputMouseArea::Selection:
+          if (event.mouseButton == InputButton::Button1) {
+            if (auto unit{worldView.selection[mousePoint]}) {
+              auto units{
+                  (event.state & ControlPressed) ? selectedSameType(w, unit)
+                                                 : rts::UnitIdList{unit}};
               return SelectionCmd{
-                  alreadySelected ? SelectionCmd::Remove : SelectionCmd::Add, units};
-            }
-            else {
-              return SelectionCmd{SelectionCmd::Set, std::move(units)};
+                  (event.state & ShiftPressed) ? SelectionCmd::Remove : SelectionCmd::Set, units};
             }
           }
-          else if (rc == RC::Ground) {
-            selectionBox = {mousePoint, {1, 1}};
-            selectionBoxStart_ = mousePoint;
-          }
-          else if (!(event.state & ShiftPressed)) {
-            return SelectionCmd{SelectionCmd::Set, {}};
-          }
-        }
-        else if (event.mouseButton == InputButton::Button3) {
-          const bool enqueue(event.state & ShiftPressed);
-          return rts::command::TriggerDefaultAbility{mousePoint, enqueue};
-        }
-      }
-      else if (
-          event.mouseButton == InputButton::Button1 &&
-          event.mousePosition.area == InputMouseArea::Selection) {
-        if (auto unit{worldView.selection[event.mousePosition.point]}) {
-          auto units{
-              (event.state & ControlPressed) ? selectedSameType(w, unit) : rts::UnitIdList{unit}};
-          return SelectionCmd{
-              (event.state & ShiftPressed) ? SelectionCmd::Remove : SelectionCmd::Set, units};
-        }
+          break;
+        default:
+          break;
       }
       break;
     case InputType::MouseRelease:
@@ -223,12 +245,22 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
         return SelectionCmd{
             (event.state & ShiftPressed) ? SelectionCmd::Add : SelectionCmd::Set, std::move(units)};
       }
+      minimapDrag = false;
       break;
     case InputType::MousePosition:
-      if (selectionBox && event.mousePosition.area == InputMouseArea::Map) {
-        selectionBox = util::geo::fixNegativeSize(
-            {selectionBoxStart_,
-             event.mousePosition.point - selectionBoxStart_ + rts::Vector{1, 1}});
+      switch (event.mousePosition.area) {
+        case InputMouseArea::Map:
+          if (selectionBox) {
+            selectionBox = util::geo::fixNegativeSize(
+                {selectionBoxStart_, mousePoint - selectionBoxStart_ + rts::Vector{1, 1}});
+          }
+          break;
+        case InputMouseArea::Minimap:
+          if (minimapDrag)
+            camera.setCenter(mousePoint);
+          break;
+        default:
+          break;
       }
       break;
     case InputType::EdgeScroll:

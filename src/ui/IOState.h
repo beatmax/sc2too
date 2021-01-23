@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Menu.h"
+#include "XPixelTr.h"
 #include "rts/types.h"
 #include "ui/types.h"
 
@@ -18,6 +19,7 @@ namespace ui {
     unsigned clicks{0};
     unsigned mouseButtons{0};
     rts::GeoCache geoCache;
+    XPixelTr pixelTr;
 
     bool paused() const { return menu.active(); }
   };

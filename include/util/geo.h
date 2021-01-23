@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <cstddef>
 #include <cstdlib>
 #include <functional>
@@ -21,54 +22,59 @@ namespace util::geo {
     Coordinate x;
     Coordinate y;
 
-    bool operator==(const Point& other) const { return x == other.x && y == other.y; }
-    bool operator!=(const Point& other) const { return !(*this == other); }
+    bool operator==(Point other) const { return x == other.x && y == other.y; }
+    bool operator!=(Point other) const { return !(*this == other); }
   };
 
   struct Vector {
     Coordinate x;
     Coordinate y;
 
-    bool operator==(const Vector& other) const { return x == other.x && y == other.y; }
-    bool operator!=(const Vector& other) const { return !(*this == other); }
+    bool operator==(Vector other) const { return x == other.x && y == other.y; }
+    bool operator!=(Vector other) const { return !(*this == other); }
+  };
+
+  struct FVector {
+    float x;
+    float y;
   };
 
   using PointList = std::vector<Point>;
   using VectorList = std::vector<Vector>;
 
-  constexpr Point operator+(const Point& p, const Vector& v) { return {p.x + v.x, p.y + v.y}; }
-  constexpr Point& operator+=(Point& p, const Vector& v) { return p = p + v; }
-  constexpr Point operator-(const Point& p, const Vector& v) { return {p.x - v.x, p.y - v.y}; }
-  constexpr Point& operator-=(Point& p, const Vector& v) { return p = p - v; }
-  constexpr Vector operator-(const Point& a, const Point& b) { return {a.x - b.x, a.y - b.y}; }
-  constexpr Vector operator+(const Vector& v1, const Vector& v2) {
-    return {v1.x + v2.x, v1.y + v2.y};
-  }
-  constexpr Vector& operator+=(Vector& v1, const Vector& v2) { return v1 = v1 + v2; }
-  constexpr Vector operator-(const Vector& v1, const Vector& v2) {
-    return {v1.x - v2.x, v1.y - v2.y};
-  }
-  constexpr Vector& operator-=(Vector& v1, const Vector& v2) { return v1 = v1 - v2; }
-  constexpr Vector operator-(const Vector& v) { return {-v.x, -v.y}; }
-  constexpr Vector operator*(const Vector& v, Coordinate f) { return {v.x * f, v.y * f}; }
-  constexpr Vector operator/(const Vector& v, Coordinate d) { return {v.x / d, v.y / d}; }
-  PointList operator+(const Point& p, const VectorList& vs);
+  constexpr Point toPoint(Vector v) { return Point{v.x, v.y}; }
+  constexpr Vector toVector(Point p) { return Vector{p.x, p.y}; }
+  constexpr Vector round(FVector v) { return {Coordinate(lroundf(v.x)), Coordinate(lroundf(v.y))}; }
+  constexpr FVector toFVector(Vector v) { return {float(v.x), float(v.y)}; }
 
-  constexpr Vector scale(const Vector& v, const Vector& s) { return {v.x * s.x, v.y * s.y}; }
-  constexpr Vector scaleDiv(const Vector& v, const Vector& s) { return {v.x / s.x, v.y / s.y}; }
+  constexpr Point operator+(Point p, Vector v) { return {p.x + v.x, p.y + v.y}; }
+  constexpr FVector operator+(Point p, FVector v) { return {float(p.x) + v.x, float(p.y) + v.y}; }
+  constexpr Point& operator+=(Point& p, Vector v) { return p = p + v; }
+  constexpr Point operator-(Point p, Vector v) { return {p.x - v.x, p.y - v.y}; }
+  constexpr FVector operator-(Point p, FVector v) { return {float(p.x) - v.x, float(p.y) - v.y}; }
+  constexpr Vector operator-(Point a, Point b) { return {a.x - b.x, a.y - b.y}; }
+  constexpr Point& operator-=(Point& p, Vector v) { return p = p - v; }
 
-  constexpr Point transform(const Point& p, const Vector& s, const Point& osrc, const Point& dsrc) {
-    return dsrc + scale(p - osrc, s);
-  }
-  constexpr Point transform(const Point& p, const Vector& s, const Point& t) {
-    return transform(p, s, {0, 0}, t);
-  }
-  constexpr Point transformDiv(
-      const Point& p, const Vector& s, const Point& osrc, const Point& dsrc) {
-    return dsrc + scaleDiv(p - osrc, s);
-  }
-  constexpr Point transformDiv(const Point& p, const Vector& s, const Point& t) {
-    return transformDiv(p, s, {0, 0}, t);
+  constexpr Vector operator+(Vector v1, Vector v2) { return {v1.x + v2.x, v1.y + v2.y}; }
+  constexpr Vector& operator+=(Vector& v1, Vector v2) { return v1 = v1 + v2; }
+  constexpr Vector operator-(Vector v1, Vector v2) { return {v1.x - v2.x, v1.y - v2.y}; }
+  constexpr Vector& operator-=(Vector& v1, Vector v2) { return v1 = v1 - v2; }
+  constexpr Vector operator-(Vector v) { return {-v.x, -v.y}; }
+
+  constexpr Vector operator*(Vector v, Coordinate f) { return {v.x * f, v.y * f}; }
+  constexpr Vector operator/(Vector v, Coordinate d) { return {v.x / d, v.y / d}; }
+  constexpr Vector operator*(Coordinate f, Vector v) { return {f * v.x, f * v.y}; }
+  constexpr Vector operator/(Coordinate n, Vector v) { return {n / v.x, n / v.y}; }
+
+  constexpr FVector operator*(FVector v, float f) { return {v.x * f, v.y * f}; }
+  constexpr FVector operator/(FVector v, float d) { return {v.x / d, v.y / d}; }
+  constexpr FVector operator*(float f, FVector v) { return {f * v.x, f * v.y}; }
+  constexpr FVector operator/(float n, FVector v) { return {n / v.x, n / v.y}; }
+
+  PointList operator+(Point p, const VectorList& vs);
+
+  constexpr FVector relation(Vector v1, Vector v2) {
+    return {float(v1.x) / float(v2.x), float(v1.y) / float(v2.y)};
   }
 
   constexpr float DirD{1.0};
@@ -97,7 +103,7 @@ namespace util::geo {
     }
     bool operator!=(const Rectangle& other) const { return !(*this == other); }
 
-    bool contains(const Point& p) const {
+    bool contains(Point p) const {
       const auto& bro{bottomRightOut()};
       return p.x >= topLeft.x && p.y >= topLeft.y && p.x < bro.x && p.y < bro.y;
     }
@@ -183,12 +189,13 @@ namespace util::geo {
   Rectangle rectangleCenteredAt(Point center, Vector size, const Rectangle& bounds);
   Circle circleCenteredAt(const Rectangle& r, Coordinate radius);
 
+  Point clamp(Point p, const Rectangle& r);
   bool intersect(const Rectangle& r1, const Rectangle& r2);
   Rectangle intersection(const Rectangle& r1, const Rectangle& r2);
   std::optional<Rectangle> maybeIntersection(const Rectangle& r1, const Rectangle& r2);
 
   struct AtBorder {
-    AtBorder(const Rectangle& r, const Point& p)
+    AtBorder(const Rectangle& r, Point p)
       : top{p.y == r.topLeft.y},
         bottom{p.y == r.topLeft.y + r.size.y - 1},
         left{p.x == r.topLeft.x},
@@ -200,12 +207,12 @@ namespace util::geo {
     bool right;
   };
 
-  inline Rectangle boundingBox(const Point& p) { return {p - Vector{1, 1}, {3, 3}}; }
+  inline Rectangle boundingBox(Point p) { return {p - Vector{1, 1}, {3, 3}}; }
   inline Rectangle boundingBox(const Rectangle& r) {
     return {r.topLeft - Vector{1, 1}, r.size + Vector{2, 2}};
   }
 
-  inline bool adjacent(const Point& p1, const Point& p2) {
+  inline bool adjacent(Point p1, Point p2) {
     auto d{p1 - p2};
     return abs(d.x) <= 1 && abs(d.y) <= 1;
   }
@@ -215,6 +222,34 @@ namespace util::geo {
   }
 
   Rectangle fixNegativeSize(Rectangle r);
+
+  constexpr Vector scale(Vector v, Vector s) { return {v.x * s.x, v.y * s.y}; }
+  constexpr Vector scale(Vector v, FVector s) {
+    return {Coordinate(float(v.x) * s.x), Coordinate(float(v.y) * s.y)};
+  }
+  constexpr FVector scale(FVector v, FVector s) { return {v.x * s.x, v.y * s.y}; }
+  constexpr FVector fscale(Vector v, FVector s) { return {float(v.x) * s.x, float(v.y) * s.y}; }
+  constexpr Vector scaleDiv(Vector v, Vector s) { return {v.x / s.x, v.y / s.y}; }
+
+  template<typename V>
+  constexpr Point transform(Point p, V s, Point osrc, Point dsrc) {
+    return dsrc + scale(p - osrc, s);
+  }
+  template<typename V>
+  constexpr Point transform(Point p, V s) {
+    return transform(p, s, {0, 0}, {0, 0});
+  }
+  template<typename V>
+  constexpr Rectangle transform(const Rectangle& r, V s, Point osrc, Point dsrc) {
+    return {transform(r.topLeft, s, osrc, dsrc), scale(r.size, s)};
+  }
+  template<typename V>
+  constexpr Rectangle transform(const Rectangle& r, V s) {
+    return transform(r, s, {0, 0}, {0, 0});
+  }
+  constexpr Point transformDiv(Point p, Vector s, Point osrc, Point dsrc) {
+    return dsrc + scaleDiv(p - osrc, s);
+  }
 
   class Cache {
   public:
@@ -226,8 +261,9 @@ namespace util::geo {
     std::map<CircleDesc, VectorList> circles_;
   };
 
-  std::ostream& operator<<(std::ostream& os, const Point& p);
-  std::ostream& operator<<(std::ostream& os, const Vector& v);
+  std::ostream& operator<<(std::ostream& os, Point p);
+  std::ostream& operator<<(std::ostream& os, Vector v);
+  std::ostream& operator<<(std::ostream& os, FVector v);
   std::ostream& operator<<(std::ostream& os, const Rectangle& r);
 }
 

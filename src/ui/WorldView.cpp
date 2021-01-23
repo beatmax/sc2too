@@ -8,6 +8,6 @@ void ui::WorldView::update(const rts::World& w, const rts::Side& side) {
 
 void ui::WorldView::updateSelection(const rts::World& w, const rts::Selection& s) {
   const auto& ids{s.ids(w)};
-  selection.setRaw(ids);
+  selection.assign(ids);
   selectionTotalSize = ids.size();
 }

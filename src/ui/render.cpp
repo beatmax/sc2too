@@ -18,7 +18,7 @@ ui::ScreenVector ui::toScreenVector(rts::Vector v) {
 }
 
 ui::ScreenPoint ui::toScreenPoint(const Camera& camera, rts::Point p) {
-  return ScreenPoint{0, 0} + toScreenVector(p - camera.topLeft());
+  return toPoint(toScreenVector(p - camera.topLeft()));
 }
 
 ui::ScreenRect ui::toScreenRect(const Camera& camera, const rts::Rectangle& area) {

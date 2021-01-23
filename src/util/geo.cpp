@@ -8,8 +8,8 @@
 #include <cstdlib>
 #include <ostream>
 
-auto util::geo::operator+(const Point& p, const VectorList& vs) -> PointList {
-  return util::transform(vs, [p](const Vector& v) { return p + v; });
+auto util::geo::operator+(Point p, const VectorList& vs) -> PointList {
+  return util::transform(vs, [p](Vector v) { return p + v; });
 }
 
 float util::geo::diagonalDistance(Point a, Point b) {
@@ -43,6 +43,12 @@ auto util::geo::rectangleCenteredAt(Point center, Vector size, const Rectangle& 
 
 auto util::geo::circleCenteredAt(const Rectangle& r, Coordinate radius) -> Circle {
   return Circle{r.center(), radius, {(r.size.x - 1) % 2, (r.size.y - 1) % 2}};
+}
+
+auto util::geo::clamp(Point p, const Rectangle& r) -> Point {
+  const auto& tl{r.topLeft};
+  const auto& br{r.bottomRight()};
+  return {std::clamp(p.x, tl.x, br.x), std::clamp(p.y, tl.y, br.y)};
 }
 
 bool util::geo::intersect(const Rectangle& r1, const Rectangle& r2) {
@@ -110,11 +116,15 @@ auto util::geo::Cache::circle(Coordinate radius, Vector offset2) -> const Vector
   return vectors;
 }
 
-std::ostream& util::geo::operator<<(std::ostream& os, const Point& p) {
+std::ostream& util::geo::operator<<(std::ostream& os, Point p) {
   return os << '(' << p.x << ", " << p.y << ')';
 }
 
-std::ostream& util::geo::operator<<(std::ostream& os, const Vector& v) {
+std::ostream& util::geo::operator<<(std::ostream& os, Vector v) {
+  return os << '(' << v.x << ", " << v.y << ')';
+}
+
+std::ostream& util::geo::operator<<(std::ostream& os, FVector v) {
   return os << '(' << v.x << ", " << v.y << ')';
 }
 

@@ -37,6 +37,7 @@ namespace rts {
     struct TriggerDefaultAbility {
       Point target;
       bool enqueue{false};
+      bool minimap{false};
     };
 
     struct Debug {

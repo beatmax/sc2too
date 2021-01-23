@@ -43,6 +43,7 @@ int main(int argc, char** argv) try {
 
   const auto sides{makeSides(world)};
   const auto side{sides[0]};
+  world.minimap.init(io.minimapSize());
   world.loadMap(sc2::Assets::mapInitializer(), mapfile);
   ui::Player player{side, ui::Camera{{2, 6}, world.map.area()}};
 

@@ -27,13 +27,30 @@ namespace ui {
   using ScreenVector = util::geo::Vector;
   using ScreenRect = util::geo::Rectangle;
 
+  using PixelCoordinate = util::geo::Coordinate;
+  using PixelPoint = util::geo::Point;
+  using PixelVector = util::geo::Vector;
+  using PixelRect = util::geo::Rectangle;
+
+  using FVector = util::geo::FVector;
+
+  struct SubcharPoint {
+    ScreenPoint point;
+    FVector subchar;
+  };
+
   template<typename T>
   class Matrix : public util::Matrix<T, MatrixCoordinate> {
     using Inherited = util::Matrix<T, MatrixCoordinate>;
+
   public:
+    explicit Matrix(Inherited m) : Inherited{std::move(m)} {}
     explicit Matrix(MatrixVector sz) : Inherited{sz.y, sz.x} {}
+    using Inherited::cols;
+    using Inherited::rows;
     T& operator[](MatrixPoint p) { return (*this)(p.y, p.x); }
     const T& operator[](MatrixPoint p) const { return (*this)(p.y, p.x); }
+    MatrixRect rect() const { return {{0, 0}, {cols(), rows()}}; }
   };
 
   struct Window {
@@ -43,7 +60,8 @@ namespace ui {
   };
 
   enum class Color : int {
-    Red = 1,
+    Black = 0,
+    Red,
     Green,
     Yellow,
     Blue,
@@ -51,7 +69,13 @@ namespace ui {
     Cyan,
     White,
     Gray,
-    LightGreen = 10,
+    LightRed,
+    LightGreen,
+    LightYellow,
+    LightBlue,
+    LightMagenta,
+    LightCyan,
+    LightWhite,
     DarkBlue = 17,
     DarkGreen = 22,
     DarkRed = 52,

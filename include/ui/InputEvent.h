@@ -101,7 +101,7 @@ namespace ui {
   constexpr InputState ButtonMask{0b0011100000000};
 
   enum class InputButton { Unknown, Button1, Button2, Button3 };
-  enum class InputMouseArea { None, Map, Selection };
+  enum class InputMouseArea { None, Map, Minimap, Selection };
 
   struct InputMousePosition {
     InputMouseArea area;

@@ -3,6 +3,7 @@
 #include "IOState.h"
 #include "X.h"
 #include "graph.h"
+#include "ui/dim.h"
 
 #include <chrono>
 #include <clocale>
@@ -72,10 +73,18 @@ ui::IO::~IO() {
   X::finish();
 }
 
+void ui::IO::onGameStart(const rts::World& w) {
+  output.onGameStart(w);
+}
+
 bool ui::IO::paused() const {
   return state_->paused();
 }
 
 bool ui::IO::quit() const {
   return state_->quit;
+}
+
+ui::ScreenVector ui::IO::minimapSize() const {
+  return {dim::MinimapArea.size.x, dim::MinimapArea.size.y * 2};
 }

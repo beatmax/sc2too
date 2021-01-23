@@ -29,4 +29,6 @@ namespace ui::dim {
   constexpr ScreenRect SelectionArea{{40, 2}, scale(SelectionMatrixSize, CellSizeEx)};
   constexpr ScreenRect SelectionAreaEx{
       SelectionArea.topLeft - ScreenVector{1, 1}, SelectionArea.size + ScreenVector{1, 1}};
+
+  constexpr ScreenRect MinimapArea{{0, 0}, {18, 9}};
 }

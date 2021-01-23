@@ -4,14 +4,20 @@
 #include "graph.h"
 
 #include <map>
+#include <numeric>
 
 namespace {
-  const std::map<int, int> UnpowerColorTr{{51, 6}, {208, 136}, {226, 142}};
+  using CP = std::pair<int, int>;
 
-  int unpowerColorTr(int c) {
-    auto it{UnpowerColorTr.find(c)};
-    return it == UnpowerColorTr.end() ? c : it->second;
-  }
+  const std::array<int, 256> UnpowerColorTr = [] {
+    std::array<int, 256> t;
+    std::iota(t.begin(), t.end(), 0);
+    for (auto [k, v] : {CP{51, 6}, CP{208, 136}, CP{226, 142}})
+      t[k] = v;
+    return t;
+  }();
+
+  inline int unpowerColorTr(int c) { return (c & ~0xff) ? c : UnpowerColorTr[c]; }
 }
 
 ui::Sprite ui::fx::flatten(const Sprite& s) {

@@ -18,7 +18,7 @@ namespace rts {
     explicit EngineBase(World& w, GameSpeed speed = DefaultGameSpeed);
 
     template<typename C, typename FI, typename FO>
-    void run(const C& controller, FI processInput, FO updateOutput);
+    void run(C& controller, FI processInput, FO updateOutput);
 
     void advanceFrame();
     void advanceWorld();
@@ -55,10 +55,11 @@ namespace rts {
 
   template<typename Clock>
   template<typename C, typename FI, typename FO>
-  void EngineBase<Clock>::run(const C& controller, FI processInput, FO updateOutput) {
+  void EngineBase<Clock>::run(C& controller, FI processInput, FO updateOutput) {
     resetTimer();
     bool paused{false};
 
+    controller.onGameStart(world_);
     while (!controller.quit()) {
       if (paused != controller.paused()) {
         paused = !paused;

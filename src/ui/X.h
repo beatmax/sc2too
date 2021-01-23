@@ -1,8 +1,11 @@
 #pragma once
 
 #include "ui/InputEvent.h"
+#include "ui/types.h"
 
 namespace ui::X {
+  using PixelMatrix = Matrix<unsigned long>;
+
   void init();
   void finish();
   void saveState();
@@ -12,6 +15,8 @@ namespace ui::X {
   bool pendingEvent();
   InputEvent nextEvent();
   void updatePointerState();
+  PixelMatrix getImage(const PixelRect& area);
+  unsigned long getPixel(PixelPoint p);
 
   extern unsigned int displayWidth, displayHeight;
   extern int pointerX, pointerY;

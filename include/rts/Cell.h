@@ -13,6 +13,7 @@ namespace rts {
 
     Content content;
     MapSegmentId segment{0};
+    MinimapCellId minimapCell{0};
 
     ContentType contentType() const { return static_cast<ContentType>(content.index()); }
     bool contains(ContentType ct) const { return contentType() == ct; }

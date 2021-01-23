@@ -70,6 +70,7 @@ rts::BlockerId rts::World::add(BlockerId id, Point p) {
   auto& obj{(*this)[id]};
   obj.area.topLeft = p;
   map.setContent(obj.area, id);
+  minimap.update(map, obj, 1);
   return id;
 }
 
@@ -77,6 +78,7 @@ rts::ResourceFieldId rts::World::add(ResourceFieldId id, Point p) {
   auto& obj{(*this)[id]};
   obj.area.topLeft = p;
   map.setContent(obj.area, id);
+  minimap.update(map, obj, 1);
   resourceProximityMap.updateContour(*this, obj.area, ResourceProximityRadius, 1);
   return id;
 }
@@ -103,6 +105,7 @@ void rts::World::place(Unit& u) {
       map.isEmpty(u.area) ||
       (u.resourceField && u.resourceField == resourceFieldId(u.area.topLeft)));
   map.setContent(u.area, id(u));
+  minimap.update(map, u, 1);
   u.layer = LayerUnits;
   if (u.isStructure(*this))
     initMapSegments(*this);
@@ -123,6 +126,7 @@ void rts::World::remove(Unit& u) {
     map.setContent(u.area, u.resourceField);
   else
     map.setContent(u.area, Cell::Empty{});
+  minimap.update(map, u, -1);
   if (u.isStructure(*this))
     initMapSegments(*this);
 }
@@ -132,9 +136,18 @@ void rts::World::move(Unit& u, Point p) {
   assert(map[p].empty());
   auto& epos = u.area.topLeft;
   u.direction = direction(p - epos);
-  map.setContent(epos, Cell::Empty{});
-  map.setContent(p, id(u));
-  epos = p;
+  Cell& src{map[epos]};
+  Cell& dst{map[p]};
+  src.content = Cell::Empty{};
+  dst.content = id(u);
+  if (src.minimapCell == dst.minimapCell) {
+    epos = p;
+  }
+  else {
+    minimap.update(map, u, -1);
+    epos = p;
+    minimap.update(map, u, 1);
+  }
 }
 
 void rts::World::destroy(Unit& u) {
@@ -146,6 +159,7 @@ void rts::World::destroy(Unit& u) {
 
 void rts::World::destroy(ResourceField& rf) {
   assert(map[rf.area.topLeft].contains(Cell::ResourceField));
+  minimap.update(map, rf, -1);
   resourceProximityMap.updateContour(*this, rf.area, ResourceProximityRadius, -1);
   map.setContent(rf.area, Cell::Empty{});
   resourceFields.erase(id(rf));
@@ -357,13 +371,11 @@ std::optional<rts::Point> rts::World::emptyCellAround(const Rectangle& area, Poi
 
 rts::Point rts::World::centralPoint(const UnitCPtrList& units) {
   assert(!units.empty());
-  return Point{0, 0} +
+  return toPoint(
       std::accumulate(
           units.begin(), units.end(), Vector{0, 0},
-          [](Vector v, UnitCPtr u) {
-            return v + (u->area.center() - Point{0, 0});
-          }) /
-      Coordinate(units.size());
+          [](Vector v, UnitCPtr u) { return v + toVector(u->area.center()); }) /
+      Coordinate(units.size()));
 }
 
 const rts::Unit& rts::World::centralUnit(const UnitCPtrList& units) {
@@ -411,6 +423,7 @@ std::optional<rts::AbilityTarget> rts::World::fromWeakTarget(const AbilityWeakTa
 }
 
 void rts::World::onMapCreated() {
+  minimap.initMapCells(map);
   resourceProximityMap.initCells(map.size());
   for (auto& s : sides)
     s.onMapCreated(*this);
