@@ -19,6 +19,7 @@
 namespace {
   ui::InputState buttons{};
   ui::InputMousePosition mousePosition{ui::InputMouseArea::None, {-1, -1}};
+  bool mousePositionInitialized{false};
   bool mousePositionUpdated{false};
   ui::ScrollDirection edgeScrollDirection{};
   bool motionReportingEnabled{false};
@@ -115,10 +116,12 @@ std::optional<rts::SideCommand> ui::Input::process(
     updateMousePosition(w, *ap, player.camera);
   }
 
-  while (InputEvent event{nextMouseEvent()}) {
-    if (!processMouseInput(event)) {
-      if (auto sc{sideCommand(player.processInput(w, event))})
-        return sc;
+  if (mousePositionInitialized) {
+    while (InputEvent event{nextMouseEvent()}) {
+      if (!processMouseInput(event)) {
+        if (auto sc{sideCommand(player.processInput(w, event))})
+          return sc;
+      }
     }
   }
 
@@ -182,6 +185,7 @@ bool ui::Input::processMouseInput(const InputEvent& event) {
 
 void ui::Input::updateMousePosition(const rts::World& w, ScreenPoint p, const Camera& camera) {
   mousePosition.area = InputMouseArea::None;
+  mousePositionInitialized = true;
   mousePositionUpdated = true;
 
   if (wenclose(ios_.renderWin.w, p.y, p.x)) {
