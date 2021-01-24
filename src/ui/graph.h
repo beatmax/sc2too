@@ -19,7 +19,15 @@ namespace ui::graph {
   inline int cyan() { return colorAttr(Color::Cyan); }
   inline int white() { return colorAttr(Color::White); }
   inline int gray() { return colorAttr(Color::Gray); }
-  inline int lightGreen() { return colorAttr(Color::LightGreen); }
+  inline int brightRed() { return colorAttr(Color::BrightRed); }
+  inline int brightGreen() { return colorAttr(Color::BrightGreen); }
+  inline int brightYellow() { return colorAttr(Color::BrightYellow); }
+  inline int brightBlue() { return colorAttr(Color::BrightBlue); }
+  inline int brightMagenta() { return colorAttr(Color::BrightMagenta); }
+  inline int brightCyan() { return colorAttr(Color::BrightCyan); }
+  inline int brightWhite() { return colorAttr(Color::BrightWhite); }
+  inline int black() { return colorAttr(Color::Black); }
+  inline int darkBlue() { return colorAttr(Color::DarkBlue); }
   inline int darkGreen() { return colorAttr(Color::DarkGreen); }
   inline int darkRed() { return colorAttr(Color::DarkRed); }
   inline int darkGray() { return colorAttr(Color::DarkGray); }

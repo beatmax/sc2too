@@ -258,7 +258,7 @@ namespace ui {
 
           wattrset(win.w, graph::green());
           graph::drawRect(win, boundingBox(rect));
-          const auto color = (u.type == subgroupType) ? Color::LightGreen : Color::DarkGreen;
+          const auto color = (u.type == subgroupType) ? Color::BrightGreen : Color::DarkGreen;
           graph::drawFrame(win, getIcon(w[u.type]).frame(), rect.topLeft, color);
           if (wv.selectionTotalSize > 1 && u.productionQueue) {
             if (auto sz{w[u.productionQueue].size()}) {
@@ -301,7 +301,7 @@ namespace ui {
             ScreenRect rect{
                 {79 + col * (dim::CellSizeEx.x + 1), 2 + row * dim::CellSizeEx.y},
                 dim::CellSize + ScreenVector{1, 0}};
-            wattrset(win.w, graph::lightGreen());
+            wattrset(win.w, graph::brightGreen());
             graph::drawRect(win, boundingBox(rect));
             wattrset(
                 win.w,
@@ -400,7 +400,7 @@ void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const 
   if (side.prototype())
     render(ios_.renderWin, w, camera, w[side.prototype()], prototypeArea);
   else if (player.selectingAbilityTarget)
-    highlight(ios_.renderWin, camera, ios_.mousePosition, graph::lightGreen());
+    highlight(ios_.renderWin, camera, ios_.mousePosition, graph::brightGreen());
 
   drawResourceQuantities(ios_, w, side);
   drawGameTime(ios_, engine, w);
