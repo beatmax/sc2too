@@ -1,0 +1,126 @@
+option t,r
+b,B: base
+w: worker
+-------------  [t:0 m:1000 g:0]
+mm    bb   BB
+mm w  bb   BB
+      bb   BB
+             
+-------------
+select w
+trigger gather 0,0
+run for 1100
+-------------  [t:0 m:1000 g:0]
+mm    bb   BB
+mm w  bb   BB
+      bb   BB
+             
+=============  [t:143 m:1000 g:0]
+mmw   bb   BB
+mm    bb   BB
+      bb   BB
+             
+=============  [t:353 m:1000 g:0]
+mm w  bb   BB
+mm    bb   BB
+      bb   BB
+             
+=============  [t:453 m:1000 g:0]
+mm  w bb   BB
+mm    bb   BB
+      bb   BB
+             
+=============  [t:553 m:1000 g:0]
+mm   wbb   BB
+mm    bb   BB
+      bb   BB
+             
+=============  [t:563 m:1005 g:0]
+mm   wbb   BB
+mm    bb   BB
+      bb   BB
+             
+=============  [t:665 m:1005 g:0]
+mm  w bb   BB
+mm    bb   BB
+      bb   BB
+             
+=============  [t:765 m:1005 g:0]
+mm w  bb   BB
+mm    bb   BB
+      bb   BB
+             
+=============  [t:865 m:1005 g:0]
+mmw   bb   BB
+mm    bb   BB
+      bb   BB
+             
+=============  [t:1076 m:1005 g:0]
+mm w  bb   BB
+mm    bb   BB
+      bb   BB
+             
+=============  [t:1100 m:1005 g:0]
+mm w  bb   BB
+mm    bb   BB
+      bb   BB
+             
+-------------
+destroy b
+run for 800
+-------------  [t:1100 m:1005 g:0]
+mm w       BB
+mm         BB
+           BB
+             
+=============  [t:1176 m:1005 g:0]
+mm  w      BB
+mm         BB
+           BB
+             
+=============  [t:1276 m:1005 g:0]
+mm   w     BB
+mm         BB
+           BB
+             
+=============  [t:1386 m:1005 g:0]
+mm    w    BB
+mm         BB
+           BB
+             
+=============  [t:1486 m:1005 g:0]
+mm     w   BB
+mm         BB
+           BB
+             
+=============  [t:1586 m:1005 g:0]
+mm      w  BB
+mm         BB
+           BB
+             
+=============  [t:1686 m:1005 g:0]
+mm       w BB
+mm         BB
+           BB
+             
+=============  [t:1786 m:1005 g:0]
+mm        wBB
+mm         BB
+           BB
+             
+=============  [t:1796 m:1010 g:0]
+mm        wBB
+mm         BB
+           BB
+             
+=============  [t:1898 m:1010 g:0]
+mm       w BB
+mm         BB
+           BB
+             
+=============  [t:1900 m:1010 g:0]
+mm       w BB
+mm         BB
+           BB
+             
+-------------

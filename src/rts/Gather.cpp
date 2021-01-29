@@ -61,14 +61,8 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitS
     case State::Gathering:
       return finishGathering();
 
-    case State::GatheringDone: {
-      if (auto* b{w.closestActiveUnit(u->area.topLeft, u->side, w[u->side].baseType())}) {
-        base_ = w.weakId(*b);
-        state_ = State::MovingToBase;
-        return moveTo(b->area.topLeft);
-      }
-      return GameTime{0};
-    }
+    case State::GatheringDone:
+      return moveToBase(w, u);
 
     case State::MovingToBase:
       if (Unit::abilityState(u, w, Kind::Move).active())
@@ -79,7 +73,7 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitS
           return desc_.deliverTime;
         }
       }
-      return GameTime{0};
+      return moveToBase(w, u);
 
     case State::Delivering:
       return finishDelivering();
@@ -107,6 +101,15 @@ rts::AbilityStepResult rts::abilities::state::Gather::init(const World& w, const
 
   state_ = State::MovingToTarget;
   return moveTo(targetPoint_);
+}
+
+rts::AbilityStepResult rts::abilities::state::Gather::moveToBase(const World& w, const Unit& unit) {
+  if (auto* b{w.closestActiveUnit(unit.area.topLeft, unit.side, w[unit.side].baseType())}) {
+    base_ = w.weakId(*b);
+    state_ = State::MovingToBase;
+    return moveTo(b->area.topLeft);
+  }
+  return GameTime{0};
 }
 
 rts::AbilityStepAction rts::abilities::state::Gather::moveTo(Point p) {

@@ -27,6 +27,7 @@ namespace rts::abilities::state {
 
   private:
     AbilityStepResult init(const World& w, const Unit& unit);
+    AbilityStepResult moveToBase(const World& w, const Unit& unit);
     AbilityStepAction moveTo(Point p);
     AbilityStepAction tryOccupy(ResourceFieldWId rf);
     AbilityStepAction finishGathering();
