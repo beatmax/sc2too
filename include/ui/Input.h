@@ -22,7 +22,7 @@ namespace ui {
   private:
     bool processKbInput(rts::Engine& engine, const InputEvent& event);
     bool processMouseInput(const InputEvent& event);
-    void updateMousePosition(const rts::World& w, ScreenPoint p, const Camera& camera);
+    void updateMousePosition(const rts::World& w, const Camera& camera);
     SubcharPoint relativeSubcharPoint(
         const Window& win, ScreenPoint p, const ScreenRect& area) const;
     InputEvent nextMouseEvent();

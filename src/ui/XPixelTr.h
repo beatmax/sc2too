@@ -2,18 +2,22 @@
 
 #include "ui/types.h"
 
+#include <chrono>
 #include <optional>
 
 namespace ui {
   class XPixelTr {
   public:
-    struct PointPair {
+    using TimePoint = std::chrono::steady_clock::time_point;
+
+    struct Sample {
+      TimePoint tp;
       ScreenPoint sp;
       PixelPoint pp;
     };
 
     std::optional<SubcharPoint> toSubcharPoint(PixelPoint pp) const;
-    void update(const PointPair& p);
+    void update(const Sample& p);
     void reset();
 
   private:
@@ -23,12 +27,14 @@ namespace ui {
       FVector factor;
     };
 
-    const PointPair* filter(const PointPair& p);
-    void calibrate(const PointPair& target);
-    bool checkCalibration(const PointPair& target);
+    std::optional<Sample> filter(const Sample& p);
+    bool stableDirection(PixelPoint pp);
+    void calibrate(const Sample& target);
+    bool checkCalibration(const Sample& target);
 
     std::optional<Calibration> calibration_;
-    PointPair prev_[2];
-    size_t prevSize_{0};
+    std::optional<Sample> candidate_;
+    PixelPoint ppPrev_;
+    PixelVector ppDirection_;
   };
 }

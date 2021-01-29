@@ -9,6 +9,7 @@
 #include <cassert>
 #include <optional>
 #include <stdio.h>
+#include <utility>
 
 #ifdef HAS_NCURSESW_NCURSES_H
 #include <ncursesw/ncurses.h>
@@ -19,10 +20,12 @@
 namespace {
   ui::InputState buttons{};
   ui::InputMousePosition mousePosition{ui::InputMouseArea::None, {-1, -1}};
-  bool mousePositionInitialized{false};
-  bool mousePositionUpdated{false};
-  ui::ScrollDirection edgeScrollDirection{};
+  ui::ScreenPoint absMouseScreenPosition{-1, -1};
+  ui::PixelPoint absMousePixelPosition{-1, -1};
+  bool absMousePositionInitialized{false};
+  bool absMousePositionUpdated{false};
   bool motionReportingEnabled{false};
+  ui::ScrollDirection edgeScrollDirection{};
 
   void initMouse() {
     mouseinterval(0);
@@ -43,17 +46,26 @@ namespace {
 
   void finishMouse() { finishMouseMotionReporting(); }
 
-  std::optional<ui::ScreenPoint> absoluteMousePosition() {
-    std::optional<ui::ScreenPoint> p;
+  void updateAbsMousePosition() {
+    absMousePositionUpdated = false;
+
     int c;
     while ((c = getch()) != ERR) {
       if (c == KEY_MOUSE) {
         MEVENT event;
-        if (getmouse(&event) == OK)
-          p = {event.x, event.y};
+        if (getmouse(&event) == OK) {
+          absMouseScreenPosition = {event.x, event.y};
+          if (!absMousePositionInitialized) {
+            absMousePositionInitialized = true;
+            absMousePositionUpdated = true;
+          }
+        }
       }
     }
-    return p;
+
+    ui::X::updatePointerState();
+    auto ppPrev{std::exchange(absMousePixelPosition, {ui::X::pointerX, ui::X::pointerY})};
+    absMousePositionUpdated |= absMousePositionInitialized && (absMousePixelPosition != ppPrev);
   }
 
   rts::Point getTarget(const std::optional<rts::Command>& cmd) {
@@ -108,15 +120,16 @@ std::optional<rts::SideCommand> ui::Input::process(
     }
   };
 
-  X::updatePointerState();
+  updateAbsMousePosition();
 
-  mousePositionUpdated = false;
-  if (auto ap{absoluteMousePosition()}) {
-    ios_.pixelTr.update({*ap, {X::pointerX, X::pointerY}});
-    updateMousePosition(w, *ap, player.camera);
+  if (absMousePositionUpdated) {
+    const auto now{std::chrono::steady_clock::now()};
+    ios_.pixelTr.update({now, absMouseScreenPosition, absMousePixelPosition});
+
+    updateMousePosition(w, player.camera);
   }
 
-  if (mousePositionInitialized) {
+  if (absMousePositionInitialized) {
     while (InputEvent event{nextMouseEvent()}) {
       if (!processMouseInput(event)) {
         if (auto sc{sideCommand(player.processInput(w, event))})
@@ -183,11 +196,10 @@ bool ui::Input::processMouseInput(const InputEvent& event) {
   return false;
 }
 
-void ui::Input::updateMousePosition(const rts::World& w, ScreenPoint p, const Camera& camera) {
+void ui::Input::updateMousePosition(const rts::World& w, const Camera& camera) {
   mousePosition.area = InputMouseArea::None;
-  mousePositionInitialized = true;
-  mousePositionUpdated = true;
 
+  auto p{absMouseScreenPosition};
   if (wenclose(ios_.renderWin.w, p.y, p.x)) {
     if (wmouse_trafo(ios_.renderWin.w, &p.y, &p.x, false)) {
       mousePosition.area = InputMouseArea::Map;
@@ -217,7 +229,7 @@ void ui::Input::updateMousePosition(const rts::World& w, ScreenPoint p, const Ca
 
 ui::SubcharPoint ui::Input::relativeSubcharPoint(
     const Window& win, ScreenPoint p, const ScreenRect& area) const {
-  if (auto subp{ios_.pixelTr.toSubcharPoint({X::pointerX, X::pointerY})}) {
+  if (auto subp{ios_.pixelTr.toSubcharPoint(absMousePixelPosition)}) {
     auto q{toPoint(subp->point - ScreenVector{win.beginX, win.beginY} - area.topLeft)};
     if (area.contains(q))
       return {q, subp->subchar};
@@ -253,8 +265,8 @@ ui::InputEvent ui::Input::nextMouseEvent() {
     buttons ^= diff;
     ievent.type = (X::inputState & diff) ? InputType::MousePress : InputType::MouseRelease;
   }
-  else if (mousePositionUpdated) {
-    mousePositionUpdated = false;
+  else if (absMousePositionUpdated) {
+    absMousePositionUpdated = false;
     ievent.type = InputType::MousePosition;
     ievent.mouseButton = InputButton::Unknown;
   }

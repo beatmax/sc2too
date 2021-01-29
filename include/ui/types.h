@@ -44,6 +44,7 @@ namespace ui {
     using Inherited = util::Matrix<T, MatrixCoordinate>;
 
   public:
+    Matrix() = default;
     explicit Matrix(Inherited m) : Inherited{std::move(m)} {}
     explicit Matrix(MatrixVector sz) : Inherited{sz.y, sz.x} {}
     using Inherited::cols;

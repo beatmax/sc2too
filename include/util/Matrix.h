@@ -26,6 +26,12 @@ namespace util {
       return data_[i * cols_ + j];
     }
 
+    friend bool operator==(const Matrix& a, const Matrix& b) {
+      return a.rows() == b.rows() && a.cols() == b.cols() && a.data_ == b.data_;
+    }
+
+    friend bool operator!=(const Matrix& a, const Matrix& b) { return !(a == b); }
+
     friend Matrix operator+(Matrix a, const Matrix& b) {
       assert(a.rows() == b.rows() && a.cols() == b.cols());
       std::transform(

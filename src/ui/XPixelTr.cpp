@@ -5,6 +5,7 @@
 #include "util/ScopeExit.h"
 #include "util/algorithm.h"
 
+#include <cassert>
 #include <chrono>
 #include <cstdlib>
 #include <thread>
@@ -22,11 +23,10 @@ namespace ui {
     void print(const X::PixelMatrix& m, MatrixPoint relTarget) {
       util::trace() << "-------------------" << std::endl;
       std::map<unsigned long, char> colorMap;
+      colorMap[0] = '-';
       auto cm = [&](unsigned long raw) {
-        if (!raw)
-          return '-';
         if (!colorMap.count(raw))
-          colorMap[raw] = '0' + colorMap.size();
+          colorMap[raw] = colorMap.size() <= ('z' - '0') ? '0' + colorMap.size() : '~';
         return colorMap[raw];
       };
       for (auto p : m.rect().points()) {
@@ -43,8 +43,11 @@ namespace ui {
 
 namespace ui {
   namespace {
-    constexpr int CalibStartDelayMs{100};
-    constexpr int CalibRetryMs{1};
+    using namespace std::chrono_literals;
+
+    constexpr auto CandidateMinTime{100ms};
+    constexpr auto CalibStartDelay{100ms};
+    constexpr auto CalibRetryTime{1ms};
     constexpr int CalibMaxTries{100};
     constexpr PixelVector CalibAreaSize{50, 100};  // determines max detectable char size
 
@@ -89,8 +92,8 @@ std::optional<ui::SubcharPoint> ui::XPixelTr::toSubcharPoint(PixelPoint pp) cons
   return std::nullopt;
 }
 
-void ui::XPixelTr::update(const PointPair& p) {
-  if (auto* target{filter(p)}) {
+void ui::XPixelTr::update(const Sample& p) {
+  if (auto target{filter(p)}) {
     if (calibration_) {
       if (!checkCalibration(*target))
         reset();
@@ -103,34 +106,75 @@ void ui::XPixelTr::update(const PointPair& p) {
 
 void ui::XPixelTr::reset() {
   calibration_.reset();
-  prevSize_ = 0;
+  candidate_.reset();
 }
 
-// Filter to detect good point pairs for calibration: if the last two pairs
-// correspond to the same ncurses cell (screen point), and the direction of the
-// X cursor (pixel point) was stable, there is a very high chance that the
-// previous pair was a real match.
-auto ui::XPixelTr::filter(const PointPair& p) -> const PointPair* {
-  bool accept{false};
-  if (prevSize_ < 2) {
-    ++prevSize_;
-  }
-  else if (p.sp == prev_[0].sp) {
-    auto stableDirection = [&](auto coord) {
-      return (coord(p) >= coord(prev_[0]) && coord(prev_[0]) >= coord(prev_[1])) ||
-          (coord(p) <= coord(prev_[0]) && coord(prev_[0]) <= coord(prev_[1]));
-    };
-    auto coordX = [](const PointPair& q) { return q.pp.x; };
-    auto coordY = [](const PointPair& q) { return q.pp.y; };
-
-    accept = stableDirection(coordX) && stableDirection(coordY);
+// Filter to detect good samples for calibration and calibration checking:
+// There is a delay between X cursor (pixel point) movement and terminal mouse
+// (screen point) movement events. We have a good match if the screen point
+// stays the same during that delay. We assume the delay is lower than
+// CandidateMinTime. Also, make sure the cursor stays inside the terminal
+// window, which is achieved by checking that the move direction is stable and
+// the screen point moves to an adjacent cell.
+auto ui::XPixelTr::filter(const Sample& p) -> std::optional<Sample> {
+  if (!candidate_) {
+    candidate_ = p;
+    ppPrev_ = p.pp;
+    ppDirection_ = {0, 0};
+    return std::nullopt;
   }
 
-  prev_[1] = std::exchange(prev_[0], p);
-  return accept ? &prev_[1] : nullptr;
+  if (!stableDirection(p.pp)) {
+    DEB(util::trace() << "[XPixelTr] Rejecting candidate, direction not stable." << std::endl;)
+    goto reject;
+  }
+
+  if (p.sp == candidate_->sp)
+    return std::nullopt;
+
+  if ((p.tp - candidate_->tp) < CandidateMinTime) {
+    DEB(util::trace() << "[XPixelTr] Rejecting candidate, insufficient time." << std::endl;)
+    goto reject;
+  }
+
+  if (!adjacent(p.sp, candidate_->sp)) {
+    DEB(util::trace() << "[XPixelTr] Rejecting candidate, destination not adjacent." << std::endl;)
+    goto reject;
+  }
+
+  ppPrev_ = candidate_->pp;
+  ppDirection_ = unit(p.sp - candidate_->sp);
+  if (!stableDirection(p.pp)) {
+    DEB(util::trace() << "[XPixelTr] Rejecting candidate, sp/pp direction mismatch." << std::endl;)
+    goto reject;
+  }
+
+  return std::exchange(candidate_, std::nullopt);
+
+reject:
+  candidate_.reset();
+  return std::nullopt;
 }
 
-void ui::XPixelTr::calibrate(const PointPair& target) {
+bool ui::XPixelTr::stableDirection(PixelPoint pp) {
+  auto dir{unit(pp - std::exchange(ppPrev_, pp))};
+
+  auto checkUpdate = [&](auto coord) {
+    if (!coord(dir))
+      return true;
+    if (!coord(ppDirection_)) {
+      coord(ppDirection_) = coord(dir);
+      return true;
+    }
+    return coord(dir) == coord(ppDirection_);
+  };
+
+  bool okX{checkUpdate([](PixelVector& pv) -> PixelCoordinate& { return pv.x; })};
+  bool okY{checkUpdate([](PixelVector& pv) -> PixelCoordinate& { return pv.y; })};
+  return okX && okY;
+}
+
+void ui::XPixelTr::calibrate(const Sample& target) {
   DEB(util::trace() << "[XPixelTr] Calibration target: " << target.sp << " " << target.pp
                     << std::endl;)
 
@@ -141,34 +185,42 @@ void ui::XPixelTr::calibrate(const PointPair& target) {
   // it takes some time until the X display is updated; the terminal may still
   // be drawing previous frames, and there is no easy way to determine when
   // that's done; this delay may be longer than needed to be on the safe side
-  std::this_thread::sleep_for(std::chrono::milliseconds(CalibStartDelayMs));
+  std::this_thread::sleep_for(CalibStartDelay);
 
   const PixelRect calibArea{rectangleCenteredAt(
       target.pp, CalibAreaSize,
       {{0, 0}, {PixelCoordinate(X::displayWidth), PixelCoordinate(X::displayHeight)}})};
-  const auto relTarget{toPoint(target.pp - calibArea.topLeft)};
+  auto relTarget{toPoint(target.pp - calibArea.topLeft)};
 
   const X::PixelMatrix img0{X::getImage(calibArea)};
   DEB(util::trace() << "[XPixelTr] Calib initial img: " << std::endl; print(img0, relTarget);)
 
-  const auto color0{img0[relTarget]};
-  auto color{color0};
-
   paint(target.sp, Color::Gray);
   int tries{CalibMaxTries};
-  while (tries-- && color == color0) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(CalibRetryMs));
-    color = X::getPixel(target.pp);
-  }
-  DEB(util::trace() << "[XPixelTr] Target color " << color0 << " -> " << color << " after "
-                    << (CalibMaxTries - tries) << " tries" << std::endl;)
-  if (color == color0) {
+  X::PixelMatrix img1;
+  bool eq;
+  do {
+    std::this_thread::sleep_for(CalibRetryTime);
+    img1 = X::getImage(calibArea);
+    eq = (img0 == img1);
+  } while (--tries && eq);
+  DEB(util::trace() << "[XPixelTr] Target color " << img0[relTarget] << " -> " << img1[relTarget]
+                    << " after " << (CalibMaxTries - tries) << " tries" << std::endl;)
+  if (eq) {
     DEB(util::trace() << "[XPixelTr] Calibration failed: no color change" << std::endl;)
     return;
   }
 
-  const X::PixelMatrix img1{X::getImage(calibArea)};
   const Matrix diff{img1 - img0};
+
+  if (!diff[relTarget]) {
+    // target wasn't precise; sometimes the terminal doesn't generate a mouse
+    // movement event when the X cursor is just at the border of the cell
+    auto it = util::findIf(diff.rect().points(), [&](MatrixPoint p) { return bool(diff[p]); });
+    assert(it != diff.rect().points().end());
+    DEB(util::trace() << "[XPixelTr] Changing target: " << relTarget << " -> " << *it << std::endl);
+    relTarget = *it;
+  }
 
   DEB(util::trace() << "[XPixelTr] Calib final img: " << std::endl; print(img1, relTarget);
       util::trace() << "[XPixelTr] Diff: " << std::endl; print(diff, relTarget);)
@@ -201,9 +253,16 @@ void ui::XPixelTr::calibrate(const PointPair& target) {
                     << " charSize=" << calibration_->charSize << std::endl;)
 }
 
-bool ui::XPixelTr::checkCalibration(const PointPair& target) {
-  const bool match{toSubcharPoint(target.pp)->point == target.sp};
-  DEB(if (!match) util::trace() << "[XPixelTr] Mismatch: sp=" << target.sp << " pp=" << target.pp
-                                << std::endl;)
+bool ui::XPixelTr::checkCalibration(const Sample& target) {
+  bool match{toSubcharPoint(target.pp)->point == target.sp};
+  if (!match) {
+    // see comment in calibrate() about imprecise target
+    match = util::anyOf(boundingBox(target.pp).outerPoints(), [&](PixelPoint p) {
+      return toSubcharPoint(p)->point == target.sp;
+    });
+    DEB(if (match) util::trace() << "[XPixelTr] Accepting off-by-one target." << std::endl;)
+  }
+  DEB(util::trace() << "[XPixelTr] " << (match ? "Match" : "MISMATCH") << ": sp=" << target.sp
+                    << " pp=" << target.pp << std::endl;)
   return match;
 }

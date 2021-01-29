@@ -56,12 +56,11 @@ namespace ui {
     }
 
     void initWins(IOState& ios) {
-      int maxY, maxX;
-      getmaxyx(stdscr, maxY, maxX);
-      termTooSmall = maxY < dim::TotalSize.y || maxX < dim::TotalSize.x;
+      const auto sz{graph::screenSize()};
+      termTooSmall = sz.y < dim::TotalSize.y || sz.x < dim::TotalSize.x;
 
-      const int top{maxY < dim::TotalSize.y ? 0 : (maxY - dim::TotalSize.y) / 2};
-      const int left{maxX < dim::TotalSize.x ? 0 : (maxX - dim::TotalSize.x) / 2};
+      const int top{sz.y < dim::TotalSize.y ? 0 : (sz.y - dim::TotalSize.y) / 2};
+      const int left{sz.x < dim::TotalSize.x ? 0 : (sz.x - dim::TotalSize.x) / 2};
 
       newWin(
           &ios.headerWin, dim::HeaderWinHeight, dim::DefaultWinWidth, top + dim::HeaderWinTop,

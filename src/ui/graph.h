@@ -50,6 +50,7 @@ namespace ui::graph {
   };
 
   void init();
+  ScreenVector screenSize();
   void drawBorders(const std::vector<const Window*>& windows);
   void drawBoxSegment(const Window& win, int y, int x, BoxSegment segment);
   void drawHLine(const Window& win, ScreenPoint p, int width);

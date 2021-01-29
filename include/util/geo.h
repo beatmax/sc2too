@@ -47,6 +47,9 @@ namespace util::geo {
   constexpr Vector round(FVector v) { return {Coordinate(lroundf(v.x)), Coordinate(lroundf(v.y))}; }
   constexpr FVector toFVector(Vector v) { return {float(v.x), float(v.y)}; }
 
+  constexpr Coordinate unit(Coordinate c) { return c > 0 ? 1 : c < 0 ? -1 : 0; }
+  constexpr Vector unit(Vector v) { return {unit(v.x), unit(v.y)}; }
+
   constexpr Point operator+(Point p, Vector v) { return {p.x + v.x, p.y + v.y}; }
   constexpr FVector operator+(Point p, FVector v) { return {float(p.x) + v.x, float(p.y) + v.y}; }
   constexpr Point& operator+=(Point& p, Vector v) { return p = p + v; }

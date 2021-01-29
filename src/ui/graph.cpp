@@ -116,6 +116,12 @@ void ui::graph::init() {
   use_default_colors();
 }
 
+ui::ScreenVector ui::graph::screenSize() {
+  int maxY, maxX;
+  getmaxyx(stdscr, maxY, maxX);
+  return {maxX, maxY};
+}
+
 void ui::graph::drawBorders(const std::vector<const Window*>& windows) {
   attrset(white() | A_BOLD);
   auto it = windows.begin();
