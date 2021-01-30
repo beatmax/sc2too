@@ -6,6 +6,7 @@ constexpr auto ITKeyRelease = ui::InputType::KeyRelease;
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/cursorfont.h>
 #include <X11/keysym.h>
 #include <algorithm>
 #include <cassert>
@@ -15,6 +16,7 @@ constexpr auto ITKeyRelease = ui::InputType::KeyRelease;
 
 namespace {
   Display* display{nullptr};
+  Window terminalWindow;
   bool grabbing{false};
   int minKeyCode, maxKeyCode, keySymsPerKeyCode;
   KeySym* xKeymap{nullptr};
@@ -141,6 +143,19 @@ namespace {
         display, window, &root, &x, &y, &ui::X::displayWidth, &ui::X::displayHeight, &borderWidth,
         &depth);
   }
+
+  void setCursor() {
+    // this has no effect in terminals like xfce4-terminal, but fixes the
+    // cursor in e.g. suckless st
+    Cursor cursor{XCreateFontCursor(display, XC_left_ptr)};
+    XDefineCursor(display, terminalWindow, cursor);
+    XFreeCursor(display, cursor);
+  }
+
+  void restoreCursor() {
+    // there is no easy way to save and restore the current cursor (!)
+    XUndefineCursor(display, terminalWindow);
+  }
 }
 
 void ui::X::init() {
@@ -149,6 +164,11 @@ void ui::X::init() {
   if (!display)
     throw std::runtime_error{"cannot connect to X server"};
 
+  // quite safely assume the parent terminal has the focus
+  int revertTo;
+  XGetInputFocus(display, &terminalWindow, &revertTo);
+
+  setCursor();
   saveKeymap();
   initKeymap();
   XAutoRepeatOff(display);
@@ -160,6 +180,7 @@ void ui::X::finish() {
     releaseInput();
     XAutoRepeatOn(display);
     restoreKeymap();
+    restoreCursor();
     XCloseDisplay(display);
     display = nullptr;
   }
