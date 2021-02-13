@@ -18,57 +18,9 @@
 #endif
 
 namespace {
-  ui::InputState buttons{};
-  ui::InputMousePosition mousePosition{ui::InputMouseArea::None, {-1, -1}};
-  ui::ScreenPoint absMouseScreenPosition{-1, -1};
-  ui::PixelPoint absMousePixelPosition{-1, -1};
-  bool absMousePositionInitialized{false};
-  bool absMousePositionUpdated{false};
-  bool motionReportingEnabled{false};
   ui::ScrollDirection edgeScrollDirection{};
 
-  void initMouse() {
-    mouseinterval(0);
-    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
-  }
-
-  void initMouseMotionReporting() {
-    printf("\033[?1003h\n");
-    motionReportingEnabled = true;
-  }
-
-  void finishMouseMotionReporting() {
-    if (motionReportingEnabled) {
-      printf("\033[?1003l\n");
-      motionReportingEnabled = false;
-    }
-  }
-
-  void finishMouse() { finishMouseMotionReporting(); }
-
-  void updateAbsMousePosition() {
-    absMousePositionUpdated = false;
-
-    int c;
-    while ((c = getch()) != ERR) {
-      if (c == KEY_MOUSE) {
-        MEVENT event;
-        if (getmouse(&event) == OK) {
-          absMouseScreenPosition = {event.x, event.y};
-          if (!absMousePositionInitialized) {
-            absMousePositionInitialized = true;
-            absMousePositionUpdated = true;
-          }
-        }
-      }
-    }
-
-    ui::X::updatePointerState();
-    auto ppPrev{std::exchange(absMousePixelPosition, {ui::X::pointerX, ui::X::pointerY})};
-    absMousePositionUpdated |= absMousePositionInitialized && (absMousePixelPosition != ppPrev);
-  }
-
-  rts::Point getTarget(const std::optional<rts::Command>& cmd) {
+  rts::Point getTargetPoint(const std::optional<rts::Command>& cmd) {
     if (cmd) {
       if (auto* c{std::get_if<rts::command::TriggerAbility>(&*cmd)})
         return c->target;
@@ -83,34 +35,36 @@ ui::Input::Input(IOState& ios) : ios_{ios} {
 }
 
 void ui::Input::init() {
-  X::grabInput();
+  do {
+    X::releaseInput();
+    ios_.xTermGeo.update();
+    X::grabInput();
+    // repeat if terminal was resized before grab
+  } while (ios_.xTermGeo.outdated());
 
+  // ncurses input, only used when menu is active
   raw();
   keypad(stdscr, true);
-  nodelay(stdscr, true);
-  initMouse();
+  nodelay(stdscr, false);
 }
 
 void ui::Input::finish() {
-  finishMouse();
   X::releaseInput();
 }
 
 std::optional<rts::SideCommand> ui::Input::process(
     rts::Engine& engine, const rts::World& w, Player& player) {
   if (ios_.paused()) {
-    nodelay(stdscr, false);
     MenuImpl::processInput(ios_.menu, ios_.quit);
     if (!ios_.paused()) {
-      X::init();
-      X::grabInput();
-      nodelay(stdscr, true);
+      init();
+      ios_.redraw = true;
     }
     return std::nullopt;
   }
 
   auto sideCommand = [&](std::optional<rts::Command>&& cmd) -> std::optional<rts::SideCommand> {
-    ios_.clickedTarget = getTarget(cmd);
+    ios_.targetPoint = getTargetPoint(cmd);
     if (cmd) {
       player.camera.update();
       return rts::SideCommand{player.side, std::move(*cmd)};
@@ -120,189 +74,112 @@ std::optional<rts::SideCommand> ui::Input::process(
     }
   };
 
-  updateAbsMousePosition();
-
-  if (absMousePositionUpdated) {
-    const auto now{std::chrono::steady_clock::now()};
-    ios_.pixelTr.update({now, absMouseScreenPosition, absMousePixelPosition});
-
-    updateMousePosition(w, player.camera);
-  }
-
-  if (absMousePositionInitialized) {
-    while (InputEvent event{nextMouseEvent()}) {
-      if (!processMouseInput(event)) {
-        if (auto sc{sideCommand(player.processInput(w, event))})
-          return sc;
-      }
-    }
-  }
-
-  if (InputEvent event{edgeScrollEvent()})
-    if (auto sc{sideCommand(player.processInput(w, event))})
-      return sc;
-
   while (X::pendingEvent()) {
     InputEvent event{X::nextEvent()};
-    if (processKbInput(engine, event)) {
+    if (processInput(w, player.camera, engine, event)) {
       if (ios_.paused()) {
-        X::finish();
+        X::releaseInput();
         return std::nullopt;
       }
     }
-    else {
-      if (auto sc{sideCommand(player.processInput(w, event))})
-        return sc;
-    }
+    else if (auto sc{sideCommand(player.processInput(w, event))})
+      return sc;
   }
 
   player.camera.update();
   return std::nullopt;
 }
 
-bool ui::Input::processKbInput(rts::Engine& engine, const InputEvent& event) {
-  if (event.type == InputType::KeyPress) {
-    switch (event.symbol) {
-      case InputKeySym::F10:
-        ios_.menu.show();
-        return true;
-      case InputKeySym::F11:
-        if (engine.gameSpeed() > 20)
-          engine.gameSpeed(engine.gameSpeed() - 20);
-        return true;
-      case InputKeySym::F12:
-        engine.gameSpeed(engine.gameSpeed() + 20);
-        return true;
-      default:
-        break;
-    }
+bool ui::Input::processInput(
+    const rts::World& w, const Camera& camera, rts::Engine& engine, InputEvent& event) {
+  switch (event.type) {
+    case InputType::KeyPress:
+      switch (event.symbol) {
+        case InputKeySym::F10:
+          ios_.menu.show();
+          return true;
+        case InputKeySym::F11:
+          if (engine.gameSpeed() > 20)
+            engine.gameSpeed(engine.gameSpeed() - 20);
+          return true;
+        case InputKeySym::F12:
+          engine.gameSpeed(engine.gameSpeed() + 20);
+          return true;
+        default:
+          break;
+      }
+      break;
+    case InputType::MousePress:
+    case InputType::MouseRelease:
+    case InputType::MousePosition:
+      transformMousePosition(w, camera, event.mousePosition);
+      switch (event.mousePosition.area) {
+        case InputMouseArea::None:
+          edgeScroll(event);
+          break;
+        case InputMouseArea::Map:
+          ios_.mouseMapPoint = event.mousePosition.point;
+          break;
+        default:
+          break;
+      }
+    default:
+      break;
   }
   return false;
 }
 
-bool ui::Input::processMouseInput(const InputEvent& event) {
-  ios_.mouseButtons = buttons >> 8;
-  if (event.type != InputType::MousePosition)
-    ++ios_.clicks;
-  if (event.mousePosition.area == InputMouseArea::Map)
-    ios_.mousePosition = event.mousePosition.point;
-
-  if (!motionReportingEnabled && event.type == InputType::MousePress) {
-    // on some terminals ncurses gets stuck if motion reporting is enabled before a click;
-    // do not disable it on MouseRelease (has strange effects on some other terminals)
-    initMouseMotionReporting();
-  }
-
-  return false;
-}
-
-void ui::Input::updateMousePosition(const rts::World& w, const Camera& camera) {
-  mousePosition.area = InputMouseArea::None;
-
-  auto p{absMouseScreenPosition};
+void ui::Input::transformMousePosition(
+    const rts::World& w, const Camera& camera, InputMousePosition& position) const {
+  auto subp{ios_.xTermGeo.toSubcharPoint(position.point)};
+  auto p{subp.point};
   if (wenclose(ios_.renderWin.w, p.y, p.x)) {
     if (wmouse_trafo(ios_.renderWin.w, &p.y, &p.x, false)) {
-      mousePosition.area = InputMouseArea::Map;
-      mousePosition.point = transformDiv(p, dim::CellSizeEx, {0, 0}, camera.area().topLeft);
+      position.area = InputMouseArea::Map;
+      position.point = transformDiv(p, dim::CellSizeEx, {0, 0}, camera.area().topLeft);
     }
   }
   else if (wenclose(ios_.controlWin.w, p.y, p.x)) {
     if (wmouse_trafo(ios_.controlWin.w, &p.y, &p.x, false)) {
       if (dim::MinimapArea.contains(p)) {
-        auto subp{relativeSubcharPoint(ios_.controlWin, p, dim::MinimapArea)};
-        mousePosition.area = InputMouseArea::Minimap;
-        mousePosition.point = clamp(
-            toPoint(w.minimap.minimapToMap(scale(subp.point + subp.subchar, FVector{1.f, 2.f}))),
+        position.area = InputMouseArea::Minimap;
+        position.point = clamp(
+            toPoint(w.minimap.minimapToMap(
+                scale((p - dim::MinimapArea.topLeft) + subp.subchar, FVector{1.f, 2.f}))),
             w.map.area());
       }
       else if (dim::SelectionAreaEx.contains(p)) {
-        mousePosition.area = InputMouseArea::Selection;
+        position.area = InputMouseArea::Selection;
         if (p.x == dim::SelectionAreaEx.topLeft.x)
           ++p.x;
         if (p.y == dim::SelectionAreaEx.topLeft.y)
           ++p.y;
-        mousePosition.point = transformDiv(p, dim::CellSizeEx, dim::SelectionArea.topLeft, {0, 0});
+        position.point = transformDiv(p, dim::CellSizeEx, dim::SelectionArea.topLeft, {0, 0});
       }
     }
   }
 }
 
-ui::SubcharPoint ui::Input::relativeSubcharPoint(
-    const Window& win, ScreenPoint p, const ScreenRect& area) const {
-  if (auto subp{ios_.pixelTr.toSubcharPoint(absMousePixelPosition)}) {
-    auto q{toPoint(subp->point - ScreenVector{win.beginX, win.beginY} - area.topLeft)};
-    if (area.contains(q))
-      return {q, subp->subchar};
-  }
-  return {toPoint(p - area.topLeft), {0.5f, 0.5f}};
-}
+void ui::Input::edgeScroll(InputEvent& event) {
+  if (event.state & ButtonMask)
+    return;
 
-ui::InputEvent ui::Input::nextMouseEvent() {
-  InputEvent ievent;
-  ievent.mousePosition = mousePosition;
-  ievent.state = X::inputState;
-
-  // use button state from X to generate mouse events; ncurses misses events
-  // sometimes, and has many issues when motion reporting is enabled
-
-  auto diff{buttons ^ (X::inputState & ButtonMask)};
-
-  if (diff) {
-    if (diff & Button1Pressed) {
-      diff = Button1Pressed;
-      ievent.mouseButton = InputButton::Button1;
-    }
-    else if (diff & Button2Pressed) {
-      diff = Button2Pressed;
-      ievent.mouseButton = InputButton::Button2;
-    }
-    else {
-      assert(diff & Button3Pressed);
-      diff = Button3Pressed;
-      ievent.mouseButton = InputButton::Button3;
-    }
-
-    buttons ^= diff;
-    ievent.type = (X::inputState & diff) ? InputType::MousePress : InputType::MouseRelease;
-  }
-  else if (absMousePositionUpdated) {
-    absMousePositionUpdated = false;
-    ievent.type = InputType::MousePosition;
-    ievent.mouseButton = InputButton::Unknown;
-  }
-  else {
-    ievent.type = InputType::Unknown;
-  }
-
-  return ievent;
-}
-
-ui::InputEvent ui::Input::edgeScrollEvent() {
-  InputEvent ievent;
-  ievent.type = InputType::Unknown;
-
-  if (buttons)
-    return ievent;
-
-  auto x = X::pointerX;
-  auto y = X::pointerY;
+  const auto& p{event.mousePosition.point};
+  const auto& terminalSize{ios_.xTermGeo.rect().size};
   auto hDirection{
-      (x == 0)                              ? ScrollDirectionLeft
-          : (x == int(X::displayWidth - 1)) ? ScrollDirectionRight
-                                            : 0};
+      (p.x <= 0)                             ? ScrollDirectionLeft
+          : (p.x >= int(terminalSize.x - 1)) ? ScrollDirectionRight
+                                             : 0};
   auto vDirection{
-      (y == 0)                               ? ScrollDirectionUp
-          : (y == int(X::displayHeight - 1)) ? ScrollDirectionDown
+      (p.y <= 0)                             ? ScrollDirectionUp
+          : (p.y >= int(terminalSize.y - 1)) ? ScrollDirectionDown
                                              : 0};
   ScrollDirection direction{hDirection | vDirection};
 
   if (edgeScrollDirection != direction) {
     edgeScrollDirection = direction;
 
-    ievent.type = InputType::EdgeScroll;
-    ievent.state = X::inputState;
-    ievent.scrollDirection = direction;
+    event.type = InputType::EdgeScroll;
+    event.scrollDirection = direction;
   }
-
-  return ievent;
 }

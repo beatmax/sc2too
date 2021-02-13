@@ -20,13 +20,11 @@ namespace ui {
         rts::Engine& engine, const rts::World& w, Player& player);
 
   private:
-    bool processKbInput(rts::Engine& engine, const InputEvent& event);
-    bool processMouseInput(const InputEvent& event);
-    void updateMousePosition(const rts::World& w, const Camera& camera);
-    SubcharPoint relativeSubcharPoint(
-        const Window& win, ScreenPoint p, const ScreenRect& area) const;
-    InputEvent nextMouseEvent();
-    InputEvent edgeScrollEvent();
+    bool processInput(
+        const rts::World& w, const Camera& camera, rts::Engine& engine, InputEvent& event);
+    void transformMousePosition(
+        const rts::World& w, const Camera& camera, InputMousePosition& position) const;
+    void edgeScroll(InputEvent& event);
 
     IOState& ios_;
   };

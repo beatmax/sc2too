@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
@@ -51,7 +52,6 @@ namespace util::geo {
   constexpr Vector unit(Vector v) { return {unit(v.x), unit(v.y)}; }
 
   constexpr Point operator+(Point p, Vector v) { return {p.x + v.x, p.y + v.y}; }
-  constexpr FVector operator+(Point p, FVector v) { return {float(p.x) + v.x, float(p.y) + v.y}; }
   constexpr Point& operator+=(Point& p, Vector v) { return p = p + v; }
   constexpr Point operator-(Point p, Vector v) { return {p.x - v.x, p.y - v.y}; }
   constexpr FVector operator-(Point p, FVector v) { return {float(p.x) - v.x, float(p.y) - v.y}; }
@@ -59,8 +59,12 @@ namespace util::geo {
   constexpr Point& operator-=(Point& p, Vector v) { return p = p - v; }
 
   constexpr Vector operator+(Vector v1, Vector v2) { return {v1.x + v2.x, v1.y + v2.y}; }
+  constexpr FVector operator+(FVector v1, FVector v2) { return {v1.x + v2.x, v1.y + v2.y}; }
+  constexpr FVector operator+(Vector v1, FVector v2) { return toFVector(v1) + v2; }
   constexpr Vector& operator+=(Vector& v1, Vector v2) { return v1 = v1 + v2; }
   constexpr Vector operator-(Vector v1, Vector v2) { return {v1.x - v2.x, v1.y - v2.y}; }
+  constexpr FVector operator-(FVector v1, FVector v2) { return {v1.x - v2.x, v1.y - v2.y}; }
+  constexpr FVector operator-(Vector v1, FVector v2) { return toFVector(v1) - v2; }
   constexpr Vector& operator-=(Vector& v1, Vector v2) { return v1 = v1 - v2; }
   constexpr Vector operator-(Vector v) { return {-v.x, -v.y}; }
 
@@ -75,6 +79,9 @@ namespace util::geo {
   constexpr FVector operator/(float n, FVector v) { return {n / v.x, n / v.y}; }
 
   PointList operator+(Point p, const VectorList& vs);
+
+  inline Vector min(Vector v1, Vector v2) { return {std::min(v1.x, v2.x), std::min(v1.y, v2.y)}; }
+  inline Vector max(Vector v1, Vector v2) { return {std::max(v1.x, v2.x), std::max(v1.y, v2.y)}; }
 
   constexpr FVector relation(Vector v1, Vector v2) {
     return {float(v1.x) / float(v2.x), float(v1.y) / float(v2.y)};

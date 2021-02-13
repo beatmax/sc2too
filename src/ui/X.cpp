@@ -3,6 +3,11 @@
 constexpr auto ITUnknown = ui::InputType::Unknown;
 constexpr auto ITKeyPress = ui::InputType::KeyPress;
 constexpr auto ITKeyRelease = ui::InputType::KeyRelease;
+constexpr auto ITMousePress = ui::InputType::MousePress;
+constexpr auto ITMouseRelease = ui::InputType::MouseRelease;
+constexpr auto ITMousePosition = ui::InputType::MousePosition;
+
+#include "Xdetail.h"
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -15,14 +20,18 @@ constexpr auto ITKeyRelease = ui::InputType::KeyRelease;
 #include <utility>
 
 namespace {
-  Display* display{nullptr};
-  Window terminalWindow;
+  using namespace ui::X::detail;
+
+  int (*oldErrorHandler)(Display*, XErrorEvent*);
+  int trappedErrorCode{0};
+  ui::PixelVector displaySize;
   bool grabbing{false};
   int minKeyCode, maxKeyCode, keySymsPerKeyCode;
   KeySym* xKeymap{nullptr};
   XModifierKeymap* xModmap{nullptr};
   ui::InputKeySym uiKeymap[256];
   ui::InputState uiModmap[256]{};
+  ui::InputState inputState{};
 
   const std::map<KeySym, ui::InputKeySym> keysymMap{
       {XK_Tab, ui::InputKeySym::Tab},
@@ -93,6 +102,11 @@ namespace {
       {XK_Alt_L, ui::AltPressed},           {XK_Alt_R, ui::AltPressed},
       {XK_ISO_Level3_Shift, ui::AltPressed}};
 
+  int errorHandler(Display* display, XErrorEvent* error) {
+    trappedErrorCode = error->error_code;
+    return 0;
+  }
+
   void saveKeymap() {
     XDisplayKeycodes(display, &minKeyCode, &maxKeyCode);
     xKeymap =
@@ -134,27 +148,23 @@ namespace {
     XFreeModifiermap(modmap);
   }
 
-  void getDisplaySize() {
+  void updateDisplaySize() {
     ::Window window = DefaultRootWindow(display);
     ::Window root;
     int x, y;
-    unsigned int borderWidth, depth;
-    XGetGeometry(
-        display, window, &root, &x, &y, &ui::X::displayWidth, &ui::X::displayHeight, &borderWidth,
-        &depth);
+    unsigned int width, height, borderWidth, depth;
+    XGetGeometry(display, window, &root, &x, &y, &width, &height, &borderWidth, &depth);
+    ::displaySize = {ui::PixelCoordinate(width), ui::PixelCoordinate(height)};
   }
 
-  void setCursor() {
-    // this has no effect in terminals like xfce4-terminal, but fixes the
-    // cursor in e.g. suckless st
-    Cursor cursor{XCreateFontCursor(display, XC_left_ptr)};
-    XDefineCursor(display, terminalWindow, cursor);
-    XFreeCursor(display, cursor);
-  }
-
-  void restoreCursor() {
-    // there is no easy way to save and restore the current cursor (!)
-    XUndefineCursor(display, terminalWindow);
+  ui::PixelRect getGeometry(Drawable d) {
+    ::Window root;
+    int x, y;
+    unsigned int width, height, borderWidth, depth;
+    trapErrors();
+    XGetGeometry(display, d, &root, &x, &y, &width, &height, &borderWidth, &depth);
+    using C = ui::PixelCoordinate;
+    return untrapErrors() ? ui::PixelRect{} : ui::PixelRect{{C(x), C(y)}, {C(width), C(height)}};
   }
 }
 
@@ -164,26 +174,20 @@ void ui::X::init() {
   if (!display)
     throw std::runtime_error{"cannot connect to X server"};
 
-  // quite safely assume the parent terminal has the focus
-  int revertTo;
-  XGetInputFocus(display, &terminalWindow, &revertTo);
-
-  setCursor();
-  saveKeymap();
-  initKeymap();
-  XAutoRepeatOff(display);
-  getDisplaySize();
+  updateDisplaySize();
+  updateActiveWindow();
 }
 
 void ui::X::finish() {
   if (display) {
     releaseInput();
-    XAutoRepeatOn(display);
-    restoreKeymap();
-    restoreCursor();
     XCloseDisplay(display);
     display = nullptr;
   }
+}
+
+ui::PixelVector ui::X::displaySize() {
+  return ::displaySize;
 }
 
 void ui::X::saveState() {
@@ -212,13 +216,25 @@ void ui::X::restoreState() {
 void ui::X::grabInput() {
   assert(!grabbing);
   ::Window window = DefaultRootWindow(display);
+  saveKeymap();
+  initKeymap();
+  XAutoRepeatOff(display);
   XGrabKeyboard(display, window, False, GrabModeAsync, GrabModeAsync, CurrentTime);
+  Cursor cursor{XCreateFontCursor(display, XC_left_ptr)};
+  XGrabPointer(
+      display, activeWindow, False,
+      ButtonPressMask | ButtonReleaseMask | PointerMotionMask | PointerMotionHintMask,
+      GrabModeAsync, GrabModeAsync, activeWindow, cursor, CurrentTime);
+  XFreeCursor(display, cursor);
   grabbing = true;
 }
 
 void ui::X::releaseInput() {
   if (grabbing) {
+    XUngrabPointer(display, CurrentTime);
     XUngrabKeyboard(display, CurrentTime);
+    XAutoRepeatOn(display);
+    restoreKeymap();
     grabbing = false;
   }
 }
@@ -231,58 +247,89 @@ ui::InputEvent ui::X::nextEvent() {
   XEvent event;
   XNextEvent(display, &event);
 
-  InputEvent ievent;
-  if (event.type == KeyPress)
-    ievent.type = ITKeyPress;
-  else if (event.type == KeyRelease)
-    ievent.type = ITKeyRelease;
-  else
-    ievent.type = ITUnknown;
+  InputEvent ievent{ITUnknown, inputState};
 
-  if (event.type == KeyPress || event.type == KeyRelease) {
-    ievent.state = inputState;
-    ievent.symbol = uiKeymap[event.xkey.keycode];
-
-    if (InputState modState = uiModmap[event.xkey.keycode]) {
-      if (event.type == KeyPress)
-        inputState |= modState;
-      else
-        inputState &= ~modState;
+  switch (event.type) {
+    case KeyPress:
+    case KeyRelease:
+      ievent.type = (event.type == KeyPress) ? ITKeyPress : ITKeyRelease;
+      ievent.state |= event.xkey.state & ButtonMask;
+      ievent.symbol = uiKeymap[event.xkey.keycode];
+      if (InputState modState{uiModmap[event.xkey.keycode]}) {
+        if (event.type == KeyPress)
+          inputState |= modState;
+        else
+          inputState &= ~modState;
+      }
+      break;
+    case ButtonPress:
+    case ButtonRelease:
+      ievent.type = (event.type == ButtonPress) ? ITMousePress : ITMouseRelease;
+      ievent.state |= event.xbutton.state & ButtonMask;
+      ievent.mouseButton = InputButton(event.xbutton.button);
+      ievent.mousePosition.area = InputMouseArea{};
+      ievent.mousePosition.point = {event.xbutton.x, event.xbutton.y};
+      break;
+    case MotionNotify: {
+      ::Window root, child;
+      int rootX, rootY, pointerX, pointerY;
+      unsigned int mask;
+      if (XQueryPointer(
+              display, activeWindow, &root, &child, &rootX, &rootY, &pointerX, &pointerY, &mask)) {
+        ievent.type = ITMousePosition;
+        ievent.state |= mask & ButtonMask;
+        ievent.mousePosition.area = InputMouseArea{};
+        ievent.mousePosition.point = {pointerX, pointerY};
+      }
+      break;
     }
+    default:
+      break;
   }
 
   return ievent;
 }
 
-void ui::X::updatePointerState() {
-  ::Window window = DefaultRootWindow(display);
-  ::Window root, child;
-  int winX, winY;
-  unsigned int mask;
-  if (XQueryPointer(display, window, &root, &child, &pointerX, &pointerY, &winX, &winY, &mask))
-    inputState = (inputState & ~ButtonMask) | (mask & ButtonMask);
+void ui::X::detail::trapErrors() {
+  trappedErrorCode = 0;
+  oldErrorHandler = XSetErrorHandler(errorHandler);
 }
 
-ui::X::PixelMatrix ui::X::getImage(const PixelRect& area) {
-  ::Window window = DefaultRootWindow(display);
-  ui::X::PixelMatrix result(MatrixVector{area.size.x, area.size.y});
-  XImage* img{XGetImage(
-      display, window, area.topLeft.x, area.topLeft.y, area.size.x, area.size.y, AllPlanes,
-      XYPixmap)};
-  for (auto p : result.rect().points())
-    result[p] = XGetPixel(img, p.x, p.y);
-  XFree(img);
-  return result;
+int ui::X::detail::untrapErrors() {
+  XSetErrorHandler(oldErrorHandler);
+  return trappedErrorCode;
 }
 
-unsigned long ui::X::getPixel(PixelPoint p) {
-  ::Window window = DefaultRootWindow(display);
-  XImage* img{XGetImage(display, window, p.x, p.y, 1, 1, AllPlanes, XYPixmap)};
-  auto result = XGetPixel(img, 0, 0);
-  XFree(img);
-  return result;
+void ui::X::detail::updateActiveWindow() {
+  activeWindow = 0;
+
+  Atom property{XInternAtom(display, "_NET_ACTIVE_WINDOW", True)};
+  if (property != None) {
+    Atom actualType;
+    int actualFormat;
+    unsigned long nitems;
+    unsigned long bytesAfter;
+    unsigned char* prop;
+    if (XGetWindowProperty(
+            display, DefaultRootWindow(display), property, 0, sizeof(::Window), False,
+            AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &prop) == Success) {
+      if (nitems > 0)
+        activeWindow = *((::Window*)prop);
+    }
+    XFree(prop);
+  }
+  if (!activeWindow) {
+    // fallback mechanism, not so accurate
+    int revertTo;
+    XGetInputFocus(display, &activeWindow, &revertTo);
+  }
+  updateActiveWindowRect();
 }
 
-unsigned int ui::X::displayWidth, ui::X::displayHeight;
-int ui::X::pointerX, ui::X::pointerY;
-ui::InputState ui::X::inputState{0};
+void ui::X::detail::updateActiveWindowRect() {
+  activeWindowRect = getGeometry(activeWindow);
+}
+
+Display* ui::X::detail::display{nullptr};
+Window ui::X::detail::activeWindow;
+ui::PixelRect ui::X::detail::activeWindowRect;

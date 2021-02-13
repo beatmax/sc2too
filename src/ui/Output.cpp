@@ -76,13 +76,12 @@ namespace ui {
       refresh();
     }
 
-    void onTermResized(IOState& ios) {
+    void redraw(IOState& ios) {
       endwin();
       refresh();
       clear();
       delAllWins();
       initWins(ios);
-      ios.pixelTr.reset();
     }
 
     void drawResourceQuantities(const IOState& ios, const rts::World& w, const rts::Side& side) {
@@ -359,9 +358,9 @@ void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const 
   const auto& camera{player.camera};
   const auto& side{w[player.side]};
 
-  if (termResized) {
-    termResized = false;
-    onTermResized(ios_);
+  if (ios_.redraw || termResized) {
+    ios_.redraw = termResized = false;
+    redraw(ios_);
   }
 
   for (const Window* win : allWins)
@@ -378,7 +377,7 @@ void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const 
   rts::Rectangle prototypeArea;
   if (side.prototype()) {
     const auto& proto{w[side.prototype()]};
-    prototypeArea = rectangleCenteredAt(ios_.mousePosition, proto.area.size, w.map.area());
+    prototypeArea = rectangleCenteredAt(ios_.mouseMapPoint, proto.area.size, w.map.area());
     drawPower(ios_, camera, side.powerMap());
     if (auto pr{w[proto.type].powerRadius})
       drawPower(ios_, camera, prototypeArea, pr, graph::electricBlue1());
@@ -389,9 +388,7 @@ void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const 
     if (auto pr{w[subgroup.type].powerRadius})
       drawPower(ios_, w, camera, subgroup, pr);
   }
-  highlight(
-      ios_.renderWin, camera, ios_.clickedTarget,
-      ios_.mouseButtons ? graph::red() : graph::yellow());
+  highlight(ios_.renderWin, camera, ios_.targetPoint, graph::red());
   render(ios_.renderWin, w, {w.map, side.prototypeMap()}, camera, side.selection());
   drawTargetPoints(ios_, w, camera, side.selection());
   if (player.selectionBox)
@@ -399,7 +396,7 @@ void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const 
   if (side.prototype())
     render(ios_.renderWin, w, camera, w[side.prototype()], prototypeArea);
   else if (player.selectingAbilityTarget)
-    highlight(ios_.renderWin, camera, ios_.mousePosition, graph::brightGreen());
+    highlight(ios_.renderWin, camera, ios_.mouseMapPoint, graph::brightGreen());
 
   drawResourceQuantities(ios_, w, side);
   drawGameTime(ios_, engine, w);
@@ -421,7 +418,7 @@ void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const 
         dim::TotalSize.y, dim::TotalSize.x);
     if (!ios_.paused()) {
       ios_.menu.show();
-      X::finish();
+      X::releaseInput();
     }
   }
   else if (ios_.paused()) {
@@ -431,9 +428,9 @@ void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const 
   else {
     mvwprintw(ios_.headerWin.w, 0, 0, "F10:menu");
     mvwprintw(
-        ios_.headerWin.w, 0, 32, "(%d, %d) - (%d, %d) : (%d, %d) : %u : %u", camera.topLeft().x,
-        camera.topLeft().y, camera.bottomRight().x, camera.bottomRight().y, ios_.mousePosition.x,
-        ios_.mousePosition.y, ios_.mouseButtons, ios_.clicks);
+        ios_.headerWin.w, 0, 32, "(%d, %d) - (%d, %d) : (%d, %d)", camera.topLeft().x,
+        camera.topLeft().y, camera.bottomRight().x, camera.bottomRight().y, ios_.mouseMapPoint.x,
+        ios_.mouseMapPoint.y);
   }
 
   for (const Window* win : allWins)

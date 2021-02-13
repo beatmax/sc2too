@@ -64,8 +64,8 @@ ui::IO::IO() : state_{std::make_unique<IOState>()}, input{*state_}, output{*stat
     throw std::runtime_error{"please select a UTF-8 locale"};
   X::init();
   graph::init();
-  output.init();
   input.init();
+  output.init();
 }
 
 ui::IO::~IO() {

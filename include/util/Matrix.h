@@ -53,6 +53,8 @@ namespace util {
       data_.resize(sz);
     }
 
+    std::vector<T>& data() { return data_; }
+    const std::vector<T>& data() const { return data_; }
     T& data(size_t idx) {
       assert(idx < data_.size());
       return data_[idx];
