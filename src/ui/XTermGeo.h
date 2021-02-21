@@ -8,11 +8,11 @@ namespace ui {
     void update();
     bool outdated();
     SubcharPoint toSubcharPoint(PixelPoint pp) const;
-    const PixelRect& rect() const { return terminalRect_; }
+    const PixelRect& area() const { return calibration_.area; }
 
   private:
     struct Calibration {
-      PixelPoint base;
+      PixelRect area;
       PixelVector charSize;
       FVector factor;
     };
@@ -20,6 +20,6 @@ namespace ui {
     bool calibrate();
 
     Calibration calibration_;
-    PixelRect terminalRect_{};
+    PixelVector terminalSize_{};
   };
 }

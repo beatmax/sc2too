@@ -164,16 +164,14 @@ void ui::Input::edgeScroll(InputEvent& event) {
   if (event.state & ButtonMask)
     return;
 
+  // edge scroll on borders of drawable area (not of terminal window because
+  // e.g. gnome-terminal defines a window larger than the visible window)
   const auto& p{event.mousePosition.point};
-  const auto& terminalSize{ios_.xTermGeo.rect().size};
-  auto hDirection{
-      (p.x <= 0)                             ? ScrollDirectionLeft
-          : (p.x >= int(terminalSize.x - 1)) ? ScrollDirectionRight
-                                             : 0};
-  auto vDirection{
-      (p.y <= 0)                             ? ScrollDirectionUp
-          : (p.y >= int(terminalSize.y - 1)) ? ScrollDirectionDown
-                                             : 0};
+  const auto& termArea{ios_.xTermGeo.area()};
+  const auto& tl{termArea.topLeft};
+  const auto& br{termArea.bottomRight()};
+  auto hDirection{(p.x <= tl.x) ? ScrollDirectionLeft : (p.x >= br.x) ? ScrollDirectionRight : 0};
+  auto vDirection{(p.y <= tl.y) ? ScrollDirectionUp : (p.y >= br.y) ? ScrollDirectionDown : 0};
   ScrollDirection direction{hDirection | vDirection};
 
   if (edgeScrollDirection != direction) {

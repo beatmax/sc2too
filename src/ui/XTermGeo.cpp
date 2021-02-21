@@ -59,7 +59,6 @@ namespace ui::loc {
 
 void ui::XTermGeo::update() {
   if (outdated()) {
-    terminalRect_ = X::detail::activeWindowRect;
     while (!calibrate())
       std::this_thread::sleep_for(loc::CalibRetryDelay);
   }
@@ -67,11 +66,11 @@ void ui::XTermGeo::update() {
 
 bool ui::XTermGeo::outdated() {
   X::detail::updateActiveWindowRect();
-  return X::detail::activeWindowRect.size != terminalRect_.size;
+  return X::detail::activeWindowRect.size != terminalSize_;
 }
 
 ui::SubcharPoint ui::XTermGeo::toSubcharPoint(PixelPoint pp) const {
-  auto p{pp - calibration_.base};
+  auto p{pp - calibration_.area.topLeft};
   auto dx{std::div(p.x, calibration_.charSize.x)};
   auto dy{std::div(p.y, calibration_.charSize.y)};
   return SubcharPoint{
@@ -80,7 +79,8 @@ ui::SubcharPoint ui::XTermGeo::toSubcharPoint(PixelPoint pp) const {
 }
 
 bool ui::XTermGeo::calibrate() {
-  DEB(util::trace() << "[XTermGeo] Calibrate, terminalRect: " << terminalRect_ << std::endl;)
+  auto terminalRect{X::detail::activeWindowRect};
+  DEB(util::trace() << "[XTermGeo] Calibrate, terminalRect: " << terminalRect << std::endl;)
 
   util::ScopeExit restoreScreen{[ch{getbkgd(stdscr)}] {
     attrset(0);
@@ -95,10 +95,10 @@ bool ui::XTermGeo::calibrate() {
   loc::PatternArray patterns;
   loc::generate(patterns);
 
+  const auto screenSize{graph::screenSize()};
   {
-    auto ssz{graph::screenSize()};
     ScreenVector minsz{loc::CalibPatternLength + 2, patterns.size()};
-    if (ssz.x < minsz.x || ssz.y < minsz.y)
+    if (screenSize.x < minsz.x || screenSize.y < minsz.y)
       return false;
   }
 
@@ -108,16 +108,19 @@ bool ui::XTermGeo::calibrate() {
   std::this_thread::sleep_for(loc::ScanInitialDelay);
 
   for (int tries{0}; tries < loc::ScanMaxRetries; ++tries) {
-    if (auto visibleTermArea{maybeIntersection(terminalRect_, {{0, 0}, X::displaySize()})}) {
-      const PixelRect area{
-          toPoint(visibleTermArea->topLeft - terminalRect_.topLeft),
+    if (auto visibleTermArea{maybeIntersection(terminalRect, {{0, 0}, X::displaySize()})}) {
+      const PixelRect scanArea{
+          toPoint(visibleTermArea->topLeft - terminalRect.topLeft),
           min((tries + 1) * loc::ScanInitialAreaSize, visibleTermArea->size)};
 
-      if (auto charArea{loc::scan(area, patterns)}) {
+      if (auto charArea{loc::scan(scanArea, patterns)}) {
         calibration_ = {
-            area.topLeft + toVector(charArea->topLeft) - scale(ScreenVector{1, 0}, charArea->size),
+            transform(
+                ScreenRect{{0, 0}, screenSize}, charArea->size, {1, 0},
+                scanArea.topLeft + toVector(charArea->topLeft)),
             charArea->size, relation({1, 1}, charArea->size)};
-        DEB(util::trace() << "[XTermGeo] Calibrated! base=" << calibration_.base
+        terminalSize_ = terminalRect.size;
+        DEB(util::trace() << "[XTermGeo] Calibrated! area=" << calibration_.area
                           << " charSize=" << calibration_.charSize << std::endl;)
         return true;
       }
@@ -128,7 +131,7 @@ bool ui::XTermGeo::calibrate() {
 
     // maybe we were looking at the wrong window
     X::detail::updateActiveWindow();
-    terminalRect_ = X::detail::activeWindowRect;
+    terminalRect = X::detail::activeWindowRect;
   }
   DEB(util::trace() << "[XTermGeo] Calibration failed." << std::endl;)
   return false;
