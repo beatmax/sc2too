@@ -11,7 +11,6 @@ constexpr auto ITMousePosition = ui::InputType::MousePosition;
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <X11/cursorfont.h>
 #include <X11/keysym.h>
 #include <algorithm>
 #include <cassert>
@@ -148,6 +147,37 @@ namespace {
     XFreeModifiermap(modmap);
   }
 
+  Cursor createCursor() {
+    ::Window window = DefaultRootWindow(display);
+
+    Pixmap source, mask;
+    unsigned int width, height;
+    int hotspotX, hotspotY;
+    XReadBitmapFile(
+        display, window, "data/cursor/cursor.xbm", &width, &height, &source, &hotspotX, &hotspotY);
+    XReadBitmapFile(
+        display, window, "data/cursor/cursor-mask.xbm", &width, &height, &mask, &hotspotX,
+        &hotspotY);
+
+    auto cmap{XDefaultColormap(display, DefaultScreen(display))};
+    XColor fg, bg;
+    fg.flags = DoRed | DoGreen | DoBlue;
+    fg.red = 0;
+    fg.green = 0;
+    fg.blue = 0;
+    bg.flags = DoRed | DoGreen | DoBlue;
+    bg.red = 0;
+    bg.green = 65535;
+    bg.blue = 0;
+    XAllocColor(display, cmap, &fg);
+    XAllocColor(display, cmap, &bg);
+
+    Cursor cursor{XCreatePixmapCursor(display, source, mask, &fg, &bg, hotspotX, hotspotY)};
+    XFreePixmap(display, source);
+    XFreePixmap(display, mask);
+    return cursor;
+  }
+
   void updateDisplaySize() {
     ::Window window = DefaultRootWindow(display);
     ::Window root;
@@ -220,7 +250,7 @@ void ui::X::grabInput() {
   initKeymap();
   XAutoRepeatOff(display);
   XGrabKeyboard(display, window, False, GrabModeAsync, GrabModeAsync, CurrentTime);
-  Cursor cursor{XCreateFontCursor(display, XC_left_ptr)};
+  Cursor cursor{createCursor()};
   XGrabPointer(
       display, activeWindow, False,
       ButtonPressMask | ButtonReleaseMask | PointerMotionMask | PointerMotionHintMask,
