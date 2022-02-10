@@ -44,12 +44,13 @@ namespace ui {
     enum class State { Default, BuildingPrototype, BuildTriggered };
 
     Event lastEvent_;
+    int lastCycledBase_{-1};
     rts::Point selectionBoxStart_;
     State state_{State::Default};
     rts::AbilityInstanceIndex lastBuildAbilityIndex_;
 
-    std::optional<rts::Command> doProcessInput(const rts::World& w, const InputEvent& event);
-    rts::UnitIdList selectedSameType(const rts::World& w, rts::UnitId unit);
-    rts::UnitIdList visibleSameType(const rts::World& w, rts::UnitId unit);
+    void cycleBase(const rts::World& w);
+    rts::UnitIdList selectedSameType(const rts::World& w, rts::UnitId unit) const;
+    rts::UnitIdList visibleSameType(const rts::World& w, rts::UnitId unit) const;
   };
 }

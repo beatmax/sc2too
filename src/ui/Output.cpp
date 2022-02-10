@@ -134,7 +134,7 @@ namespace ui {
           wattrset(win.w, graph::white());
           wprintw(win.w, "%d", g);
           wattrset(win.w, graph::green());
-          wprintw(win.w, "%3d", n);
+          wprintw(win.w, "%3lu", n);
           wattrset(win.w, graph::blue());
           waddch(win.w, ']');
         }

@@ -319,7 +319,7 @@ rts::Unit* rts::World::closestActiveUnit(Point p, SideId side, UnitTypeId type) 
   Unit* closest{nullptr};
   float closestDistance{std::numeric_limits<float>::infinity()};
   for (auto& u : units) {
-    if (u.active() && u.side == side && u.type == type) {
+    if (u.type == type && u.side == side && u.active()) {
       if (float d{diagonalDistance(p, u.area.center())}; d < closestDistance) {
         closestDistance = d;
         closest = &u;

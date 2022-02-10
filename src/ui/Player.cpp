@@ -84,7 +84,10 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
         return DebugCmd{DebugCmd::Destroy};
       }
 #endif
-      if (event.symbol == InputKeySym::Tab) {
+      if (event.symbol == InputKeySym::Space) {
+        cycleBase(w);
+      }
+      else if (event.symbol == InputKeySym::Tab) {
         return SelectionSubgroupCmd{
             (event.state & ShiftPressed) ? SelectionSubgroupCmd::Previous
                                          : SelectionSubgroupCmd::Next};
@@ -274,12 +277,34 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
   return std::nullopt;
 }
 
-rts::UnitIdList ui::Player::selectedSameType(const rts::World& w, rts::UnitId unit) {
+void ui::Player::cycleBase(const rts::World& w) {
+  const auto baseType{w[side].baseType()};
+  const rts::Unit *first{}, *next{};
+  int cnt{++lastCycledBase_};
+  for (auto& u : w.units) {
+    if (u.type == baseType && u.side == side && u.active()) {
+      if (!first)
+        first = &u;
+      if (!cnt--) {
+        next = &u;
+        break;
+      }
+    }
+  }
+  if (!next) {
+    next = first;
+    lastCycledBase_ = 0;
+  }
+  if (next)
+    camera.setCenter(next->area.center());
+}
+
+rts::UnitIdList ui::Player::selectedSameType(const rts::World& w, rts::UnitId unit) const {
   const auto type{w[unit].type};
   return util::filter(w[side].selection().ids(w), [&](rts::UnitId u) { return w[u].type == type; });
 }
 
-rts::UnitIdList ui::Player::visibleSameType(const rts::World& w, rts::UnitId unit) {
+rts::UnitIdList ui::Player::visibleSameType(const rts::World& w, rts::UnitId unit) const {
   const auto type{w[unit].type};
   return w.unitsInArea(camera.area(), side, type);
 }

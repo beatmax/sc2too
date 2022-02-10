@@ -58,6 +58,7 @@ namespace {
       {XK_Alt_L, ui::InputKeySym::Alt_L},
       {XK_Alt_R, ui::InputKeySym::Alt_R},
       {XK_ISO_Level3_Shift, ui::InputKeySym::Alt_R},
+      {XK_space, ui::InputKeySym::Space},
       {XK_0, ui::InputKeySym::Digit_0},
       {XK_1, ui::InputKeySym::Digit_1},
       {XK_2, ui::InputKeySym::Digit_2},

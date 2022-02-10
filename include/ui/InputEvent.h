@@ -41,6 +41,7 @@ namespace ui {
     Control_R,
     Alt_L,
     Alt_R,
+    Space,
     Digit_0,
     Digit_1,
     Digit_2,
