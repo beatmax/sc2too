@@ -70,8 +70,7 @@ void sc2::UnitTypes::init(rts::World& w) {
     probeType.addAbility(
         Abilities::GatherIndex,
         rts::abilities::Gather{Abilities::gather, GatherTime, DeliveryTime});
-    probeType.addAbility(
-        Abilities::MoveIndex, rts::abilities::Move{Abilities::move, rts::Speed{4}});
+    probeType.addAbility(Abilities::MoveIndex, rts::abilities::Move{Abilities::move, ProbeSpeed});
     probeType.addAbility(
         Abilities::WarpInStructureIndex,
         rts::abilities::GoToPage{Abilities::warpInStructure, Abilities::WarpInStructurePage});
@@ -92,8 +91,7 @@ void sc2::UnitTypes::init(rts::World& w) {
   }
   {
     auto& zealotType{w.unitTypes[zealot]};
-    zealotType.addAbility(
-        Abilities::MoveIndex, rts::abilities::Move{Abilities::move, rts::Speed{4}});
+    zealotType.addAbility(Abilities::MoveIndex, rts::abilities::Move{Abilities::move, ZealotSpeed});
 
     for (auto rc : {RC::Friend, RC::Foe, RC::Ground, RC::Resource, RC::FriendResource})
       zealotType.defaultAbility[uint32_t(rc)] = Abilities::MoveIndex;

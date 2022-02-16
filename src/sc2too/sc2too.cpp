@@ -62,8 +62,7 @@ int main(int argc, char** argv) try {
     world[probe].trigger(sc2::Abilities::GatherIndex, world, world.id(*mineral));
   }
 
-  rts::Engine engine{world};
-  engine.gameSpeed(2 * rts::GameSpeedNormal);
+  rts::Engine engine{world, rts::GameSpeedFaster};
   engine.targetFps(60);
 
   auto processInput = [&](const rts::World& w) { return io.input.process(engine, w, player); };

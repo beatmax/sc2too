@@ -16,7 +16,7 @@ void sc2::Resources::init(rts::World& w) {
 
 rts::ResourceInitList sc2::Resources::initialResources() {
   return {
-      {mineral, 0, rts::QuantityInf, rts::ResourceRecoverable::No},
+      {mineral, 50, rts::QuantityInf, rts::ResourceRecoverable::No},
       {gas, 0, rts::QuantityInf, rts::ResourceRecoverable::No},
       {supply, 0, MaxSupplySlots, rts::ResourceRecoverable::Yes}};
 }
