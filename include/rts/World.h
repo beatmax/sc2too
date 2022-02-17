@@ -4,6 +4,7 @@
 #include "Blocker.h"
 #include "Command.h"
 #include "Factory.h"
+#include "GameTimer.h"
 #include "Map.h"
 #include "Minimap.h"
 #include "ProductionQueue.h"
@@ -38,6 +39,7 @@ namespace rts {
     Minimap minimap;
     ProximityMap resourceProximityMap;
     GameTime time{};
+    GameTimer energyIncreaseTimer{DefaultEnergyIncreaseInterval};
     FactoryUPtr factory;
 
     util::Pool<Resource, MaxResources> resources;
@@ -62,6 +64,8 @@ namespace rts {
     void loadMap(const MapInitializer& init, const std::string& fpath);
     void loadMap(const MapInitializer& init, std::istream&& is);
     void loadMap(const MapInitializer& init, const std::vector<std::string>& lines);
+
+    void step();
     void exec(const SideCommand& cmd);
     void update(const WorldActionList& actions);
 

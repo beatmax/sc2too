@@ -56,6 +56,17 @@ void rts::World::loadMap(const MapInitializer& init, const std::vector<std::stri
   map.load(*this, init, lines);
 }
 
+void rts::World::step() {
+  ++time;
+  ++energyIncreaseTimer;
+
+  WorldActionList actions;
+  for (auto& u : units)
+    actions += Unit::step(StableRef{u}, *this);
+
+  update(actions);
+}
+
 void rts::World::exec(const SideCommand& cmd) {
   update(sides[cmd.side].exec(*this, cmd.command));
 }

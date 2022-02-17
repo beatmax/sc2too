@@ -4,6 +4,7 @@
 #include "rts/types.h"
 
 namespace sc2 {
+  constexpr rts::GameTime EnergyIncreaseInterval{178};
   constexpr rts::Quantity MaxSupplySlots{200};
 
   constexpr rts::Quantity GeyserContent{2250};
@@ -21,6 +22,8 @@ namespace sc2 {
   constexpr rts::GameTime NexusBuildTime{100 * rts::GameTimeSecond};
   constexpr rts::Quantity NexusMineralCost{400};
   constexpr rts::Quantity NexusSupplyProvision{15};
+  constexpr rts::Quantity NexusMaxEnergy{200};
+  constexpr rts::Quantity NexusInitialEnergy{50};
 
   constexpr rts::GameTime ProbeBuildTime{17 * rts::GameTimeSecond};
   constexpr rts::Quantity ProbeMineralCost{50};

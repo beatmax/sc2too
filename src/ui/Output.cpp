@@ -274,8 +274,13 @@ namespace ui {
       }
       if (wv.selectionTotalSize == 1) {
         assert(selection(0, 0));
-        if (const auto& u{w[selection(0, 0)]}; u.productionQueue)
+        const auto& u{w[selection(0, 0)]};
+        if (u.productionQueue)
           drawProductionQueue(ios, w, rts::StableRef{u});
+        if (auto max{w[u.type].maxEnergy}) {
+          wattrset(win.w, graph::magenta());
+          mvwprintw(win.w, 6, 58, "%3d/%3d", u.energy, max);
+        }
       }
     }
 

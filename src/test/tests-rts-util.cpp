@@ -49,6 +49,11 @@ GameTime test::nextStepTime(const Unit& u) {
   return Unit::nextStepTime(UnitStableRef{u});
 }
 
+void test::step(rts::World& w, int count) {
+  while (count--)
+    w.step();
+}
+
 void test::stepUpdate(World& w, const Unit& u) {
   w.update(Unit::step(UnitStableRef{u}, w));
 }

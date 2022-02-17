@@ -21,7 +21,6 @@ namespace rts {
     void run(C& controller, FI processInput, FO updateOutput);
 
     void advanceFrame();
-    void advanceWorld();
 
     GameSpeed gameSpeed() const { return gameSpeed_; }
     void gameSpeed(GameSpeed speed);

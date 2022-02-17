@@ -26,6 +26,8 @@ namespace test {
   constexpr rts::Quantity BaseMineralCost{20};
   constexpr rts::Quantity BaseSupplyProvision{15};
   constexpr rts::Quantity BaseBuildTime{30};
+  constexpr rts::Quantity BaseMaxEnergy{200};
+  constexpr rts::Quantity BaseInitialEnergy{50};
   constexpr rts::Quantity DojoMineralCost{20};
   constexpr rts::Quantity DojoBuildTime{15};
   constexpr rts::Quantity ExtractorMineralCost{20};

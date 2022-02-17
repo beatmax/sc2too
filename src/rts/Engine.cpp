@@ -21,19 +21,9 @@ void rts::EngineBase<Clock>::advanceFrame() {
   const GameTime nextFrameGameTime = refGameTime_ + frameTime_ / timeUnitDuration_;
 
   while (world_.time < nextFrameGameTime)
-    advanceWorld();
+    world_.step();
 
   timer_.sleepUntil(frameTime_);
-}
-
-template<typename Clock>
-void rts::EngineBase<Clock>::advanceWorld() {
-  ++world_.time;
-
-  WorldActionList actions;
-  for (auto& u : world_.units)
-    actions += Unit::step(StableRef{u}, world_);
-  world_.update(actions);
 }
 
 template<typename Clock>

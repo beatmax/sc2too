@@ -215,6 +215,21 @@ TEST_CASE("Hello world!", "[rts]") {
     }
   }
 
+  SECTION("Energy increases periodically up to unit's maximum") {
+    REQUIRE(base->energy == 50);
+    base->energy = 198;
+    test::step(world, 99);
+    REQUIRE(base->energy == 198);
+    world.step();
+    REQUIRE(base->energy == 199);
+    test::step(world, 99);
+    REQUIRE(base->energy == 199);
+    world.step();
+    REQUIRE(base->energy == 200);
+    test::step(world, 100);
+    REQUIRE(base->energy == 200);
+  }
+
   SECTION("Control groups and selection subgroups") {
     using ControlGroupCmd = command::ControlGroup;
     using SelectionSubgroupCmd = command::SelectionSubgroup;

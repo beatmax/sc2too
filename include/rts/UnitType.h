@@ -20,6 +20,8 @@ namespace rts {
     ResourceQuantityList provision;
     GameTime buildTime;
     UiUPtr ui;
+    Quantity maxEnergy;
+    Quantity initialEnergy;
     RequiresPower requiresPower;
     Coordinate powerRadius;
     ResourceId extractedResource;
@@ -30,6 +32,8 @@ namespace rts {
         ResourceQuantityList p,
         GameTime bt,
         UiUPtr ui,
+        Quantity me = 0,
+        Quantity ie = 0,
         RequiresPower reqp = RequiresPower::No,
         Coordinate pr = 0,
         ResourceId er = {})
@@ -38,6 +42,8 @@ namespace rts {
         provision{std::move(p)},
         buildTime{bt},
         ui{std::move(ui)},
+        maxEnergy{me},
+        initialEnergy{ie},
         requiresPower{reqp},
         powerRadius{pr},
         extractedResource{er} {}

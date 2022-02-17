@@ -17,22 +17,22 @@ void sc2::UnitTypes::init(rts::World& w) {
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{Resources::mineral, NexusMineralCost}},
       rts::ResourceQuantityList{{Resources::supply, NexusSupplyProvision}}, NexusBuildTime,
-      std::make_unique<ui::NexusType>());
+      std::make_unique<ui::NexusType>(), NexusMaxEnergy, NexusInitialEnergy);
   gateway = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{Resources::mineral, GatewayMineralCost}},
-      rts::ResourceQuantityList{}, GatewayBuildTime, std::make_unique<ui::GatewayType>(),
+      rts::ResourceQuantityList{}, GatewayBuildTime, std::make_unique<ui::GatewayType>(), 0, 0,
       rts::UnitType::RequiresPower::Yes);
   assimilator = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{Resources::mineral, AssimilatorMineralCost}},
-      rts::ResourceQuantityList{}, AssimilatorBuildTime, std::make_unique<ui::AssimilatorType>(),
-      rts::UnitType::RequiresPower::No, 0, Resources::gas);
+      rts::ResourceQuantityList{}, AssimilatorBuildTime, std::make_unique<ui::AssimilatorType>(), 0,
+      0, rts::UnitType::RequiresPower::No, 0, Resources::gas);
   pylon = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{Resources::mineral, PylonMineralCost}},
       rts::ResourceQuantityList{{Resources::supply, PylonSupplyProvision}}, PylonBuildTime,
-      std::make_unique<ui::PylonType>(), rts::UnitType::RequiresPower::No, PylonPowerRadius);
+      std::make_unique<ui::PylonType>(), 0, 0, rts::UnitType::RequiresPower::No, PylonPowerRadius);
 
   zealot = w.createUnitType(
       rts::UnitType::Kind::Army,

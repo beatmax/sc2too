@@ -6,6 +6,7 @@
 #include "sc2/Factory.h"
 #include "sc2/Resources.h"
 #include "sc2/UnitTypes.h"
+#include "sc2/constants.h"
 #include "ui/IO.h"
 #include "ui/SideUi.h"
 #include "util/ProgramOptions.h"
@@ -40,6 +41,7 @@ int main(int argc, char** argv) try {
   sc2::Assets::init();
   auto worldPtr{rts::World::create(std::make_unique<sc2::Factory>())};
   rts::World& world{*worldPtr};
+  world.energyIncreaseTimer.setInterval(sc2::EnergyIncreaseInterval);
 
   const auto sides{makeSides(world)};
   const auto side{sides[0]};

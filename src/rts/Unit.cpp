@@ -188,6 +188,14 @@ void rts::Unit::trigger(
 
 rts::WorldActionList rts::Unit::step(UnitStableRef u, const World& w) {
   WorldActionList actions;
+
+  if (w.energyIncreaseTimer.tick() && u->energy < w[u->type].maxEnergy) {
+    actions += [wid{w.weakId(*u)}](World& w) {
+      if (auto* u{w[wid]})
+        ++u->energy;
+    };
+  }
+
   if (u->nextStepTime_ == GameTimeInf && !u->commandQueue.empty() &&
       (w.time % u->commandQueue.front().triggerGroupSize) == 0) {  // give some time for regrouping
     actions += [wid{w.weakId(*u)}](World& w) {
@@ -257,6 +265,7 @@ void rts::Unit::doActivate(World& w) {
   const auto& t{w[type]};
   auto& res{s.resources()};
   res.provision(t.provision);
+  energy = t.initialEnergy;
   if (auto er{t.powerRadius})
     s.powerMap().update(w, side, circleCenteredAt(area, er), 1);
   if (t.requiresPower == UnitType::RequiresPower::Yes)

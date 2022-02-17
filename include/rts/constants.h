@@ -32,6 +32,7 @@ namespace rts {
   constexpr GameTime GameTimeSecond{100};
   constexpr GameSpeed GameSpeedNormal{100};
   constexpr GameSpeed GameSpeedFaster{140};
+  constexpr GameTime DefaultEnergyIncreaseInterval{100};
   constexpr Coordinate ResourceProximityRadius{3};
 
   constexpr Distance DistanceInf{std::numeric_limits<Distance>::max()};

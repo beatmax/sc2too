@@ -34,6 +34,7 @@ namespace test {
   using MoveStepList = std::vector<MoveStep>;
 
   rts::GameTime nextStepTime(const rts::Unit& u);
+  void step(rts::World& w, int count);
   void stepUpdate(rts::World& w, const rts::Unit& u);
   void execCommand(rts::World& w, rts::SideId side, rts::Command command);
   void select(

@@ -21,6 +21,7 @@ namespace rts {
     UnitTypeId type;
     SideId side;
     State state{State::New};
+    Quantity energy{0};
     ResourceFlexBag bag;
     ProductionQueueId productionQueue;
     ResourceFieldId resourceField;

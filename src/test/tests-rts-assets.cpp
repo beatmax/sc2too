@@ -66,20 +66,20 @@ void test::Factory::init(rts::World& w) {
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{mineralResourceId, BaseMineralCost}},
       rts::ResourceQuantityList{{supplyResourceId, BaseSupplyProvision}}, BaseBuildTime,
-      std::make_unique<Ui>("B"));
+      std::make_unique<Ui>("B"), BaseMaxEnergy, BaseInitialEnergy);
   dojoTypeId = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{mineralResourceId, DojoMineralCost}}, rts::ResourceQuantityList{},
-      DojoBuildTime, std::make_unique<Ui>("D"), rts::UnitType::RequiresPower::Yes);
+      DojoBuildTime, std::make_unique<Ui>("D"), 0, 0, rts::UnitType::RequiresPower::Yes);
   extractorTypeId = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{mineralResourceId, ExtractorMineralCost}},
-      rts::ResourceQuantityList{}, ExtractorBuildTime, std::make_unique<Ui>("E"),
+      rts::ResourceQuantityList{}, ExtractorBuildTime, std::make_unique<Ui>("E"), 0, 0,
       rts::UnitType::RequiresPower::No, 0, gasResourceId);
   powerPlantTypeId = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{mineralResourceId, PowerPlantMineralCost}},
-      rts::ResourceQuantityList{}, PowerPlantBuildTime, std::make_unique<Ui>("P"),
+      rts::ResourceQuantityList{}, PowerPlantBuildTime, std::make_unique<Ui>("P"), 0, 0,
       rts::UnitType::RequiresPower::No, PowerPlantPowerRadius);
 
   // creation order of unit types determines subgroup order in selection
