@@ -14,8 +14,10 @@ constexpr auto ITMousePosition = ui::InputType::MousePosition;
 #include <X11/keysym.h>
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <map>
 #include <stdexcept>
+#include <thread>
 #include <utility>
 
 namespace {
@@ -114,13 +116,19 @@ namespace {
     xModmap = XGetModifierMapping(display);
   }
 
+  void setModifierMapping(XModifierKeymap *modmap) {
+    using namespace std::chrono_literals;
+    while (XSetModifierMapping(display, modmap) == MappingBusy)
+      std::this_thread::sleep_for(100ms);
+  }
+
   void restoreKeymap() {
     XChangeKeyboardMapping(
         display, minKeyCode, keySymsPerKeyCode, xKeymap, maxKeyCode - minKeyCode + 1);
     XFree(xKeymap);
     xKeymap = nullptr;
 
-    XSetModifierMapping(display, xModmap);
+    setModifierMapping(xModmap);
     XFreeModifiermap(xModmap);
     xModmap = nullptr;
   }
@@ -144,7 +152,7 @@ namespace {
     }
 
     auto* modmap{XNewModifiermap(0)};
-    XSetModifierMapping(display, modmap);
+    setModifierMapping(modmap);
     XFreeModifiermap(modmap);
   }
 
