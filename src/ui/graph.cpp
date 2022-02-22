@@ -15,8 +15,8 @@ namespace ui::graph {
       }
     };
 
-    std::unordered_map<std::pair<int, int>, int, PairHash> colorPairs;
-    int nextColorPair = 1;
+    std::unordered_map<std::pair<short, short>, short, PairHash> colorPairs;
+    short nextColorPair = 1;
 
     void drawBordersNoBottom(const Window& win, int ulChar, int urChar) {
       mvaddch(win.beginY - 1, win.beginX - 1, ulChar);
@@ -93,17 +93,6 @@ namespace ui::graph {
   }
 }
 
-int ui::graph::colorPair(int fg, int bg) {
-  auto it{colorPairs.find({fg, bg})};
-  if (it != colorPairs.end())
-    return it->second;
-
-  assert(nextColorPair < COLOR_PAIRS);
-  init_pair(nextColorPair, fg, bg);
-  colorPairs.emplace(std::make_pair(fg, bg), nextColorPair);
-  return nextColorPair++;
-}
-
 void ui::graph::init() {
   initscr();
 
@@ -116,6 +105,25 @@ void ui::graph::init() {
   use_default_colors();
 }
 
+short ui::graph::colorPair(short fg, short bg) {
+  auto it{colorPairs.find({fg, bg})};
+  if (it != colorPairs.end())
+    return it->second;
+
+  assert(nextColorPair < COLOR_PAIRS);
+  init_pair(nextColorPair, fg, bg);
+  colorPairs.emplace(std::make_pair(fg, bg), nextColorPair);
+  return nextColorPair++;
+}
+
+void ui::graph::setColor(const Window& win, short pair) {
+  wattr_set(win.w, 0, pair, nullptr);
+}
+
+void ui::graph::setColor(const Window& win, Color fg, Color bg) {
+  wattr_set(win.w, 0, colorPair(fg, bg), nullptr);
+}
+
 ui::ScreenVector ui::graph::screenSize() {
   int maxY, maxX;
   getmaxyx(stdscr, maxY, maxX);
@@ -123,7 +131,7 @@ ui::ScreenVector ui::graph::screenSize() {
 }
 
 void ui::graph::drawBorders(const std::vector<const Window*>& windows) {
-  attrset(white() | A_BOLD);
+  attr_set(A_BOLD, colorPair(Color::White), nullptr);
   auto it = windows.begin();
   if (it == windows.end())
     return;
@@ -196,7 +204,7 @@ void ui::graph::drawFrame(
     const ScreenVector& topLeftInFrame,
     Color defaultColor) {
   // default for color pair 0 (e.g. unit's side color)
-  wattrset(win.w, graph::colorAttr(defaultColor, frame.defaultBg()));
+  setColor(win, defaultColor, frame.defaultBg());
 
   ScreenVector v{0, 0};
   for (; v.y < drawRect.size.y; ++v.y) {
@@ -208,7 +216,7 @@ void ui::graph::drawFrame(
 
 void ui::graph::drawFrame(
     const Window& win, const Frame& frame, ScreenPoint screenTopLeft, Color defaultColor) {
-  wattrset(win.w, graph::colorAttr(defaultColor, frame.defaultBg()));
+  setColor(win, defaultColor, frame.defaultBg());
   for (int y{0}; y < frame.rows(); ++y)
     mvwadd_wchnstr(win.w, screenTopLeft.y + y, screenTopLeft.x, &frame(y, 0), frame.cols());
 }

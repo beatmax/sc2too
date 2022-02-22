@@ -96,7 +96,7 @@ namespace ui {
         graph::drawFrame(win, ui.icon().frame(), {x, 0});
         if (displayAlloc) {
           if (acc.allocated() > acc.totalSlots())
-            wattrset(win.w, graph::red() | A_BOLD);
+            wattr_set(win.w, A_BOLD, graph::colorPair(Color::Red), nullptr);
           mvwprintw(win.w, 0, x + 2, "%d/%d", acc.allocated(), acc.totalSlots());
         }
         else {
@@ -108,19 +108,19 @@ namespace ui {
     void drawGameTime(const IOState& ios, const rts::Engine& engine, const rts::World& w) {
       const auto& win{ios.controlWin};
       auto tsec = w.time / engine.initialGameSpeed();
-      wattrset(win.w, graph::green());
+      graph::setColor(win, Color::Green);
       mvwprintw(win.w, 6, 19, "%02d:%02d:%02d", tsec / 3600, (tsec / 60) % 60, tsec % 60);
     }
 
     void drawGameSpeed(const IOState& ios, const rts::Engine& engine) {
       const auto& win{ios.controlWin};
-      wattrset(win.w, graph::magenta());
+      graph::setColor(win, Color::Magenta);
       mvwprintw(ios.controlWin.w, 8, 19, "Speed: %d (F11/F12)", engine.gameSpeed());
     }
 
     void drawFps(const IOState& ios, const rts::Engine& engine) {
       const auto& win{ios.controlWin};
-      wattrset(win.w, graph::magenta());
+      graph::setColor(win, Color::Magenta);
       mvwprintw(win.w, 7, 19, "%u FPS", engine.fps());
     }
 
@@ -129,13 +129,13 @@ namespace ui {
       for (rts::ControlGroupId g{0}; g < rts::MaxControlGroups; ++g) {
         if (auto n{side.group(g).ids(w).size()}) {
           auto col{g ? g : 10};
-          wattrset(win.w, graph::blue());
+          graph::setColor(win, Color::Blue);
           mvwaddch(win.w, 0, 20 + 6 * col, '[');
-          wattrset(win.w, graph::white());
+          graph::setColor(win, Color::White);
           wprintw(win.w, "%d", g);
-          wattrset(win.w, graph::green());
+          graph::setColor(win, Color::Green);
           wprintw(win.w, "%3lu", n);
-          wattrset(win.w, graph::blue());
+          graph::setColor(win, Color::Blue);
           waddch(win.w, ']');
         }
       }
@@ -155,7 +155,7 @@ namespace ui {
       ScreenRect rect{{right, 4}, dim::CellSize};
 
       for (size_t i{0}; i < rts::MaxProductionQueueSize; ++i) {
-        wattrset(win.w, frozen ? graph::darkGray() : graph::darkGreen());
+        graph::setColor(win, frozen ? Color::DarkGray : Color::DarkGreen);
         graph::drawRect(win, boundingBox(rect));
         if (i < pq.size())
           graph::drawFrame(win, getIcon(w[pq.type(i)]).frame(), rect.topLeft, iconColor);
@@ -175,10 +175,10 @@ namespace ui {
         const Camera& camera,
         const rts::Rectangle& unitArea,
         rts::Coordinate powerRadius,
-        int color) {
+        short colorPair) {
       for (auto p : circleCenteredAt(unitArea, powerRadius).points(ios.geoCache)) {
         if (camera.area().contains(p))
-          drawBoundingBox(ios.renderWin, camera, p, color);
+          drawBoundingBox(ios.renderWin, camera, p, colorPair);
       }
     }
 
@@ -188,24 +188,24 @@ namespace ui {
         const Camera& camera,
         const rts::Selection::Subgroup& subgroup,
         rts::Coordinate powerRadius) {
-      const auto color{graph::gray()};
+      const auto colorPair{graph::colorPair(Color::Gray)};
       for (auto id : subgroup.allIds) {
         auto& u{w[id]};
         if (u.type == subgroup.type)
-          drawPower(ios, camera, u.area, powerRadius, color);
+          drawPower(ios, camera, u.area, powerRadius, colorPair);
       }
     }
 
     void drawPower(IOState& ios, const Camera& camera, const rts::PowerMap& powerMap) {
-      const auto color{graph::electricBlue2()};
+      const auto colorPair{graph::colorPair(Color::ElectricBlue2)};
       for (auto p : camera.area().points()) {
         if (powerMap.isActive(p))
-          drawBoundingBox(ios.renderWin, camera, p, color);
+          drawBoundingBox(ios.renderWin, camera, p, colorPair);
       }
     }
 
     void drawResourceProximity(IOState& ios, const Camera& camera, const rts::ProximityMap& pm) {
-      wattrset(ios.renderWin.w, graph::darkRed());
+      graph::setColor(ios.renderWin, Color::DarkRed);
       for (auto p : camera.area().points()) {
         if (pm.isActive(p)) {
           auto sp{toScreenPoint(camera, p)};
@@ -219,22 +219,22 @@ namespace ui {
         const rts::World& w,
         const Camera& camera,
         const rts::Selection& selection) {
+      const auto colorPair{graph::colorPair(Color::Yellow)};
       for (auto* u : selection.items(w)) {
-        auto color{graph::yellow()};
         for (size_t i{0}; i < u->commandQueue.size(); ++i) {
           const rts::UnitCommand& cmd{u->commandQueue[i]};
           if (!cmd.prototype) {
             if (auto target{w.fromWeakTarget(cmd.target)})
-              highlight(ios.renderWin, camera, w.area(*target), color);
+              highlight(ios.renderWin, camera, w.area(*target), colorPair);
           }
         }
         if (u->productionQueue) {
           const rts::ProductionQueue& pq{w[u->productionQueue]};
           if (auto p{pq.rallyPoint()}) {
             if (auto* obj{w.object(*p)})
-              highlight(ios.renderWin, camera, obj->area, color);
+              highlight(ios.renderWin, camera, obj->area, colorPair);
             else
-              highlight(ios.renderWin, camera, *p, color);
+              highlight(ios.renderWin, camera, *p, colorPair);
           }
         }
       }
@@ -254,7 +254,7 @@ namespace ui {
           const ScreenRect rect{
               transform(p, dim::CellSizeEx, {0, 0}, dim::SelectionArea.topLeft), dim::CellSize};
 
-          wattrset(win.w, graph::green());
+          graph::setColor(win, Color::Green);
           graph::drawRect(win, boundingBox(rect));
           const auto color = (u.type == subgroupType) ? Color::BrightGreen : Color::DarkGreen;
           graph::drawFrame(win, getIcon(w[u.type]).frame(), rect.topLeft, color);
@@ -278,7 +278,7 @@ namespace ui {
         if (u.productionQueue)
           drawProductionQueue(ios, w, rts::StableRef{u});
         if (auto max{w[u.type].maxEnergy}) {
-          wattrset(win.w, graph::magenta());
+          graph::setColor(win, Color::Magenta);
           mvwprintw(win.w, 6, 58, "%3d/%3d", u.energy, max);
         }
       }
@@ -304,13 +304,14 @@ namespace ui {
             ScreenRect rect{
                 {79 + col * (dim::CellSizeEx.x + 1), 2 + row * dim::CellSizeEx.y},
                 dim::CellSize + ScreenVector{1, 0}};
-            wattrset(win.w, graph::brightGreen());
+            graph::setColor(win, Color::BrightGreen);
             graph::drawRect(win, boundingBox(rect));
-            wattrset(
+            wattr_set(
                 win.w,
                 (player.selectingAbilityTarget && ai == player.selectingAbilityTarget->abilityIndex)
-                    ? (graph::white() | A_BOLD)
-                    : graph::white());
+                    ? A_BOLD
+                    : 0,
+                graph::colorPair(Color::White), nullptr);
             mvwaddch(win.w, rect.topLeft.y, rect.topLeft.x, ui::Layout::abilityKey(ai));
             graph::drawFrame(
                 win, getIcon(w[a]).frame(), rect.topLeft + rts::Vector{1, 0}, Color::Green);
@@ -330,7 +331,7 @@ namespace ui {
         auto& msg{messages[--i]};
         if ((w.time - msg.time) >= MessageShowTime)
           break;
-        wattrset(win.w, graph::red());
+        graph::setColor(win, Color::Red);
         mvwaddstr(win.w, y, x, msg.text);
         --y;
       }
@@ -385,7 +386,7 @@ void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const 
     prototypeArea = rectangleCenteredAt(ios_.mouseMapPoint, proto.area.size, w.map.area());
     drawPower(ios_, camera, side.powerMap());
     if (auto pr{w[proto.type].powerRadius})
-      drawPower(ios_, camera, prototypeArea, pr, graph::electricBlue1());
+      drawPower(ios_, camera, prototypeArea, pr, graph::colorPair(Color::ElectricBlue1));
     if (proto.type == side.baseType())
       drawResourceProximity(ios_, camera, w.resourceProximityMap);
   }
@@ -393,15 +394,15 @@ void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const 
     if (auto pr{w[subgroup.type].powerRadius})
       drawPower(ios_, w, camera, subgroup, pr);
   }
-  highlight(ios_.renderWin, camera, ios_.targetPoint, graph::red());
+  highlight(ios_.renderWin, camera, ios_.targetPoint, graph::colorPair(Color::Red));
   render(ios_.renderWin, w, {w.map, side.prototypeMap()}, camera, side.selection());
   drawTargetPoints(ios_, w, camera, side.selection());
   if (player.selectionBox)
-    drawBoundingBox(ios_.renderWin, camera, *player.selectionBox, graph::green());
+    drawBoundingBox(ios_.renderWin, camera, *player.selectionBox, graph::colorPair(Color::Green));
   if (side.prototype())
     render(ios_.renderWin, w, camera, w[side.prototype()], prototypeArea);
   else if (player.selectingAbilityTarget)
-    highlight(ios_.renderWin, camera, ios_.mouseMapPoint, graph::brightGreen());
+    highlight(ios_.renderWin, camera, ios_.mouseMapPoint, graph::colorPair(Color::BrightGreen));
 
   drawResourceQuantities(ios_, w, side);
   drawGameTime(ios_, engine, w);

@@ -83,12 +83,12 @@ bool ui::XTermGeo::calibrate() {
   DEB(util::trace() << "[XTermGeo] Calibrate, terminalRect: " << terminalRect << std::endl;)
 
   util::ScopeExit restoreScreen{[ch{getbkgd(stdscr)}] {
-    attrset(0);
+    attr_set(0, 0, nullptr);
     bkgdset(ch);
     clear();
   }};
   endwin();
-  bkgdset(graph::colorAttr(Color::White, Color::Black) | ' ');
+  bkgdset(COLOR_PAIR(graph::colorPair(Color::White, Color::Black)) | ' ');
   refresh();
   clear();
 
@@ -159,7 +159,7 @@ void ui::loc::draw(const PatternArray& patterns) {
     move(y++, 1);
     int ci{0};
     for (int n : p) {
-      attrset(graph::colorAttr(color[ci], color[ci]));
+      attr_set(0, graph::colorPair(color[ci], color[ci]), nullptr);
       while (n--)
         addch(' ');
       ci = !ci;

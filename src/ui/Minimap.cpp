@@ -67,6 +67,6 @@ void ui::Minimap::updateFrame(
 
   for (int y{0}; y < frame_.rows(); ++y) {
     for (int x{0}; x < frame_.cols(); ++x)
-      frame_(y, x).attr = graph::colorAttr(color[2 * y][x], color[2 * y + 1][x]);
+      frame_(y, x).ext_color = graph::colorPair(color[2 * y][x], color[2 * y + 1][x]);
   }
 }

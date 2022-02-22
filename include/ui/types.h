@@ -60,7 +60,7 @@ namespace ui {
     int beginY{}, beginX{};
   };
 
-  enum class Color : int {
+  enum class Color : short {
     Red = 1,
     Green,
     Yellow,

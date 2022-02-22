@@ -5,35 +5,6 @@
 #include <vector>
 
 namespace ui::graph {
-  int colorPair(int fg, int bg);
-  inline int colorPair(Color fg, Color bg = Color::Default) { return colorPair(int(fg), int(bg)); }
-  inline int colorAttr(Color fg, Color bg = Color::Default) {
-    return COLOR_PAIR(colorPair(fg, bg));
-  }
-
-  inline int red() { return colorAttr(Color::Red); }
-  inline int green() { return colorAttr(Color::Green); }
-  inline int yellow() { return colorAttr(Color::Yellow); }
-  inline int blue() { return colorAttr(Color::Blue); }
-  inline int magenta() { return colorAttr(Color::Magenta); }
-  inline int cyan() { return colorAttr(Color::Cyan); }
-  inline int white() { return colorAttr(Color::White); }
-  inline int gray() { return colorAttr(Color::Gray); }
-  inline int brightRed() { return colorAttr(Color::BrightRed); }
-  inline int brightGreen() { return colorAttr(Color::BrightGreen); }
-  inline int brightYellow() { return colorAttr(Color::BrightYellow); }
-  inline int brightBlue() { return colorAttr(Color::BrightBlue); }
-  inline int brightMagenta() { return colorAttr(Color::BrightMagenta); }
-  inline int brightCyan() { return colorAttr(Color::BrightCyan); }
-  inline int brightWhite() { return colorAttr(Color::BrightWhite); }
-  inline int black() { return colorAttr(Color::Black); }
-  inline int darkBlue() { return colorAttr(Color::DarkBlue); }
-  inline int darkGreen() { return colorAttr(Color::DarkGreen); }
-  inline int darkRed() { return colorAttr(Color::DarkRed); }
-  inline int darkGray() { return colorAttr(Color::DarkGray); }
-  inline int electricBlue1() { return colorAttr(Color::ElectricBlue1); }
-  inline int electricBlue2() { return colorAttr(Color::ElectricBlue2); }
-
   enum class BoxSegment : int {
     None = 0b0000,
     ULCorner = 0b0110,
@@ -50,6 +21,14 @@ namespace ui::graph {
   };
 
   void init();
+
+  short colorPair(short fg, short bg);
+  inline short colorPair(Color fg, Color bg = Color::Default) {
+    return colorPair(short(fg), short(bg));
+  }
+  void setColor(const Window& win, short pair);
+  void setColor(const Window& win, Color fg, Color bg = Color::Default);
+
   ScreenVector screenSize();
   void drawBorders(const std::vector<const Window*>& windows);
   void drawBoxSegment(const Window& win, int y, int x, BoxSegment segment);

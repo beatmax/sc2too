@@ -26,7 +26,7 @@ ui::ScreenRect ui::toScreenRect(const Camera& camera, const rts::Rectangle& area
 }
 
 void ui::grid(const Window& win) {
-  wattrset(win.w, graph::darkGray());
+  graph::setColor(win, Color::DarkGray);
 
   int y = 0;
   for (rts::Coordinate cellY = 0;;) {
@@ -52,6 +52,7 @@ void ui::render(
     const rts::Selection& selection) {
   auto selectedItems{selection.items(w)};
   const std::set<rts::WorldObjectCPtr> selectedObjects{selectedItems.begin(), selectedItems.end()};
+  const auto selectionColorPair{graph::colorPair(Color::Green)};
 
   std::vector<rts::WorldObjectCPtr> layers[rts::LayerCount];
   for (const rts::Map& m : maps) {
@@ -65,7 +66,7 @@ void ui::render(
     for (auto* obj : layer) {
       render(win, w, camera, *obj);
       if (selectedObjects.find(obj) != selectedObjects.end())
-        drawBoundingBox(win, camera, obj->area, graph::green());
+        drawBoundingBox(win, camera, obj->area, selectionColorPair);
     }
   }
 }
@@ -103,14 +104,14 @@ void ui::render(
   }
 }
 
-void ui::highlight(const Window& win, const Camera& camera, rts::Point cell, int color) {
+void ui::highlight(const Window& win, const Camera& camera, rts::Point cell, short colorPair) {
   if (!camera.area().contains(cell))
     return;
 
   const rts::Vector cellInCamera{cell - camera.topLeft()};
   const ScreenVector topLeft{toScreenVector(cellInCamera)};
   util::geo::AtBorder atBorder{camera.area(), cell};
-  wattrset(win.w, color);
+  graph::setColor(win, colorPair);
   if (!atBorder.top)
     mvwhline(win.w, topLeft.y - 1, topLeft.x, 0, dim::CellSize.x);
   if (!atBorder.bottom)
@@ -121,29 +122,32 @@ void ui::highlight(const Window& win, const Camera& camera, rts::Point cell, int
     mvwvline(win.w, topLeft.y, topLeft.x + dim::CellSize.x, 0, dim::CellSize.y);
 }
 
-void ui::highlight(const Window& win, const Camera& camera, const rts::Rectangle& area, int color) {
-  wattrset(win.w, color);
+void ui::highlight(
+    const Window& win, const Camera& camera, const rts::Rectangle& area, short colorPair) {
+  graph::setColor(win, colorPair);
   graph::drawRectNoCorners(win, boundingBox(toScreenRect(camera, area)));
 }
 
-void ui::drawBoundingBox(const Window& win, const Camera& camera, rts::Point cell, int color) {
-  wattrset(win.w, color);
+void ui::drawBoundingBox(
+    const Window& win, const Camera& camera, rts::Point cell, short colorPair) {
+  graph::setColor(win, colorPair);
   graph::drawRect(win, boundingBox(toScreenRect(camera, rts::Rectangle{cell, {1, 1}})));
 }
 
 void ui::drawBoundingBox(
-    const Window& win, const Camera& camera, const rts::Rectangle& area, int color) {
-  wattrset(win.w, color);
+    const Window& win, const Camera& camera, const rts::Rectangle& area, short colorPair) {
+  graph::setColor(win, colorPair);
   graph::drawRect(win, boundingBox(toScreenRect(camera, area)));
 }
 
 #ifdef MAP_DEBUG
 void ui::mapDebug(const Window& win, const rts::World& w, const Camera& camera) {
+  const auto colorPair{graph::colorPair(Color::Blue)};
   for (rts::Point p : camera.area().points()) {
     if (w[p].debug.highlight)
-      highlight(win, camera, p, graph::blue());
+      highlight(win, camera, p, colorPair);
   }
-  wattrset(win.w, graph::darkGray());
+  graph::setColor(win, Color::DarkGray);
   for (rts::Point p : camera.area().points())
     printInCell(win, camera, p, std::to_string(w[p].segment).c_str());
 }

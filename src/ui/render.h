@@ -30,11 +30,12 @@ namespace ui {
       const Camera& camera,
       const rts::WorldObject& object,
       const rts::Rectangle& area);
-  void highlight(const Window& win, const Camera& camera, rts::Point cell, int color);
-  void highlight(const Window& win, const Camera& camera, const rts::Rectangle& area, int color);
-  void drawBoundingBox(const Window& win, const Camera& camera, rts::Point cell, int color);
+  void highlight(const Window& win, const Camera& camera, rts::Point cell, short colorPair);
+  void highlight(
+      const Window& win, const Camera& camera, const rts::Rectangle& area, short colorPair);
+  void drawBoundingBox(const Window& win, const Camera& camera, rts::Point cell, short colorPair);
   void drawBoundingBox(
-      const Window& win, const Camera& camera, const rts::Rectangle& area, int color);
+      const Window& win, const Camera& camera, const rts::Rectangle& area, short colorPair);
 
 #ifdef MAP_DEBUG
   void mapDebug(const Window& win, const rts::World& w, const Camera& camera);
