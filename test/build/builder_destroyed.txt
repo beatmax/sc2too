@@ -8,7 +8,7 @@ t
           
 ----------
 select x,y,t
-build_prototype base
+prepare build_base
 prototype: base
 
 # prototype is destroyed when all builder units are destroyed

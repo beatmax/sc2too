@@ -21,7 +21,7 @@ namespace rts {
       : baseType_{baseType}, resources_{resources}, ui_{std::move(ui)} {}
 
     WorldActionList exec(const World& w, const Command& cmd) __attribute__((warn_unused_result));
-    const UnitTypeId baseType() const { return baseType_; }
+    UnitTypeId baseType() const { return baseType_; }
     Selection& selection() { return selection_; }
     const Selection& selection() const { return selection_; }
     const Group& group(ControlGroupId group) const { return groups_[group]; }
@@ -41,6 +41,7 @@ namespace rts {
     UnitId takePrototype();
     UnitId takeAndCreatePrototype(World& w);
     UnitId prototype() const { return prototype_; }
+    AbilityInstanceIndex preparedAbilityIndex() const { return preparedAbilityIndex_; }
     const Ui& ui() const { return *ui_; }
 
     void onMapCreated(World& w);
@@ -49,9 +50,9 @@ namespace rts {
   private:
     using ControlGroupArray = std::array<Selection, MaxControlGroups>;
 
-    void exec(const World& w, WorldActionList& actions, const command::BuildPrototype& cmd);
     void exec(const World& w, WorldActionList& actions, const command::Cancel& cmd);
     void exec(const World& w, WorldActionList& actions, const command::ControlGroup& cmd);
+    void exec(const World& w, WorldActionList& actions, const command::PrepareAbility& cmd);
     void exec(const World& w, WorldActionList& actions, const command::Selection& cmd);
     void exec(const World& w, WorldActionList& actions, const command::SelectionSubgroup& cmd);
     void exec(const World& w, WorldActionList& actions, const command::TriggerAbility& cmd);
@@ -67,6 +68,7 @@ namespace rts {
     Map prototypeMap_;
     UnitId prototype_;
     UnitTypeId prototypeBuilderType_;
+    AbilityInstanceIndex preparedAbilityIndex_;
     UiUPtr ui_;
   };
 }

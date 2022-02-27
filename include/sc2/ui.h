@@ -74,11 +74,13 @@ namespace sc2::ui {
   struct Gateway : Unit {
     using Unit::Unit;
     const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
+    const ::ui::Sprite* overlay(const rts::World&, rts::UnitStableRef) const final;
   };
 
   struct Nexus : Unit {
     using Unit::Unit;
     const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
+    const ::ui::Sprite* overlay(const rts::World&, rts::UnitStableRef) const final;
   };
 
   struct Probe : Unit {
@@ -98,6 +100,10 @@ namespace sc2::ui {
 
   struct Rock : ::ui::SpriteUi<rts::Blocker> {
     const ::ui::Sprite& sprite(const rts::World&, rts::BlockerStableRef) const final;
+  };
+
+  struct ChronoBoostAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
   };
 
   struct GatherAbility : ::ui::IconUi<rts::Ability> {

@@ -44,7 +44,7 @@ namespace test::seq::item::act {
 
 namespace test::seq::item::cmd {
   namespace {
-    std::string toString(const BuildPrototype& bp) { return "build_prototype " + bp.type; }
+    std::string toString(const Prepare& p) { return "prepare " + p.ability; }
     std::string toString(const Select& s) { return "select " + util::join(s.names, ','); }
     std::string toString(const Trigger& t) {
       return (t.enqueue ? "enqueue " : "trigger ") + t.ability +
@@ -117,9 +117,18 @@ namespace test::seq::item {
         info.push_back("m:" + std::to_string(*m.mineral));
       if (m.gas)
         info.push_back("g:" + std::to_string(*m.gas));
-      if (m.supply)
+      if (m.supply) {
         info.push_back(
             "s:" + std::to_string(m.supply->first) + '/' + std::to_string(m.supply->second));
+      }
+      return info;
+    }
+    std::vector<std::string> mapExtraInfo(const Map& m) {
+      std::vector<std::string> info;
+      if (m.energy) {
+        for (const auto& [n, q] : *m.energy)
+          info.push_back("e(" + n + "):" + std::to_string(q));
+      }
       return info;
     }
     std::string toString(const Map& m) { return util::joinLines(m.map); }
@@ -167,14 +176,14 @@ namespace test::seq::item {
       return std::visit([](const auto& a) { return act::toString(a); }, action);
     }
 
-    const std::regex reCommand{R"((?:build_prototype|select|trigger|enqueue)\s.*)"};
-    const std::regex reCommandBuildPrototype{R"(build_prototype\s+(\w+))"};
+    const std::regex reCommand{R"((?:prepare|select|trigger|enqueue)\s.*)"};
+    const std::regex reCommandPrepare{R"(prepare\s+(\w+))"};
     const std::regex reCommandSelect{R"(select\s+(\w+(?:,\w+)*))"};
     const std::regex reCommandTrigger{R"((trigger|enqueue)\s+(\w+)(?:\s+(\d+),(\d+))?)"};
     Item parseCommand(ParseLoc& loc) {
       std::smatch match;
-      if (std::regex_match(*loc.it, match, reCommandBuildPrototype))
-        return ++loc.it, Command{cmd::BuildPrototype{match[1]}};
+      if (std::regex_match(*loc.it, match, reCommandPrepare))
+        return ++loc.it, Command{cmd::Prepare{match[1]}};
       if (std::regex_match(*loc.it, match, reCommandSelect))
         return ++loc.it, Command{cmd::Select{commaSplit(match[1])}};
       if (std::regex_match(*loc.it, match, reCommandTrigger)) {
@@ -235,8 +244,10 @@ namespace test::seq {
         mapSeparator += (!item1 || map1) ? "" : "\n";
         mapSeparator += std::string(width, c);
         if (map2) {
-          if (auto info{item::mapInfo(*map2)}; !info.empty())
-            mapSeparator += "  [" + util::join(item::mapInfo(*map2), ' ') + "]";
+          for (auto info : {item::mapInfo(*map2), item::mapExtraInfo(*map2)}) {
+            if (!info.empty())
+              mapSeparator += "  [" + util::join(info, ' ') + "]";
+          }
         }
       }
 

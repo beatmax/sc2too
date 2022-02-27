@@ -1,0 +1,91 @@
+option t,r,s,e
+a,b: base
+1,2: dojo
+p: power_plant
+--------------  [t:0 m:1000 g:0 s:0/30]  [e(a):50 e(b):50]
+aa  11  22  bb
+aa  11  22  bb
+aa    p     bb
+--------------
+select a,b
+prepare boost
+trigger boost 8,0
+select 1,2
+trigger produce_fighter
+trigger produce_fighter
+run
+--------------  [t:0 m:980 g:0 s:0/30]  [e(a):0 e(b):50]
+aa  11  22  bb
+aa  11  22  bb
+aa    p     bb
+==============  [t:1 m:980 g:0 s:2/30]
+aa  11  22  bb
+aa  11  22  bb
+aa    p     bb
+==============  [t:671 m:980 g:0 s:2/30]
+aa  11  22  bb
+aa  11 f22  bb
+aa    p     bb
+==============  [t:1001 m:980 g:0 s:2/30]
+aa  11  22  bb
+aa  11ff22  bb
+aa    p     bb
+==============  [t:1002 m:980 g:0 s:2/30]  [e(a):10 e(b):60]
+aa  11  22  bb
+aa  11ff22  bb
+aa    p     bb
+--------------
+
+# boosted until t=1500, the work of 750 time units is done in 500 time units (+50%),
+# remaining 250 done without boost, so total time is ~750
+select 2
+trigger produce_fighter
+run
+--------------  [t:1002 m:970 g:0 s:2/30]  [e(a):10 e(b):60]
+aa  11  22  bb
+aa  11ff22  bb
+aa    p     bb
+==============  [t:1003 m:970 g:0 s:3/30]
+aa  11  22  bb
+aa  11ff22  bb
+aa    p     bb
+==============  [t:1763 m:970 g:0 s:3/30]
+aa  11 f22  bb
+aa  11ff22  bb
+aa    p     bb
+==============  [t:1764 m:970 g:0 s:3/30]  [e(a):17 e(b):67]
+aa  11 f22  bb
+aa  11ff22  bb
+aa    p     bb
+--------------
+
+run for 1000
+--------------  [t:1764 m:970 g:0 s:3/30]  [e(a):17 e(b):67]
+aa  11 f22  bb
+aa  11ff22  bb
+aa    p     bb
+==============  [t:2764 m:970 g:0 s:3/30]  [e(a):27 e(b):77]
+aa  11 f22  bb
+aa  11ff22  bb
+aa    p     bb
+--------------
+
+select a,b
+prepare boost
+trigger boost 0,0
+run
+--------------  [t:2764 m:970 g:0 s:3/30]  [e(a):27 e(b):27]
+aa  11 f22  bb
+aa  11ff22  bb
+aa    p     bb
+--------------
+prepare boost
+message: NOT ENOUGH ENERGY!
+trigger boost 0,0
+message: NOT ENOUGH ENERGY!
+run
+--------------  [t:2764 m:970 g:0 s:3/30]  [e(a):27 e(b):27]
+aa  11 f22  bb
+aa  11ff22  bb
+aa    p     bb
+--------------

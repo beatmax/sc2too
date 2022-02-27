@@ -25,6 +25,7 @@ rts::ResourceId test::gasResourceId;
 rts::ResourceId test::mineralResourceId;
 rts::ResourceId test::supplyResourceId;
 
+rts::AbilityId test::boostAbilityId;
 rts::AbilityId test::buildAbilityId;
 rts::AbilityId test::gatherAbilityId;
 rts::AbilityId test::moveAbilityId;
@@ -54,6 +55,7 @@ void test::Factory::init(rts::World& w) {
   mineralResourceId = w.createResource(std::make_unique<MineralUi>());
   supplyResourceId = w.createResource(std::make_unique<SupplyUi>());
 
+  boostAbilityId = w.createAbility(std::make_unique<Ui>("boost"));
   buildAbilityId = w.createAbility(std::make_unique<Ui>("build"));
   gatherAbilityId = w.createAbility(std::make_unique<Ui>("gather"));
   moveAbilityId = w.createAbility(std::make_unique<Ui>("move"));
@@ -99,6 +101,10 @@ void test::Factory::init(rts::World& w) {
           {mineralResourceId, ThirdyMineralCost}, {supplyResourceId, ThirdySupplyCost}},
       rts::ResourceQuantityList{}, ThirdyBuildTime, std::make_unique<Ui>("T"));
 
+  w[baseTypeId].addAbility(
+      BoostAbilityIndex,
+      rts::abilities::Boost{
+          boostAbilityId, BaseBoostEnergyCost, BaseBoostSpeedUp, BaseBoostDuration});
   w[baseTypeId].addAbility(
       ProduceThirdyAbilityIndex, rts::abilities::Produce{produceThirdyAbilityId, thirdyTypeId});
   w[baseTypeId].addAbility(

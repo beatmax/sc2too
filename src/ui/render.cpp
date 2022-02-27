@@ -75,15 +75,20 @@ void ui::render(
     const Window& win, const rts::World& w, const Camera& camera, const rts::WorldObject& object) {
   const auto& spriteUi{getUpdatedSpriteUi(w, object)};
 
-  assert(spriteUi.sprite().area(object.area.topLeft) == object.area);
+  assert(spriteUi.base().sprite().area(object.area.topLeft) == object.area);
 
   const rts::Rectangle visibleArea{intersection(object.area, camera.area())};
   const ScreenRect drawRect{toScreenRect(camera, visibleArea)};
   const ScreenVector topLeftInSprite{toScreenVector(visibleArea.topLeft - object.area.topLeft)};
 
   graph::drawFrame(
-      win, spriteUi.frame(object.direction), drawRect, topLeftInSprite,
+      win, spriteUi.base().frame(object.direction), drawRect, topLeftInSprite,
       spriteUi.defaultColor(object));
+
+  if (const auto& ov{spriteUi.overlay()}) {
+    graph::drawOverlay(
+        win, ov.frame(object.direction), drawRect, topLeftInSprite, spriteUi.defaultColor(object));
+  }
 }
 
 void ui::render(
@@ -93,13 +98,13 @@ void ui::render(
     const rts::WorldObject& object,
     const rts::Rectangle& area) {
   const auto& spriteUi{getUpdatedSpriteUi(w, object)};
-  assert(spriteUi.sprite().area(area.topLeft) == area);
+  assert(spriteUi.base().sprite().area(area.topLeft) == area);
 
   if (auto visibleArea{maybeIntersection(area, camera.area())}) {
     const ScreenRect drawRect{toScreenRect(camera, *visibleArea)};
     const ScreenVector topLeftInSprite{toScreenVector(visibleArea->topLeft - area.topLeft)};
     graph::drawFrame(
-        win, spriteUi.frame(object.direction), drawRect, topLeftInSprite,
+        win, spriteUi.base().frame(object.direction), drawRect, topLeftInSprite,
         spriteUi.defaultColor(object));
   }
 }

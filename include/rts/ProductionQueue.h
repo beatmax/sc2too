@@ -28,6 +28,10 @@ namespace rts {
     void setRallyPoint(Point p) { rallyPoint_ = p; }
     const std::optional<Point>& rallyPoint() const { return rallyPoint_; }
 
+    void boost(const World& w, Percent speedUp, GameTime duration);
+    bool boosted(const World& w) const;
+    GameTime workPerCycle(const World& w) const;
+
   private:
     void create(World& w, UnitTypeId type, Point p);
 
@@ -35,5 +39,7 @@ namespace rts {
     SideId side_;
     ResourceBagArray resources_;
     std::optional<Point> rallyPoint_;
+    GameTime boostUntil_{};
+    GameTime boostWorkPerCycle_{};
   };
 }

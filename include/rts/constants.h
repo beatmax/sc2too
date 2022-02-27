@@ -16,7 +16,7 @@ namespace rts {
   constexpr size_t MaxUnitAbilityPages{3};
   constexpr size_t MaxUnitAbilitiesPerPage{15};
   constexpr size_t MaxUnitAbilities{MaxUnitAbilityPages * MaxUnitAbilitiesPerPage};
-  constexpr size_t MaxUnitAbilityStates{5};
+  constexpr size_t MaxUnitAbilityStates{6};
   constexpr size_t MaxAbilities{1500};
   constexpr size_t MaxBlockers{10000};
   constexpr size_t MaxResourceFields{1000};
@@ -34,6 +34,7 @@ namespace rts {
   constexpr GameSpeed GameSpeedFaster{140};
   constexpr GameTime DefaultEnergyIncreaseInterval{100};
   constexpr Coordinate ResourceProximityRadius{3};
+  constexpr GameTime ProduceCycleTime{10};
 
   constexpr Distance DistanceInf{std::numeric_limits<Distance>::max()};
   constexpr GameTime GameTimeInf{std::numeric_limits<GameTime>::max()};

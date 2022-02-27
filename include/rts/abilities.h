@@ -23,6 +23,7 @@ namespace rts {
 
 namespace rts::abilities {
   namespace state {
+    class Boost;
     class Build;
     class Gather;
     class Move;
@@ -30,10 +31,10 @@ namespace rts::abilities {
     class SetRallyPoint;
   }
 
-  enum class Kind { None, Build, Gather, Move, Produce, SetRallyPoint, MAX };
+  enum class Kind { None, Boost, Build, Gather, Move, Produce, SetRallyPoint, MAX };
   static_assert(size_t(Kind::MAX) - 1 == MaxUnitAbilityStates);
   enum class GroupMode { One, All };
-  enum class TargetType { None, Any, Ground, Resource };
+  enum class TargetType { None, Any, Ground, ProductionOrResearch, Resource };
 
   enum class BuildState { Init, MovingToTarget, Building };
 
@@ -65,6 +66,21 @@ namespace rts::abilities {
 
   int mutualCancelGroup(Kind kind);
 
+  struct Boost {
+    using AbilityState = state::Boost;
+    static constexpr auto kind{Kind::Boost};
+    static constexpr auto groupMode{GroupMode::One};
+    static constexpr auto targetType{TargetType::ProductionOrResearch};
+    static constexpr auto enqueable{false};
+    static constexpr auto availableWhileBuilding{false};
+    static constexpr auto requiresEnergy{true};
+    static constexpr auto requiresPower{false};
+    AbilityId id;
+    Quantity energyCost;
+    Percent speedUp;
+    GameTime duration;
+  };
+
   struct Build {
     using AbilityState = state::Build;
     static constexpr auto kind{Kind::Build};
@@ -72,6 +88,7 @@ namespace rts::abilities {
     static constexpr auto targetType{TargetType::Ground};
     static constexpr auto enqueable{true};
     static constexpr auto availableWhileBuilding{false};
+    static constexpr auto requiresEnergy{false};
     static constexpr auto requiresPower{false};
     AbilityId id;
     UnitTypeId type;
@@ -84,6 +101,7 @@ namespace rts::abilities {
     static constexpr auto targetType{TargetType::Resource};
     static constexpr auto enqueable{true};
     static constexpr auto availableWhileBuilding{false};
+    static constexpr auto requiresEnergy{false};
     static constexpr auto requiresPower{false};
     AbilityId id;
     GameTime gatherTime;
@@ -103,6 +121,7 @@ namespace rts::abilities {
     static constexpr auto targetType{TargetType::Any};
     static constexpr auto enqueable{true};
     static constexpr auto availableWhileBuilding{false};
+    static constexpr auto requiresEnergy{false};
     static constexpr auto requiresPower{false};
     AbilityId id;
     Speed speed;
@@ -115,6 +134,7 @@ namespace rts::abilities {
     static constexpr auto targetType{TargetType::None};
     static constexpr auto enqueable{false};
     static constexpr auto availableWhileBuilding{false};
+    static constexpr auto requiresEnergy{false};
     static constexpr auto requiresPower{true};
     AbilityId id;
     UnitTypeId type;
@@ -127,6 +147,7 @@ namespace rts::abilities {
     static constexpr auto targetType{TargetType::Any};
     static constexpr auto enqueable{false};
     static constexpr auto availableWhileBuilding{true};
+    static constexpr auto requiresEnergy{false};
     static constexpr auto requiresPower{false};
     AbilityId id;
   };
@@ -141,6 +162,7 @@ namespace rts::abilities {
     AbilityPage goToPage{0};
     GroupMode groupMode{};
     TargetType targetType{};
+    Quantity energyCost{0};
     bool enqueable{false};
     bool availableWhileBuilding{false};
     bool requiresPower{false};

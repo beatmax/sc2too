@@ -28,6 +28,6 @@ namespace rts::abilities::state {
     AbilityStepAction finishProduction();
 
     State state_{State::Idle};
-    GameTime timeLeft_{};
+    GameTime workLeft_{};
   };
 }

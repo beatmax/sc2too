@@ -99,6 +99,7 @@ namespace rts {
   using Speed = uint32_t;      // distance per game unit = cells per second
   using Fps = uint32_t;
   using Quantity = int32_t;
+  using Percent = int32_t;
 
   using ResourceQuantityList = std::vector<std::pair<ResourceId, Quantity>>;
 

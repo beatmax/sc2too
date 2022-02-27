@@ -1,5 +1,6 @@
 #include "rts/abilities.h"
 
+#include "Boost.h"
 #include "Build.h"
 #include "Gather.h"
 #include "Move.h"
@@ -19,12 +20,18 @@ int rts::abilities::mutualCancelGroup(Kind kind) {
 
 template<typename D>
 rts::abilities::Instance rts::abilities::instance(const D& desc, AbilityStateIndex as) {
+  auto energyCost = [&]() -> rts::Quantity {
+    if constexpr (D::requiresEnergy)
+      return desc.energyCost;
+    return 0;
+  };
   return Instance{
       D::kind,
       desc.id,
       0,
       D::groupMode,
       D::targetType,
+      energyCost(),
       D::enqueable,
       D::availableWhileBuilding,
       D::requiresPower,
@@ -38,6 +45,7 @@ rts::abilities::Instance rts::abilities::instance(const GoToPage& desc, AbilityS
 }
 
 namespace rts::abilities {
+  template Instance instance<Boost>(const Boost&, AbilityStateIndex);
   template Instance instance<Build>(const Build&, AbilityStateIndex);
   template Instance instance<Gather>(const Gather&, AbilityStateIndex);
   template Instance instance<Move>(const Move&, AbilityStateIndex);

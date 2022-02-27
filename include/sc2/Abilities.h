@@ -7,6 +7,7 @@ namespace sc2 {
   struct Abilities {
     static void init(rts::World& w);
 
+    static rts::AbilityId chronoBoost;
     static rts::AbilityId gather;
     static rts::AbilityId move;
     static rts::AbilityId setRallyPoint;
@@ -23,6 +24,7 @@ namespace sc2 {
     static constexpr auto WarpInStructurePageBase{
         WarpInStructurePage * rts::MaxUnitAbilitiesPerPage};
 
+    static constexpr rts::AbilityInstanceIndex ChronoBoostIndex{10};
     static constexpr rts::AbilityInstanceIndex GatherIndex{5};
     static constexpr rts::AbilityInstanceIndex MoveIndex{0};
     static constexpr rts::AbilityInstanceIndex SetRallyPointIndex{9};

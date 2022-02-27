@@ -66,6 +66,19 @@ rts::GameTime rts::ProductionQueue::buildTime(const World& w) const {
   return w[top()].buildTime;
 }
 
+void rts::ProductionQueue::boost(const World& w, Percent speedUp, GameTime duration) {
+  boostUntil_ = w.time + duration;
+  boostWorkPerCycle_ = (ProduceCycleTime * (100 + speedUp)) / 100;
+}
+
+bool rts::ProductionQueue::boosted(const World& w) const {
+  return w.time < boostUntil_;
+}
+
+rts::GameTime rts::ProductionQueue::workPerCycle(const World& w) const {
+  return boosted(w) ? boostWorkPerCycle_ : ProduceCycleTime;
+}
+
 void rts::ProductionQueue::create(World& w, UnitTypeId type, Point p) {
   w[side_].resources().restoreFrom(resources_, w[type].cost);
   // allocCheck = false; negative free slots are possible

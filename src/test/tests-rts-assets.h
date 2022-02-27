@@ -22,21 +22,25 @@ namespace test {
   constexpr rts::AbilityInstanceIndex ProduceThirdyAbilityIndex{0};
   constexpr rts::AbilityInstanceIndex ProduceWorkerAbilityIndex{1};
   constexpr rts::AbilityInstanceIndex SetRallyPointAbilityIndex{2};
+  constexpr rts::AbilityInstanceIndex BoostAbilityIndex{3};
 
   constexpr rts::Quantity BaseMineralCost{20};
   constexpr rts::Quantity BaseSupplyProvision{15};
-  constexpr rts::Quantity BaseBuildTime{30};
+  constexpr rts::GameTime BaseBuildTime{30};
   constexpr rts::Quantity BaseMaxEnergy{200};
   constexpr rts::Quantity BaseInitialEnergy{50};
+  constexpr rts::Quantity BaseBoostEnergyCost{50};
+  constexpr rts::Percent BaseBoostSpeedUp{50};
+  constexpr rts::GameTime BaseBoostDuration{1500};
   constexpr rts::Quantity DojoMineralCost{20};
-  constexpr rts::Quantity DojoBuildTime{15};
+  constexpr rts::GameTime DojoBuildTime{15};
   constexpr rts::Quantity ExtractorMineralCost{20};
-  constexpr rts::Quantity ExtractorBuildTime{10};
+  constexpr rts::GameTime ExtractorBuildTime{10};
   constexpr rts::Quantity FighterMineralCost{10};
   constexpr rts::Quantity FighterSupplyCost{1};
   constexpr rts::GameTime FighterBuildTime{1000};
   constexpr rts::Quantity PowerPlantMineralCost{40};
-  constexpr rts::Quantity PowerPlantBuildTime{5};
+  constexpr rts::GameTime PowerPlantBuildTime{5};
   constexpr rts::Coordinate PowerPlantPowerRadius{5};
   constexpr rts::Quantity ThirdyMineralCost{2};
   constexpr rts::Quantity ThirdySupplyCost{4};
@@ -44,7 +48,7 @@ namespace test {
   constexpr rts::Quantity WorkerMineralCost{10};
   constexpr rts::Quantity WorkerSupplyCost{2};
   constexpr rts::GameTime WorkerBuildTime{100};
-  constexpr rts::GameTime WorkerCargoCapacity{5};
+  constexpr rts::Quantity WorkerCargoCapacity{5};
 
   extern const std::string map;
 
@@ -52,6 +56,7 @@ namespace test {
   extern rts::ResourceId mineralResourceId;
   extern rts::ResourceId supplyResourceId;
 
+  extern rts::AbilityId boostAbilityId;
   extern rts::AbilityId buildAbilityId;
   extern rts::AbilityId gatherAbilityId;
   extern rts::AbilityId moveAbilityId;

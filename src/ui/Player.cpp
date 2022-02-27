@@ -45,8 +45,9 @@ void ui::Player::update(const rts::World& w) {
   worldView.update(w, w[side]);
 
   if (state_ != State::Default) {
-    if (state_ == State::BuildingPrototype && w[side].prototype()) {
-      selectingAbilityTarget = {lastBuildAbilityIndex_};
+    if (state_ == State::PreparingAbility) {
+      if (auto ai{w[side].preparedAbilityIndex()}; ai != rts::AbilityInstanceIndex::None)
+        selectingAbilityTarget = {ai};
     }
     else if (state_ == State::BuildTriggered && !w[side].prototype()) {
       abilityPage = 0;
@@ -136,15 +137,9 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
               return rts::command::TriggerAbility{abilityIndex, {-1, -1}, enqueue};
             }
             selectionBox.reset();
-            if (ai.kind != rts::abilities::Kind::Build) {
-              selectingAbilityTarget = {abilityIndex};
-            }
-            else if (subgroup.type) {
-              goToMainAbilityPage.reset();
-              state_ = State::BuildingPrototype;
-              lastBuildAbilityIndex_ = abilityIndex;
-              return rts::command::BuildPrototype{ai.desc<rts::abilities::Build>().type};
-            }
+            goToMainAbilityPage.reset();
+            state_ = State::PreparingAbility;
+            return rts::command::PrepareAbility{abilityIndex};
           }
           else if (ai.goToPage) {
             abilityPage = ai.goToPage;

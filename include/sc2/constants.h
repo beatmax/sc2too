@@ -24,6 +24,9 @@ namespace sc2 {
   constexpr rts::Quantity NexusSupplyProvision{15};
   constexpr rts::Quantity NexusMaxEnergy{200};
   constexpr rts::Quantity NexusInitialEnergy{50};
+  constexpr rts::Quantity NexusBoostEnergyCost{50};
+  constexpr rts::Percent NexusBoostSpeedUp{50};
+  constexpr rts::GameTime NexusBoostDuration{28 * rts::GameTimeSecond};
 
   constexpr rts::GameTime ProbeBuildTime{17 * rts::GameTimeSecond};
   constexpr rts::Quantity ProbeMineralCost{50};

@@ -135,6 +135,11 @@ const ::ui::Sprite& sc2::ui::Gateway::sprite(const rts::World& w, rts::UnitStabl
                                                                                  : sprite;
 }
 
+const ::ui::Sprite* sc2::ui::Gateway::overlay(const rts::World& w, rts::UnitStableRef u) const {
+  static const auto& spriteChronoBoost{Assets::getSprite("boost3x3")};
+  return w[u->productionQueue].boosted(w) ? &spriteChronoBoost : nullptr;
+}
+
 const ::ui::Sprite& sc2::ui::Nexus::sprite(const rts::World& w, rts::UnitStableRef u) const {
   using State = rts::Unit::State;
   using ProduceState = rts::abilities::ProduceState;
@@ -157,6 +162,11 @@ const ::ui::Sprite& sc2::ui::Nexus::sprite(const rts::World& w, rts::UnitStableR
   }
   return (rts::Unit::abilityState<ProduceState>(u, w) == ProduceState::Producing) ? spriteProducing
                                                                                   : sprite;
+}
+
+const ::ui::Sprite* sc2::ui::Nexus::overlay(const rts::World& w, rts::UnitStableRef u) const {
+  static const auto& spriteChronoBoost{Assets::getSprite("boost5x5")};
+  return w[u->productionQueue].boosted(w) ? &spriteChronoBoost : nullptr;
 }
 
 const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::World& w, rts::UnitStableRef u) const {
@@ -200,6 +210,11 @@ const ::ui::Sprite& sc2::ui::Rock::sprite(const rts::World&, rts::BlockerStableR
   static const auto& sprite{Assets::getSprite("rock")};
   static const auto& sprite2x2{Assets::getSprite("rock2x2")};
   return b->area.size == rts::Vector{2, 2} ? sprite2x2 : sprite;
+}
+
+const ::ui::Icon& sc2::ui::ChronoBoostAbility::icon() const {
+  static const auto& icon{Assets::getIcon("boost")};
+  return icon;
 }
 
 const ::ui::Icon& sc2::ui::GatherAbility::icon() const {

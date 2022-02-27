@@ -41,13 +41,12 @@ namespace ui {
       Clock::time_point time;
     };
 
-    enum class State { Default, BuildingPrototype, BuildTriggered };
+    enum class State { Default, PreparingAbility, BuildTriggered };
 
     Event lastEvent_;
     int lastCycledBase_{-1};
     rts::Point selectionBoxStart_;
     State state_{State::Default};
-    rts::AbilityInstanceIndex lastBuildAbilityIndex_;
 
     void cycleBase(const rts::World& w);
     rts::UnitIdList selectedSameType(const rts::World& w, rts::UnitId unit) const;

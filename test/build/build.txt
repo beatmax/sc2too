@@ -8,7 +8,7 @@ t              mm
                mm
 -----------------
 select x
-build_prototype base
+prepare build_base
 prototype: base
 
 # a command cancels the build and the prototype is destroyed
@@ -16,7 +16,7 @@ select x,y,t
 prototype: none
 
 # build is attempted on occupied location
-build_prototype base
+prepare build_base
 prototype: base
 trigger build_base 7,0
 message: INVALID LOCATION!
@@ -56,7 +56,7 @@ t              mm
 -----------------
 
 # begin a second build
-build_prototype base
+prepare build_base
 prototype: base
 trigger build_base 10,2
 prototype: none
@@ -148,7 +148,7 @@ t  bb     bb
    bb     bb     
 -----------------
 select y
-build_prototype base
+prepare build_base
 prototype: base
 trigger build_base 14,1
 prototype: none

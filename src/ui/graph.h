@@ -47,4 +47,10 @@ namespace ui::graph {
       const Frame& frame,
       ScreenPoint screenTopLeft,
       Color defaultColor = Color::White);
+  void drawOverlay(
+      const Window& win,
+      const Frame& frame,
+      const ScreenRect& drawRect,
+      const ScreenVector& topLeftInFrame,
+      Color defaultColor = Color::White);
 }

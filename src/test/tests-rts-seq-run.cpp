@@ -39,6 +39,8 @@ namespace {
       return test::ProduceThirdyAbilityIndex;
     if (s == "set_rally_point")
       return test::SetRallyPointAbilityIndex;
+    if (s == "boost")
+      return test::BoostAbilityIndex;
     return rts::AbilityInstanceIndex::None;
   }
 
@@ -95,6 +97,11 @@ namespace {
         u.commandQueue.empty();
   }
 
+  void fastForward(rts::World& w, rts::GameTime t) {
+    while (w.time < t)
+      w.step();
+  }
+
   bool stepWorld(rts::World& w, rts::GameTime limit) {
     using namespace rts;
 
@@ -109,17 +116,11 @@ namespace {
 
     if (nextTime > limit) {
       if (nextTime != GameTimeInf)
-        w.time = limit;
+        fastForward(w, limit);
       return false;
     }
 
-    w.time = nextTime;
-
-    WorldActionList actions;
-    for (auto& u : w.units)
-      actions += Unit::step(StableRef{u}, w);
-    w.update(actions);
-
+    fastForward(w, nextTime);
     return true;
   }
 }
@@ -130,6 +131,7 @@ namespace test::seq {
       bool mapTime{false};
       bool mapResources{false};
       bool mapSupply{false};
+      bool mapEnergy{false};
     };
 
     struct Runner {
@@ -162,12 +164,12 @@ namespace test::seq {
       void operator()(const item::Command& c);
 
       void error(const Item& i, const std::string& s);
-      item::Map makeMap();
+      item::Map makeMap(bool extraInfo = false);
       void action(const item::act::Add& a);
       void action(const item::act::Destroy& d);
       void action(const item::act::Provision& p);
       void action(const item::act::Allocate& a);
-      void command(const item::cmd::BuildPrototype& bp);
+      void command(const item::cmd::Prepare& p);
       void command(const item::cmd::Select& s);
       void command(const item::cmd::Trigger& t);
       void addEvents();
@@ -192,6 +194,8 @@ namespace test::seq {
           options.mapResources = true;
         else if (opt == "s")
           options.mapSupply = true;
+        else if (opt == "e")
+          options.mapEnergy = true;
         else
           return error(o, "invalid option: " + opt);
       }
@@ -249,7 +253,7 @@ namespace test::seq {
 
       world.loadMap(test::MapInitializer{unitByName}, m.map);
       haveMap = true;
-      output.push_back(makeMap());
+      output.push_back(makeMap(true));
     }
 
     void Runner::operator()(const item::Run& r) {
@@ -267,7 +271,7 @@ namespace test::seq {
         stop = []() { return false; };
       }
 
-      auto map{makeMap()};
+      auto map{makeMap(true)};
       output.push_back(r);
       output.push_back(map);
 
@@ -283,10 +287,10 @@ namespace test::seq {
       }
 
       if (world.time < limit && r.duration)
-        world.time = limit;
+        fastForward(world, limit);
 
-      if (world.time != map.time)
-        output.push_back(makeMap());
+      if (auto newMap{makeMap(true)}; newMap != map)
+        output.push_back(makeMap(true));
 
       if (world.time >= limit && !r.duration)
         output.push_back(item::Error{"!!! time limit reached"});
@@ -310,7 +314,7 @@ namespace test::seq {
       output.push_back(item::Error{toString(i) + " <--- " + s});
     }
 
-    item::Map Runner::makeMap() {
+    item::Map Runner::makeMap(bool extraInfo) {
       item::Map m;
       const auto& size{world.map.size()};
       for (rts::Coordinate y{0}; y < size.y; ++y)
@@ -332,6 +336,14 @@ namespace test::seq {
       if (options.mapSupply) {
         const auto& supply = world[side].resource(test::supplyResourceId);
         m.supply = {supply.allocated(), supply.totalSlots()};
+      }
+      if (extraInfo && options.mapEnergy) {
+        m.energy.emplace();
+        for (const auto& [n, u] : unitByName) {
+          const auto& unit{world[u]};
+          if (world[unit.type].maxEnergy)
+            m.energy->emplace_back(n, unit.energy);
+        }
       }
       return m;
     }
@@ -376,12 +388,12 @@ namespace test::seq {
       output.push_back(p);
     }
 
-    void Runner::command(const item::cmd::BuildPrototype& bp) {
-      auto type{toUnitTypeId(bp.type)};
-      if (!type)
-        return error(bp, "invalid unit type");
-      test::execCommand(world, side, rts::command::BuildPrototype{type});
-      output.push_back(bp);
+    void Runner::command(const item::cmd::Prepare& p) {
+      auto ai{toAbilityIndex(p.ability)};
+      if (ai == rts::AbilityInstanceIndex::None)
+        return error(p, "invalid ability");
+      test::execCommand(world, side, rts::command::PrepareAbility{ai});
+      output.push_back(p);
     }
 
     void Runner::command(const item::cmd::Select& s) {

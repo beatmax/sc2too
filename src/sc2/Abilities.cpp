@@ -5,6 +5,7 @@
 #include "sc2/ui.h"
 
 void sc2::Abilities::init(rts::World& w) {
+  chronoBoost = w.createAbility(std::make_unique<ui::ChronoBoostAbility>());
   gather = w.createAbility(std::make_unique<ui::GatherAbility>());
   move = w.createAbility(std::make_unique<ui::MoveAbility>());
   setRallyPoint = w.createAbility(std::make_unique<ui::SetRallyPointAbility>());
@@ -18,6 +19,7 @@ void sc2::Abilities::init(rts::World& w) {
   warpInPylon = w.createAbility(std::make_unique<ui::WarpInPylonAbility>());
 }
 
+rts::AbilityId sc2::Abilities::chronoBoost;
 rts::AbilityId sc2::Abilities::gather;
 rts::AbilityId sc2::Abilities::move;
 rts::AbilityId sc2::Abilities::setRallyPoint;

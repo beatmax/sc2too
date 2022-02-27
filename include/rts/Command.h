@@ -7,16 +7,16 @@
 namespace rts {
 
   namespace command {
-    struct BuildPrototype {
-      UnitTypeId unitType;
-    };
-
     struct Cancel {};
 
     struct ControlGroup {
       enum Action { Select, Set, Add } action;
       bool exclusive;
       ControlGroupId group;
+    };
+
+    struct PrepareAbility {
+      AbilityInstanceIndex abilityIndex;
     };
 
     struct Selection {
@@ -46,9 +46,9 @@ namespace rts {
   }
 
   using Command = std::variant<
-      command::BuildPrototype,
       command::Cancel,
       command::ControlGroup,
+      command::PrepareAbility,
       command::Selection,
       command::SelectionSubgroup,
       command::TriggerAbility,

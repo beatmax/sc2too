@@ -8,6 +8,9 @@
 
 namespace ui::graph {
   namespace {
+    using ColorPair = std::pair<short, short>;
+    using UpDownPair = std::pair<short, short>;
+
     struct PairHash {
       template<class T1, class T2>
       size_t operator()(const std::pair<T1, T2>& p) const {
@@ -15,7 +18,7 @@ namespace ui::graph {
       }
     };
 
-    std::unordered_map<std::pair<short, short>, short, PairHash> colorPairs;
+    std::unordered_map<ColorPair, short, PairHash> colorPairs;
     short nextColorPair = 1;
 
     void drawBordersNoBottom(const Window& win, int ulChar, int urChar) {
@@ -89,6 +92,48 @@ namespace ui::graph {
           return L'┼';
       }
       return L'?';
+    }
+
+    UpDownPair squareColors(const cchar_t& c) {
+      wchar_t wch[2];
+      attr_t attrs;
+      short colorPair;
+      getcchar(&c, wch, &attrs, &colorPair, nullptr);
+      short fg, bg;
+      pair_content(colorPair, &fg, &bg);
+      switch (wch[0]) {
+        case L'█':
+          return UpDownPair{fg, fg};
+        case L'▀':
+          return UpDownPair{fg, bg};
+        case L'▄':
+          return UpDownPair{bg, fg};
+      }
+      return UpDownPair{bg, bg};
+    }
+
+    cchar_t combineSquareColors(const UpDownPair& baseColors, const UpDownPair& overlayColors) {
+      auto combine = [](short bc, short oc) { return oc < 0 ? bc : oc; };
+      const UpDownPair combined{
+          combine(baseColors.first, overlayColors.first),
+          combine(baseColors.second, overlayColors.second)};
+      const wchar_t* wch;
+      short cp;
+      if (combined.first >= 0) {
+        wch = L"▀";
+        cp = colorPair(combined.first, combined.second);
+      }
+      else if (combined.second >= 0) {
+        wch = L"▄";
+        cp = colorPair(combined.second, -1);
+      }
+      else {
+        wch = L" ";
+        cp = colorPair(15, -1);
+      }
+      cchar_t c;
+      setcchar(&c, wch, 0, cp, nullptr);
+      return c;
     }
   }
 }
@@ -219,4 +264,28 @@ void ui::graph::drawFrame(
   setColor(win, defaultColor, frame.defaultBg());
   for (int y{0}; y < frame.rows(); ++y)
     mvwadd_wchnstr(win.w, screenTopLeft.y + y, screenTopLeft.x, &frame(y, 0), frame.cols());
+}
+
+void ui::graph::drawOverlay(
+    const Window& win,
+    const Frame& frame,
+    const ScreenRect& drawRect,
+    const ScreenVector& topLeftInFrame,
+    Color defaultColor) {
+  setColor(win, defaultColor, frame.defaultBg());
+
+  ScreenVector v{0, 0};
+  cchar_t c;
+  for (; v.y < drawRect.size.y; ++v.y) {
+    for (v.x = 0; v.x < drawRect.size.x; ++v.x) {
+      const auto sp{topLeftInFrame + v};
+      const auto overlayColors = squareColors(frame(sp.y, sp.x));
+      if (overlayColors != UpDownPair{-1, -1}) {
+        wmove(win.w, drawRect.topLeft.y + v.y, drawRect.topLeft.x + v.x);
+        win_wch(win.w, &c);
+        c = combineSquareColors(squareColors(c), overlayColors);
+        wadd_wch(win.w, &c);
+      }
+    }
+  }
 }

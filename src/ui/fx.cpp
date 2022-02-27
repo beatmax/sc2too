@@ -3,13 +3,14 @@
 #include "Frame.h"
 #include "graph.h"
 
+#include <cassert>
+#include <cmath>
 #include <map>
 #include <numeric>
 
 namespace {
-  using CP = std::pair<int, int>;
-
   const std::array<int, 256> UnpowerColorTr = [] {
+    using CP = std::pair<int, int>;
     std::array<int, 256> t;
     std::iota(t.begin(), t.end(), 0);
     for (auto [k, v] : {CP{51, 6}, CP{208, 136}, CP{226, 142}})
@@ -21,8 +22,7 @@ namespace {
 }
 
 ui::Sprite ui::fx::flatten(const Sprite& s) {
-  auto fp{std::make_unique<Frame>(s.frame())};
-  auto& frame{*fp};
+  Frame frame{s.frame()};
 
   util::Matrix<int, int> isSpace(frame.rows(), frame.cols());
   for (int y{0}; y < frame.rows(); ++y) {
@@ -75,12 +75,11 @@ ui::Sprite ui::fx::flatten(const Sprite& s) {
     }
   }
 
-  return Sprite{std::move(fp)};
+  return Sprite{std::move(frame)};
 }
 
 ui::Sprite ui::fx::unpower(const Sprite& s) {
-  auto fp{std::make_unique<Frame>(s.frame())};
-  auto& frame{*fp};
+  Frame frame{s.frame()};
 
   for (int y{0}; y < frame.rows(); ++y) {
     for (int x{0}; x < frame.cols(); ++x) {
@@ -99,5 +98,5 @@ ui::Sprite ui::fx::unpower(const Sprite& s) {
 
   frame.setDefaultBg(Color(unpowerColorTr(int(frame.defaultBg()))));
 
-  return Sprite{std::move(fp)};
+  return Sprite{std::move(frame)};
 }

@@ -3,10 +3,10 @@
 #include "rts/WorldObject.h"
 #include "rts/types.h"
 #include "types.h"
+#include "util/DynValue.h"
 
 #include <array>
 #include <iosfwd>
-#include <memory>
 #include <vector>
 
 namespace ui::detail {
@@ -22,7 +22,7 @@ namespace ui {
     explicit Sprite(const std::wstring& s);
     explicit Sprite(std::wistream&& is);
     explicit Sprite(std::vector<std::wstring>&& lines);
-    explicit Sprite(std::unique_ptr<Frame> frame);
+    explicit Sprite(util::DynValue<Frame> frame);
     ~Sprite();
 
     const Frame& frame(FrameIndex frame = 0, rts::Direction direction = rts::Direction(0)) const;
@@ -32,7 +32,7 @@ namespace ui {
     rts::Rectangle area(rts::Point topLeft) const;
 
   private:
-    std::vector<std::unique_ptr<Frame>> frames_;
+    std::vector<util::DynValue<Frame>> frames_;
     FrameIndex frameCount_;
     rts::GameTime frameDuration_{0};
     bool directional_{false};
@@ -42,23 +42,37 @@ namespace ui {
     using Sprite::Sprite;
   };
 
-  class SpriteUiBase : public rts::Ui {
+  class SpriteState {
   public:
-    void update(const rts::World& w, const rts::WorldObject& obj);
+    void update(const rts::World& w, const Sprite* s);
 
-    const Sprite& spritePublic() const { return *sprite_; }
+    operator bool() const { return sprite_; }
+    const Sprite& sprite() const { return *sprite_; }
     const Frame& frame(rts::Direction direction) const {
       return sprite_->frame(frameIndex_, direction);
     }
-    virtual Color defaultColorPublic(const rts::WorldObject&) const = 0;
-
-  protected:
-    virtual const Sprite& spriteProtected(const rts::World&, const rts::WorldObject&) const = 0;
 
   private:
     const Sprite* sprite_{};
     FrameIndex frameIndex_{};
     rts::GameTime nextFrameTime_{};
+  };
+
+  class SpriteUiBase : public rts::Ui {
+  public:
+    void update(const rts::World& w, const rts::WorldObject& obj);
+
+    const SpriteState& base() const { return base_; }
+    const SpriteState& overlay() const { return overlay_; }
+    virtual Color defaultColorPublic(const rts::WorldObject&) const = 0;
+
+  protected:
+    virtual const Sprite& spriteProtected(const rts::World&, const rts::WorldObject&) const = 0;
+    virtual const Sprite* overlayProtected(const rts::World&, const rts::WorldObject&) const = 0;
+
+  private:
+    SpriteState base_;
+    SpriteState overlay_;
   };
 
   class SpriteUiFacade {
@@ -67,8 +81,8 @@ namespace ui {
       : ui_{ui} {
       ui_.update(w, obj);
     }
-    const Sprite& sprite() const { return ui_.spritePublic(); }
-    const Frame& frame(rts::Direction direction) const { return ui_.frame(direction); }
+    const SpriteState& base() const { return ui_.base(); }
+    const SpriteState& overlay() const { return ui_.overlay(); }
     Color defaultColor(const rts::WorldObject& obj) const { return ui_.defaultColorPublic(obj); }
 
   private:
@@ -81,12 +95,16 @@ namespace ui {
     const Sprite& spriteProtected(const rts::World& w, const rts::WorldObject& obj) const final {
       return sprite(w, rts::StableRef<T>{static_cast<const T&>(obj)});
     }
+    const Sprite* overlayProtected(const rts::World& w, const rts::WorldObject& obj) const final {
+      return overlay(w, rts::StableRef<T>{static_cast<const T&>(obj)});
+    }
     Color defaultColorPublic(const rts::WorldObject& obj) const final {
       return defaultColor(rts::StableRef<T>{static_cast<const T&>(obj)});
     }
 
   private:
     virtual const Sprite& sprite(const rts::World& w, rts::StableRef<T>) const = 0;
+    virtual const Sprite* overlay(const rts::World& w, rts::StableRef<T>) const { return nullptr; }
     virtual Color defaultColor(rts::StableRef<T>) const { return detail::defaultDefaultColor(); }
   };
 

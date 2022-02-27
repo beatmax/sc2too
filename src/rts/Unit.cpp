@@ -118,6 +118,15 @@ void rts::Unit::clearCommandQueue(World& w) {
   commandQueue.clear();
 }
 
+bool rts::Unit::consumeEnergy(World& w, Quantity q) {
+  if (energy < q) {
+    w[side].messages().add(w, "NOT ENOUGH ENERGY!");
+    return false;
+  }
+  energy -= q;
+  return true;
+}
+
 bool rts::Unit::isStructure(const World& w) const {
   return w[type].kind == UnitType::Kind::Structure;
 }

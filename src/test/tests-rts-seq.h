@@ -48,10 +48,12 @@ namespace test::seq {
       std::optional<rts::Quantity> gas;
       std::optional<rts::Quantity> mineral;
       std::optional<std::pair<rts::Quantity, rts::Quantity>> supply;
+      std::optional<std::vector<std::pair<std::string, rts::Quantity>>> energy;
 
+      bool operator!=(const Map& other) const { return time != other.time || diff(other); }
       bool diff(const Map& other) const {
         return map != other.map || gas != other.gas || mineral != other.mineral ||
-            supply != other.supply;
+            supply != other.supply || energy != other.energy;
       }
     };
 
@@ -92,8 +94,8 @@ namespace test::seq {
     using Action = std::variant<act::Add, act::Destroy, act::Provision, act::Allocate>;
 
     namespace cmd {
-      struct BuildPrototype {
-        std::string type;
+      struct Prepare {
+        std::string ability;
       };
 
       struct Select {
@@ -107,7 +109,7 @@ namespace test::seq {
       };
     }
 
-    using Command = std::variant<cmd::BuildPrototype, cmd::Select, cmd::Trigger>;
+    using Command = std::variant<cmd::Prepare, cmd::Select, cmd::Trigger>;
   }
 
   using Item = std::variant<

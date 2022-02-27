@@ -6,12 +6,6 @@
 
 #include <cassert>
 
-namespace rts {
-  namespace {
-    constexpr GameTime MonitorTime{10};
-  }
-}
-
 rts::ActiveAbilityStateUPtr rts::abilities::state::Produce::trigger(
     World& w, Unit& u, ActiveAbilityStateUPtr& as, const Desc& desc, const AbilityTarget&) {
   assert(u.productionQueue);
@@ -40,11 +34,12 @@ rts::AbilityStepResult rts::abilities::state::Produce::step(const World& w, Unit
       return startProduction();
     case State::Producing:
       if (u->powered) {
-        if (timeLeft_ <= MonitorTime)
+        auto wps{pq.workPerCycle(w)};
+        if (workLeft_ <= wps)
           return finishProduction();
-        timeLeft_ -= MonitorTime;
+        workLeft_ -= wps;
       }
-      return MonitorTime;
+      return ProduceCycleTime;
   }
   return GameTime{0};
 }
@@ -60,13 +55,13 @@ rts::AbilityStepAction rts::abilities::state::Produce::startProduction() {
     if (pq.empty())
       return 0;
     if (pq.startProduction(w, state_ == State::Blocked)) {
-      timeLeft_ = pq.buildTime(w);
+      workLeft_ = pq.buildTime(w);
       state_ = State::Producing;
     }
     else {
       state_ = State::Blocked;
     }
-    return MonitorTime;
+    return ProduceCycleTime;
   };
 }
 
@@ -77,6 +72,6 @@ rts::AbilityStepAction rts::abilities::state::Produce::finishProduction() {
       state_ = State::Idle;
       return 1;
     }
-    return MonitorTime;
+    return ProduceCycleTime;
   };
 }

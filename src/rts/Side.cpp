@@ -95,6 +95,9 @@ rts::WorldActionList rts::Side::exec(const World& w, const Command& cmd) {
   return actions;
 }
 
+void rts::Side::exec(const World& w, WorldActionList& actions, const command::Cancel& cmd) {
+}
+
 void rts::Side::exec(const World& w, WorldActionList& actions, const command::ControlGroup& cmd) {
   assert(cmd.group < MaxControlGroups);
   Selection& group{groups_[cmd.group]};
@@ -119,16 +122,40 @@ void rts::Side::exec(const World& w, WorldActionList& actions, const command::Co
   }
 }
 
-void rts::Side::exec(const World& w, WorldActionList& actions, const command::BuildPrototype& cmd) {
-  auto builderType{selection_.subgroup(w).type};
-  assert(builderType);
-  actions += [side{w.id(*this)}, t{cmd.unitType}, builderType](World& w) {
-    auto& s{w[side]};
-    s.createPrototype(w, t, builderType);
-  };
-}
+void rts::Side::exec(const World& w, WorldActionList& actions, const command::PrepareAbility& cmd) {
+  const auto& subgroup{selection_.subgroup(w)};
+  const auto* a{subgroup.abilities[cmd.abilityIndex]};
+  assert(a);
+  assert(a->kind != abilities::Kind::None);
 
-void rts::Side::exec(const World& w, WorldActionList& actions, const command::Cancel& cmd) {
+  preparedAbilityIndex_ = AbilityInstanceIndex::None;
+
+  if (a->energyCost) {
+    assert(a->groupMode == abilities::GroupMode::One);
+    UnitIdList ids = util::filter(selection_.ids(w), [&](UnitId id) {
+      return w[id].hasEnabledAbility(w, cmd.abilityIndex, a->abilityId);
+    });
+    if (util::noneOf(ids, [&w, cost{a->energyCost}](UnitId id) { return w[id].energy >= cost; })) {
+      actions += [side{w.id(*this)}](World& w) { w[side].messages().add(w, "NOT ENOUGH ENERGY!"); };
+      return;
+    }
+  }
+
+  if (a->kind == rts::abilities::Kind::Build) {
+    auto builderType{subgroup.type};
+    if (!builderType)
+      return;
+    actions += [side{w.id(*this)}, t{a->desc<rts::abilities::Build>().type}, builderType,
+                ai{cmd.abilityIndex}](World& w) {
+      auto& s{w[side]};
+      s.createPrototype(w, t, builderType);
+      if (s.prototype())
+        s.preparedAbilityIndex_ = ai;
+    };
+  }
+  else {
+    preparedAbilityIndex_ = cmd.abilityIndex;
+  }
 }
 
 void rts::Side::exec(const World& w, WorldActionList& actions, const command::Selection& cmd) {
@@ -162,6 +189,12 @@ void rts::Side::exec(const World& w, WorldActionList& actions, const command::Tr
   assert(a);
   assert(a->kind != abilities::Kind::None);
 
+  const auto sideId{w.id(*this)};
+  if (a->targetType != abilities::TargetType::None &&
+      !w.compatibleTarget(a->targetType, sideId, cmd.target)) {
+    return;
+  }
+
   UnitIdList ids = util::filter(selection_.ids(w), [&](UnitId id) {
     return w[id].hasEnabledAbility(w, cmd.abilityIndex, a->abilityId);
   });
@@ -170,7 +203,9 @@ void rts::Side::exec(const World& w, WorldActionList& actions, const command::Tr
 
   if (a->groupMode == abilities::GroupMode::One) {
     UnitId uId;
-    if (a->kind == abilities::Kind::Produce) {
+    if (a->energyCost)
+      uId = *util::minElementBy(ids, [&w](UnitId id) { return -w[id].energy; });
+    else if (a->kind == abilities::Kind::Produce) {
       uId = *util::minElementBy(ids, [&w](UnitId id) { return w[w[id].productionQueue].size(); });
     }
     else {
@@ -184,10 +219,10 @@ void rts::Side::exec(const World& w, WorldActionList& actions, const command::Tr
   }
 
   actions +=
-      [s{w.id(*this)}, ids{std::move(ids)},
+      [sideId, ids{std::move(ids)},
        cmd{command::TriggerAbility{cmd.abilityIndex, cmd.target, cmd.enqueue && a->enqueable}},
        isBuild{a->kind == abilities::Kind::Build}](World& w) {
-        auto& side = w[s];
+        auto& side = w[sideId];
 
         rts::UnitId protoId;
         if (isBuild) {

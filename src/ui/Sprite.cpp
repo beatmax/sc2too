@@ -115,8 +115,8 @@ ui::Sprite::Sprite(std::vector<std::wstring>&& lines) {
   const auto [charFrames, colors] = parse(std::move(lines), frameDuration_, directional_);
   auto lineColors{colors.begin()};
   for (auto& chars : charFrames) {
-    auto& frame{*frames_.emplace_back(
-        std::make_unique<Frame>(chars.size(), chars.empty() ? 0 : chars.front().size()))};
+    auto& frame{
+        *frames_.emplace_back(Frame(chars.size(), chars.empty() ? 0 : chars.front().size()))};
     for (int y = 0; y < frame.rows(); ++y) {
       const auto& line = chars[y];
       assert(line.size() == size_t(frame.cols()));
@@ -139,7 +139,7 @@ ui::Sprite::Sprite(std::vector<std::wstring>&& lines) {
   frameCount_ = directional_ ? frames_.size() / 4 : frames_.size();
 }
 
-ui::Sprite::Sprite(std::unique_ptr<Frame> frame) {
+ui::Sprite::Sprite(util::DynValue<Frame> frame) {
   frames_.push_back(std::move(frame));
   frameCount_ = 1;
 }
@@ -157,19 +157,25 @@ rts::Rectangle ui::Sprite::area(rts::Point topLeft) const {
   return {topLeft, scaleDiv(rts::Vector{frame().cols() + 1, frame().rows() + 1}, dim::CellSizeEx)};
 }
 
-void ui::SpriteUiBase::update(const rts::World& w, const rts::WorldObject& obj) {
-  auto* prev{sprite_};
-  sprite_ = &spriteProtected(w, obj);
-  if (sprite_ != prev) {
+void ui::SpriteState::update(const rts::World& w, const Sprite* s) {
+  if (sprite_ != s) {
+    sprite_ = s;
     frameIndex_ = 0;
-    nextFrameTime_ =
-        sprite_->frameDuration() ? w.time + sprite_->frameDuration() : rts::GameTimeInf;
+    if (sprite_) {
+      nextFrameTime_ =
+          sprite_->frameDuration() ? w.time + sprite_->frameDuration() : rts::GameTimeInf;
+    }
   }
-  else if (w.time >= nextFrameTime_) {
+  else if (sprite_ && w.time >= nextFrameTime_) {
     assert(sprite_->frameCount() > 0);
     assert(sprite_->frameDuration() > 0);
     ldiv_t d{ldiv(w.time - nextFrameTime_, sprite_->frameDuration())};
     frameIndex_ = (frameIndex_ + 1 + d.quot) % sprite_->frameCount();
     nextFrameTime_ = w.time + sprite_->frameDuration() - d.rem;
   }
+}
+
+void ui::SpriteUiBase::update(const rts::World& w, const rts::WorldObject& obj) {
+  base_.update(w, &spriteProtected(w, obj));
+  overlay_.update(w, overlayProtected(w, obj));
 }

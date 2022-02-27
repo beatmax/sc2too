@@ -173,6 +173,7 @@ namespace rts {
     AbilityTarget abilityTarget(Point p) const;
     AbilityWeakTarget abilityWeakTarget(Point p) const;
     AbilityWeakTarget abilityWeakTarget(const AbilityTarget& t) const;
+    bool compatibleTarget(rts::abilities::TargetType tt, SideId side, Point p) const;
     RelativeContent relativeContent(SideId side, Point p) const;
     RelativeContent relativeContentForRally(SideId side, Point p) const;
 

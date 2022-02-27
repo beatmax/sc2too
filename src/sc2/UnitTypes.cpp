@@ -58,6 +58,10 @@ void sc2::UnitTypes::init(rts::World& w) {
   {
     auto& nexusType{w.unitTypes[nexus]};
     nexusType.addAbility(
+        Abilities::ChronoBoostIndex,
+        rts::abilities::Boost{
+            Abilities::chronoBoost, NexusBoostEnergyCost, NexusBoostSpeedUp, NexusBoostDuration});
+    nexusType.addAbility(
         Abilities::SetRallyPointIndex, rts::abilities::SetRallyPoint{Abilities::setRallyPoint});
     nexusType.addAbility(
         Abilities::WarpInProbeIndex, rts::abilities::Produce{Abilities::warpInProbe, probe});

@@ -206,12 +206,30 @@ rts::AbilityWeakTarget rts::World::abilityWeakTarget(const AbilityTarget& t) con
       t);
 }
 
+bool rts::World::compatibleTarget(rts::abilities::TargetType tt, SideId side, Point p) const {
+  using rts::abilities::TargetType;
+  auto rc{relativeContent(side, p)};
+  switch (tt) {
+    case TargetType::None:
+      return false;
+    case TargetType::Any:
+      return true;
+    case TargetType::Ground:
+      return rc == RelativeContent::Ground;
+    case TargetType::ProductionOrResearch:
+      return rc == RelativeContent::Friend && unit(p)->productionQueue;
+    case TargetType::Resource:
+      return rc == RelativeContent::Resource || rc == RelativeContent::FriendResource;
+  }
+  return false;
+}
+
 rts::RelativeContent rts::World::relativeContent(SideId side, Point p) const {
   auto& cell{map[p]};
   if (auto* u{unit(cell)})
-    return (u->side == side)
-        ? (u->resourceField ? RelativeContent::FriendResource : RelativeContent::Friend)
-        : RelativeContent::Foe;
+    return (u->side == side) ? ((u->resourceField && u->active()) ? RelativeContent::FriendResource
+                                                                  : RelativeContent::Friend)
+                             : RelativeContent::Foe;
   else if (auto* rf{resourceField(cell)};
            rf && rf->requiresBuilding == ResourceField::RequiresBuilding::No)
     return RelativeContent::Resource;

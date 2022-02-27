@@ -16,7 +16,7 @@ gg w   bb
        bb 
           
 ----------
-build_prototype extractor
+prepare build_extractor
 prototype: extractor
 trigger build_extractor 0,2
 message: INVALID LOCATION!

@@ -8,5 +8,5 @@ w
 ----------
 select w
 allocate mineral 1000
-build_prototype base
+prepare build_base
 message: Not enough mineral!

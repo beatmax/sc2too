@@ -214,6 +214,22 @@ namespace ui {
       }
     }
 
+    void drawTargetSelectPoint(
+        const IOState& ios,
+        const rts::World& w,
+        const Player& player,
+        const rts::Selection::Subgroup& subgroup,
+        rts::AbilityInstanceIndex abilityIndex) {
+      const auto& ai{*subgroup.abilities[abilityIndex]};
+      const auto colorPair{graph::colorPair(
+          w.compatibleTarget(ai.targetType, player.side, ios.mouseMapPoint) ? Color::BrightGreen
+                                                                            : Color::Red)};
+      if (auto* obj{w.object(ios.mouseMapPoint)})
+        highlight(ios.renderWin, player.camera, obj->area, colorPair);
+      else
+        highlight(ios.renderWin, player.camera, ios.mouseMapPoint, colorPair);
+    }
+
     void drawTargetPoints(
         const IOState& ios,
         const rts::World& w,
@@ -402,7 +418,7 @@ void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const 
   if (side.prototype())
     render(ios_.renderWin, w, camera, w[side.prototype()], prototypeArea);
   else if (player.selectingAbilityTarget)
-    highlight(ios_.renderWin, camera, ios_.mouseMapPoint, graph::colorPair(Color::BrightGreen));
+    drawTargetSelectPoint(ios_, w, player, subgroup, player.selectingAbilityTarget->abilityIndex);
 
   drawResourceQuantities(ios_, w, side);
   drawGameTime(ios_, engine, w);

@@ -45,6 +45,7 @@ namespace rts {
     void activate(World& w, Point p);
     void destroy(World& w);
     void clearCommandQueue(World& w);
+    bool consumeEnergy(World& w, Quantity q);
 
     bool isStructure(const World& w) const;
     bool isWorker(const World& w) const;

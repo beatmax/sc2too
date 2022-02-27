@@ -9,7 +9,7 @@ w: worker
                 
 ----------------
 select w
-build_prototype dojo
+prepare build_dojo
 prototype: dojo
 trigger build_dojo 6,2
 message: YOU MUST PLACE THAT IN A POWER FIELD!
@@ -36,7 +36,7 @@ run
      dd         
                 
 ----------------
-build_prototype power_plant
+prepare build_power_plant
 prototype: power_plant
 trigger build_power_plant 5,0
 prototype: none
@@ -124,7 +124,7 @@ run for 2000
                 
 ----------------
 select w
-build_prototype power_plant
+prepare build_power_plant
 prototype: power_plant
 trigger build_power_plant 5,0
 prototype: none
