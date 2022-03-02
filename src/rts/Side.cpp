@@ -194,6 +194,7 @@ void rts::Side::exec(const World& w, WorldActionList& actions, const command::Tr
       !w.compatibleTarget(a->targetType, sideId, cmd.target)) {
     return;
   }
+  ++triggerCount_;  // causes UI to stop selecting target
 
   UnitIdList ids = util::filter(selection_.ids(w), [&](UnitId id) {
     return w[id].hasEnabledAbility(w, cmd.abilityIndex, a->abilityId);

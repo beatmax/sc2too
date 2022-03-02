@@ -42,6 +42,7 @@ namespace rts {
     UnitId takeAndCreatePrototype(World& w);
     UnitId prototype() const { return prototype_; }
     AbilityInstanceIndex preparedAbilityIndex() const { return preparedAbilityIndex_; }
+    Sequence triggerCount() const { return triggerCount_; }
     const Ui& ui() const { return *ui_; }
 
     void onMapCreated(World& w);
@@ -69,6 +70,7 @@ namespace rts {
     UnitId prototype_;
     UnitTypeId prototypeBuilderType_;
     AbilityInstanceIndex preparedAbilityIndex_;
+    Sequence triggerCount_{};
     UiUPtr ui_;
   };
 }

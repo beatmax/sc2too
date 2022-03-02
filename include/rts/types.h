@@ -80,6 +80,7 @@ namespace rts {
   using ResourceFieldWId = util::PoolObjectWeakId<ResourceField>;
   using ResourceGroupId = uint32_t;
   using ResourceId = util::PoolObjectId<Resource>;
+  using Sequence = uint32_t;
   using SideId = util::PoolObjectId<Side>;
   using TriggerGroupId = uint32_t;
   using UnitCPtr = const Unit*;

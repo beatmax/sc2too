@@ -49,7 +49,9 @@ void ui::Player::update(const rts::World& w) {
       if (auto ai{w[side].preparedAbilityIndex()}; ai != rts::AbilityInstanceIndex::None)
         selectingAbilityTarget = {ai};
     }
-    else if (state_ == State::BuildTriggered && !w[side].prototype()) {
+    else if (
+        state_ == State::TriggeredAbility && w[side].triggerCount() > triggerCount_ &&
+        !w[side].prototype()) {
       abilityPage = 0;
       selectingAbilityTarget.reset();
     }
@@ -166,13 +168,13 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
         case InputMouseArea::Map:
           if (event.mouseButton == InputButton::Button1) {
             if (selectingAbilityTarget) {
-              if (w[side].prototype()) {
-                finishTargetSelection.reset();
-                goToMainAbilityPage.reset();
-                state_ = State::BuildTriggered;
-              }
+              const auto& s{w[side]};
               const bool enqueue(event.state & ShiftPressed);
               selectingAbilityTarget->afterEnqueue = enqueue;
+              finishTargetSelection.reset();
+              goToMainAbilityPage.reset();
+              triggerCount_ = s.triggerCount();
+              state_ = State::TriggeredAbility;
               return rts::command::TriggerAbility{
                   selectingAbilityTarget->abilityIndex, mousePoint, enqueue};
             }
@@ -206,9 +208,14 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
           break;
         case InputMouseArea::Minimap:
           if (event.mouseButton == InputButton::Button1) {
-            if (selectingAbilityTarget && !w[side].prototype()) {
+            const auto& s{w[side]};
+            if (selectingAbilityTarget && !s.prototype()) {
               const bool enqueue(event.state & ShiftPressed);
               selectingAbilityTarget->afterEnqueue = enqueue;
+              finishTargetSelection.reset();
+              goToMainAbilityPage.reset();
+              triggerCount_ = s.triggerCount();
+              state_ = State::TriggeredAbility;
               return rts::command::TriggerAbility{
                   selectingAbilityTarget->abilityIndex, mousePoint, enqueue};
             }
