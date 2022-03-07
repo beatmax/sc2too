@@ -181,6 +181,10 @@ void rts::World::destroy(ProductionQueue& pq) {
   productionQueues.erase(id(pq));
 }
 
+const rts::Producible& rts::World::operator[](ProducibleId product) const {
+  return std::visit([this](auto id) -> const Producible& { return (*this)[id]; }, product);
+}
+
 rts::AbilityTarget rts::World::abilityTarget(Point p) const {
   if (p.x < 0)
     return {};

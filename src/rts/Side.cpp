@@ -6,6 +6,11 @@
 #include <cassert>
 #include <utility>
 
+void rts::Side::addUpgrade(UpgradeId u) {
+  setUpgradeInResearch(u, false);
+  upgrades_[u.idx] = true;
+}
+
 void rts::Side::createPrototype(World& w, UnitTypeId t, UnitTypeId builderType) {
   assert(!prototype_);
 

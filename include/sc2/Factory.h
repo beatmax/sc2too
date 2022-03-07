@@ -9,6 +9,7 @@ namespace sc2 {
     rts::UnitId create(rts::World& w, rts::UnitTypeId t, rts::SideId sd) final;
 
     static rts::UnitId assimilator(rts::World& w, rts::SideId sd, rts::ResourceFieldId rf = {});
+    static rts::UnitId cyberCore(rts::World& w, rts::SideId sd);
     static rts::UnitId gateway(rts::World& w, rts::SideId sd);
     static rts::UnitId nexus(rts::World& w, rts::SideId sd);
     static rts::UnitId probe(rts::World& w, rts::SideId sd);

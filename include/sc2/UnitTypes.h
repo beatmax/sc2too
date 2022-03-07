@@ -7,6 +7,7 @@ namespace sc2 {
     static void init(rts::World& w);
 
     static rts::UnitTypeId assimilator;
+    static rts::UnitTypeId cyberCore;
     static rts::UnitTypeId gateway;
     static rts::UnitTypeId nexus;
     static rts::UnitTypeId probe;

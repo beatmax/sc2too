@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Producible.h"
 #include "abilities.h"
 #include "constants.h"
 #include "types.h"
@@ -8,7 +9,7 @@
 #include <utility>
 
 namespace rts {
-  class UnitType {
+  class UnitType : public Producible {
   public:
     enum class Kind { Structure, Worker, Army };
     enum class RequiresPower { No, Yes };
@@ -16,10 +17,7 @@ namespace rts {
     std::array<abilities::Instance, MaxUnitAbilities> abilities{};
     std::array<AbilityInstanceIndex, uint32_t(RelativeContent::Count)> defaultAbility{};
     Kind kind;
-    ResourceQuantityList cost;
     ResourceQuantityList provision;
-    GameTime buildTime;
-    UiUPtr ui;
     Quantity maxEnergy;
     Quantity initialEnergy;
     RequiresPower requiresPower;
@@ -30,18 +28,16 @@ namespace rts {
         Kind k,
         ResourceQuantityList c,
         ResourceQuantityList p,
-        GameTime bt,
+        GameTime pt,
         UiUPtr ui,
         Quantity me = 0,
         Quantity ie = 0,
         RequiresPower reqp = RequiresPower::No,
         Coordinate pr = 0,
         ResourceId er = {})
-      : kind{k},
-        cost{std::move(c)},
+      : Producible{std::move(c), pt, std::move(ui)},
+        kind{k},
         provision{std::move(p)},
-        buildTime{bt},
-        ui{std::move(ui)},
         maxEnergy{me},
         initialEnergy{ie},
         requiresPower{reqp},

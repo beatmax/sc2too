@@ -1,7 +1,6 @@
 option t,r,s,e
 a,b: base
 1,2: dojo
-p: power_plant
 --------------  [t:0 m:1000 g:0 s:0/30]  [e(a):50 e(b):50]
 aa  11  22  bb
 aa  11  22  bb

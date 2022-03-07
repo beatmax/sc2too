@@ -26,6 +26,7 @@ namespace rts {
   constexpr size_t MaxMessageSize{79};
   constexpr size_t MaxMessages{4};
   constexpr size_t MaxEnqueuedCommands{20};
+  constexpr size_t MaxUpgrades{150};
 
   constexpr Distance CellDistance{100};
   constexpr Distance DiagonalDistance{141};

@@ -158,7 +158,7 @@ namespace ui {
         graph::setColor(win, frozen ? Color::DarkGray : Color::DarkGreen);
         graph::drawRect(win, boundingBox(rect));
         if (i < pq.size())
-          graph::drawFrame(win, getIcon(w[pq.type(i)]).frame(), rect.topLeft, iconColor);
+          graph::drawFrame(win, getIcon(w[pq.product(i)]).frame(), rect.topLeft, iconColor);
 
         if (i == 0) {
           rect.topLeft.x = left;

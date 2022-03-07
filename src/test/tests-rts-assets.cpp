@@ -30,18 +30,24 @@ rts::AbilityId test::buildAbilityId;
 rts::AbilityId test::gatherAbilityId;
 rts::AbilityId test::moveAbilityId;
 rts::AbilityId test::produceFighterAbilityId;
+rts::AbilityId test::produceSoldierAbilityId;
 rts::AbilityId test::produceThirdyAbilityId;
 rts::AbilityId test::produceWorkerAbilityId;
+rts::AbilityId test::researchLevel1AbilityId;
 rts::AbilityId test::setRallyPointAbilityId;
 
 rts::UnitTypeId test::baseTypeId;
 rts::UnitTypeId test::dojoTypeId;
 rts::UnitTypeId test::extractorTypeId;
+rts::UnitTypeId test::labTypeId;
 rts::UnitTypeId test::powerPlantTypeId;
 
 rts::UnitTypeId test::fighterTypeId;
-rts::UnitTypeId test::workerTypeId;
+rts::UnitTypeId test::soldierTypeId;
 rts::UnitTypeId test::thirdyTypeId;
+rts::UnitTypeId test::workerTypeId;
+
+rts::UpgradeId test::level1UpgradeId;
 
 rts::SideId test::side1Id;
 rts::SideId test::side2Id;
@@ -60,8 +66,10 @@ void test::Factory::init(rts::World& w) {
   gatherAbilityId = w.createAbility(std::make_unique<Ui>("gather"));
   moveAbilityId = w.createAbility(std::make_unique<Ui>("move"));
   produceFighterAbilityId = w.createAbility(std::make_unique<Ui>("p.f"));
+  produceSoldierAbilityId = w.createAbility(std::make_unique<Ui>("p.s"));
   produceThirdyAbilityId = w.createAbility(std::make_unique<Ui>("p.t"));
   produceWorkerAbilityId = w.createAbility(std::make_unique<Ui>("p.w"));
+  researchLevel1AbilityId = w.createAbility(std::make_unique<Ui>("r.l1"));
   setRallyPointAbilityId = w.createAbility(std::make_unique<Ui>("rally"));
 
   baseTypeId = w.createUnitType(
@@ -78,6 +86,10 @@ void test::Factory::init(rts::World& w) {
       rts::ResourceQuantityList{{mineralResourceId, ExtractorMineralCost}},
       rts::ResourceQuantityList{}, ExtractorBuildTime, std::make_unique<Ui>("E"), 0, 0,
       rts::UnitType::RequiresPower::No, 0, gasResourceId);
+  labTypeId = w.createUnitType(
+      rts::UnitType::Kind::Structure,
+      rts::ResourceQuantityList{{mineralResourceId, LabMineralCost}}, rts::ResourceQuantityList{},
+      LabBuildTime, std::make_unique<Ui>("L"), 0, 0, rts::UnitType::RequiresPower::Yes);
   powerPlantTypeId = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{mineralResourceId, PowerPlantMineralCost}},
@@ -90,6 +102,11 @@ void test::Factory::init(rts::World& w) {
       rts::ResourceQuantityList{
           {mineralResourceId, FighterMineralCost}, {supplyResourceId, FighterSupplyCost}},
       rts::ResourceQuantityList{}, FighterBuildTime, std::make_unique<Ui>("F"));
+  soldierTypeId = w.createUnitType(
+      rts::UnitType::Kind::Army,
+      rts::ResourceQuantityList{
+          {mineralResourceId, SoldierMineralCost}, {supplyResourceId, SoldierSupplyCost}},
+      rts::ResourceQuantityList{}, SoldierBuildTime, std::make_unique<Ui>("S"));
   workerTypeId = w.createUnitType(
       rts::UnitType::Kind::Worker,
       rts::ResourceQuantityList{
@@ -100,6 +117,10 @@ void test::Factory::init(rts::World& w) {
       rts::ResourceQuantityList{
           {mineralResourceId, ThirdyMineralCost}, {supplyResourceId, ThirdySupplyCost}},
       rts::ResourceQuantityList{}, ThirdyBuildTime, std::make_unique<Ui>("T"));
+
+  level1UpgradeId = w.createUpgrade(
+      rts::ResourceQuantityList{{mineralResourceId, Level1UpgradeMineralCost}},
+      Level1UpgradeResearchTime, std::make_unique<Ui>("l1"));
 
   w[baseTypeId].addAbility(
       BoostAbilityIndex,
@@ -115,9 +136,19 @@ void test::Factory::init(rts::World& w) {
   w[dojoTypeId].addAbility(
       ProduceFighterAbilityIndex, rts::abilities::Produce{produceFighterAbilityId, fighterTypeId});
   w[dojoTypeId].addAbility(
+      ProduceSoldierAbilityIndex, rts::abilities::Produce{produceSoldierAbilityId, soldierTypeId});
+  w[dojoTypeId].addAbility(
       SetRallyPointAbilityIndex, rts::abilities::SetRallyPoint{setRallyPointAbilityId});
 
   w[fighterTypeId].addAbility(
+      MoveAbilityIndex,
+      rts::abilities::Move{moveAbilityId, rts::CellDistance / rts::GameTimeSecond});
+
+  w[labTypeId].addAbility(
+      ResearchLevel1AbilityIndex,
+      rts::abilities::Produce{researchLevel1AbilityId, level1UpgradeId});
+
+  w[soldierTypeId].addAbility(
       MoveAbilityIndex,
       rts::abilities::Move{moveAbilityId, rts::CellDistance / rts::GameTimeSecond});
 
@@ -130,6 +161,8 @@ void test::Factory::init(rts::World& w) {
       BuildDojoAbilityIndex, rts::abilities::Build{buildAbilityId, dojoTypeId});
   w[workerTypeId].addAbility(
       BuildExtractorAbilityIndex, rts::abilities::Build{buildAbilityId, extractorTypeId});
+  w[workerTypeId].addAbility(
+      BuildLabAbilityIndex, rts::abilities::Build{buildAbilityId, labTypeId});
   w[workerTypeId].addAbility(
       BuildPowerPlantAbilityIndex, rts::abilities::Build{buildAbilityId, powerPlantTypeId});
   w[workerTypeId].addAbility(
@@ -148,8 +181,12 @@ rts::UnitId test::Factory::create(rts::World& w, rts::UnitTypeId t, rts::SideId 
     return extractor(w, sd);
   if (t == fighterTypeId)
     return fighter(w, sd);
+  if (t == labTypeId)
+    return lab(w, sd);
   if (t == powerPlantTypeId)
     return powerPlant(w, sd);
+  if (t == soldierTypeId)
+    return soldier(w, sd);
   if (t == thirdyTypeId)
     return thirdy(w, sd);
   if (t == workerTypeId)
@@ -175,8 +212,17 @@ rts::UnitId test::Factory::fighter(rts::World& w, rts::SideId sd) {
   return w.units.emplace(rts::Vector{1, 1}, fighterTypeId, sd, std::make_unique<Ui>("f"));
 }
 
+rts::UnitId test::Factory::lab(rts::World& w, rts::SideId sd) {
+  return w.units.emplace(
+      rts::Vector{2, 2}, labTypeId, sd, std::make_unique<Ui>("l"), 0, w.createProductionQueue(sd));
+}
+
 rts::UnitId test::Factory::powerPlant(rts::World& w, rts::SideId sd) {
   return w.units.emplace(rts::Vector{1, 1}, powerPlantTypeId, sd, std::make_unique<Ui>("p"));
+}
+
+rts::UnitId test::Factory::soldier(rts::World& w, rts::SideId sd) {
+  return w.units.emplace(rts::Vector{1, 1}, soldierTypeId, sd, std::make_unique<Ui>("s"));
 }
 
 rts::UnitId test::Factory::thirdy(rts::World& w, rts::SideId sd) {
@@ -214,12 +260,26 @@ rts::Cell::Content test::MapInitializer::operator()(
   switch (c) {
     case 'b':
       return Factory::base(w, side1Id);
+    case 'd':
+      return Factory::dojo(w, side1Id);
+    case 'f':
+      return Factory::fighter(w, side1Id);
     case 'g':
       return Factory::geyser(w);
+    case 'l':
+      return Factory::lab(w, side1Id);
     case 'm':
       return Factory::mineralPatch(w);
+    case 'p':
+      return Factory::powerPlant(w, side1Id);
     case 'r':
       return Factory::rock(w);
+    case 's':
+      return Factory::soldier(w, side1Id);
+    case 't':
+      return Factory::thirdy(w, side1Id);
+    case 'w':
+      return Factory::worker(w, side1Id);
     default:
       return rts::Cell::Empty{};
   }

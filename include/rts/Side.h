@@ -11,6 +11,7 @@
 #include "types.h"
 
 #include <array>
+#include <bitset>
 #include <cassert>
 #include <utility>
 
@@ -31,6 +32,10 @@ namespace rts {
     const ResourceAccount& resource(ResourceId r) const { return resources_[r]; }
     MessageList& messages() { return messages_; }
     const MessageList& messages() const { return messages_; }
+    void addUpgrade(UpgradeId u);
+    const bool hasUpgrade(UpgradeId u) const { return upgrades_[u.idx]; }
+    void setUpgradeInResearch(UpgradeId u, bool b) { upgradesInResearch_[u.idx] = b; }
+    const bool isUpgradeInResearch(UpgradeId u) const { return upgradesInResearch_[u.idx]; }
     PowerMap& powerMap() { return powerMap_; }
     const PowerMap& powerMap() const { return powerMap_; }
     Map& prototypeMap() { return prototypeMap_; }
@@ -50,6 +55,7 @@ namespace rts {
 
   private:
     using ControlGroupArray = std::array<Selection, MaxControlGroups>;
+    using UpgradeBitset = std::bitset<MaxUpgrades + 1>;
 
     void exec(const World& w, WorldActionList& actions, const command::Cancel& cmd);
     void exec(const World& w, WorldActionList& actions, const command::ControlGroup& cmd);
@@ -65,6 +71,8 @@ namespace rts {
     Selection selection_;
     ControlGroupArray groups_;
     MessageList messages_;
+    UpgradeBitset upgrades_;
+    UpgradeBitset upgradesInResearch_;
     PowerMap powerMap_;
     Map prototypeMap_;
     UnitId prototype_;

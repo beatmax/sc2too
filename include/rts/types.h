@@ -27,6 +27,7 @@ namespace rts {
   class Side;
   class Unit;
   class UnitType;
+  class Upgrade;
   class World;
   class WorldObject;
 
@@ -90,9 +91,8 @@ namespace rts {
   using UnitStableRef = StableRef<Unit>;
   using UnitTypeId = util::PoolObjectId<UnitType>;
   using UnitWId = util::PoolObjectWeakId<Unit>;
+  using UpgradeId = util::PoolObjectId<Upgrade>;
   using WorldObjectCPtr = const WorldObject*;
-
-  using AnyWeakId = std::variant<UnitWId, ProductionQueueWId>;
 
   using Distance = uint32_t;   // = 1/100 cell width/height
   using GameTime = uint32_t;   // = centiseconds at normal speed (100 Hz)
@@ -116,6 +116,7 @@ namespace rts {
 
   using AbilityTarget = std::variant<std::monostate, Point, UnitId, ResourceFieldId>;
   using AbilityWeakTarget = std::variant<std::monostate, Point, UnitWId, ResourceFieldWId>;
+  using ProducibleId = std::variant<UnitTypeId, UpgradeId>;
 
   struct UnitCommand {
     AbilityInstanceIndex abilityIndex;

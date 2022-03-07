@@ -137,7 +137,7 @@ namespace rts::abilities {
     static constexpr auto requiresEnergy{false};
     static constexpr auto requiresPower{true};
     AbilityId id;
-    UnitTypeId type;
+    ProducibleId product;
   };
 
   struct SetRallyPoint {

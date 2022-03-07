@@ -10,41 +10,51 @@
 #include <map>
 
 namespace {
-  enum class Property { Unknown, Quantity };
+  enum class Property { Unknown, Quantity, EnabledAbilities };
 
   Property toProperty(const std::string& s) {
     if (s == "quantity")
       return Property::Quantity;
+    if (s == "enabled_abilities")
+      return Property::EnabledAbilities;
     return Property::Unknown;
   }
 
   rts::AbilityInstanceIndex toAbilityIndex(const std::string& s) {
-    if (s == "move")
-      return test::MoveAbilityIndex;
-    if (s == "gather")
-      return test::GatherAbilityIndex;
+    if (s == "boost")
+      return test::BoostAbilityIndex;
     if (s == "build_base")
       return test::BuildBaseAbilityIndex;
     if (s == "build_dojo")
       return test::BuildDojoAbilityIndex;
     if (s == "build_extractor")
       return test::BuildExtractorAbilityIndex;
+    if (s == "build_lab")
+      return test::BuildLabAbilityIndex;
     if (s == "build_power_plant")
       return test::BuildPowerPlantAbilityIndex;
+    if (s == "gather")
+      return test::GatherAbilityIndex;
+    if (s == "move")
+      return test::MoveAbilityIndex;
     if (s == "produce_fighter")
       return test::ProduceFighterAbilityIndex;
+    if (s == "produce_soldier")
+      return test::ProduceSoldierAbilityIndex;
     if (s == "produce_worker")
       return test::ProduceWorkerAbilityIndex;
     if (s == "produce_thirdy")
       return test::ProduceThirdyAbilityIndex;
+    if (s == "research_level1")
+      return test::ResearchLevel1AbilityIndex;
     if (s == "set_rally_point")
       return test::SetRallyPointAbilityIndex;
-    if (s == "boost")
-      return test::BoostAbilityIndex;
     return rts::AbilityInstanceIndex::None;
   }
 
-  bool requiresTarget(const std::string& s) { return s.rfind("produce_", 0) != 0; }
+  bool requiresTarget(const std::string& s) {
+    return s.rfind("produce_", 0) != 0 && s.rfind("research_", 0) != 0;
+  }
 
   rts::UnitTypeId toUnitTypeId(const std::string& s) {
     if (s == "base")
@@ -53,14 +63,18 @@ namespace {
       return test::dojoTypeId;
     if (s == "extractor")
       return test::extractorTypeId;
-    if (s == "power_plant")
-      return test::powerPlantTypeId;
     if (s == "fighter")
       return test::fighterTypeId;
-    if (s == "worker")
-      return test::workerTypeId;
+    if (s == "lab")
+      return test::labTypeId;
+    if (s == "power_plant")
+      return test::powerPlantTypeId;
+    if (s == "soldier")
+      return test::soldierTypeId;
     if (s == "thirdy")
       return test::thirdyTypeId;
+    if (s == "worker")
+      return test::workerTypeId;
     return {};
   }
 
@@ -71,14 +85,16 @@ namespace {
       return "dojo";
     if (t == test::extractorTypeId)
       return "extractor";
-    if (t == test::powerPlantTypeId)
-      return "power_plant";
     if (t == test::fighterTypeId)
       return "fighter";
-    if (t == test::workerTypeId)
-      return "worker";
+    if (t == test::powerPlantTypeId)
+      return "power_plant";
+    if (t == test::soldierTypeId)
+      return "soldier";
     if (t == test::thirdyTypeId)
       return "thirdy";
+    if (t == test::workerTypeId)
+      return "worker";
     return "?";
   }
 
@@ -131,6 +147,7 @@ namespace test::seq {
       bool mapTime{false};
       bool mapResources{false};
       bool mapSupply{false};
+      bool mapUpgrades{false};
       bool mapEnergy{false};
     };
 
@@ -156,6 +173,7 @@ namespace test::seq {
       void operator()(const item::Definition& d);
       void operator()(const item::Reference& r);
       void operator()(const item::Assignment& a);
+      void operator()(const item::Expectation& e);
       void operator()(const item::Map& m);
       void operator()(const item::Message&) {}
       void operator()(const item::Prototype&) {}
@@ -194,6 +212,8 @@ namespace test::seq {
           options.mapResources = true;
         else if (opt == "s")
           options.mapSupply = true;
+        else if (opt == "u")
+          options.mapUpgrades = true;
         else if (opt == "e")
           options.mapEnergy = true;
         else
@@ -243,8 +263,41 @@ namespace test::seq {
           else
             world.destroy(cell.resourceFieldId());
           break;
+        case Property::EnabledAbilities:
+          return error(a, "cannot assign");
       }
       output.push_back(a);
+    }
+
+    void Runner::operator()(const item::Expectation& e) {
+      rts::UnitId unit;
+      if (auto it{unitByName.find(e.name)}; it == unitByName.end())
+        return error(e, "undefined name: " + e.name);
+      else
+        unit = it->second;
+      std::string value;
+      auto property{toProperty(e.property)};
+      switch (property) {
+        case Property::Unknown:
+          return error(e, "invalid property name");
+        case Property::Quantity:
+          return error(e, "cannot inspect");
+        case Property::EnabledAbilities: {
+          std::vector<std::string> abilities;
+          const auto& u{world[unit]};
+          const auto& t{world[u.type]};
+          for (const auto& ai : t.abilities) {
+            if (ai.kind != rts::abilities::Kind::None) {
+              auto aId{ai.abilityId};
+              if (u.hasEnabledAbility(world, t.abilityIndex(aId), aId))
+                abilities.push_back(test::repr(world[aId].ui));
+            }
+          }
+          value = '[' + util::join(abilities, ' ') + ']';
+          break;
+        }
+      }
+      output.push_back(item::Expectation{e.property, e.name, value});
     }
 
     void Runner::operator()(const item::Map& m) {
@@ -336,6 +389,14 @@ namespace test::seq {
       if (options.mapSupply) {
         const auto& supply = world[side].resource(test::supplyResourceId);
         m.supply = {supply.allocated(), supply.totalSlots()};
+      }
+      if (options.mapUpgrades) {
+        const auto& s{world[side]};
+        auto& upgrades{m.upgrades.emplace()};
+        for (const auto& u : world.upgrades) {
+          if (s.hasUpgrade(world.id(u)))
+            upgrades.push_back(test::repr(u.ui));
+        }
       }
       if (extraInfo && options.mapEnergy) {
         m.energy.emplace();

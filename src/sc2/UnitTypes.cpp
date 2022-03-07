@@ -5,6 +5,7 @@
 #include "rts/abilities.h"
 #include "sc2/Abilities.h"
 #include "sc2/Resources.h"
+#include "sc2/Upgrades.h"
 #include "sc2/constants.h"
 #include "sc2/ui.h"
 
@@ -22,6 +23,11 @@ void sc2::UnitTypes::init(rts::World& w) {
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{Resources::mineral, GatewayMineralCost}},
       rts::ResourceQuantityList{}, GatewayBuildTime, std::make_unique<ui::GatewayType>(), 0, 0,
+      rts::UnitType::RequiresPower::Yes);
+  cyberCore = w.createUnitType(
+      rts::UnitType::Kind::Structure,
+      rts::ResourceQuantityList{{Resources::mineral, CyberCoreMineralCost}},
+      rts::ResourceQuantityList{}, CyberCoreBuildTime, std::make_unique<ui::CyberCoreType>(), 0, 0,
       rts::UnitType::RequiresPower::Yes);
   assimilator = w.createUnitType(
       rts::UnitType::Kind::Structure,
@@ -45,6 +51,12 @@ void sc2::UnitTypes::init(rts::World& w) {
           {Resources::mineral, ProbeMineralCost}, {Resources::supply, ProbeSupplyCost}},
       rts::ResourceQuantityList{}, ProbeBuildTime, std::make_unique<ui::ProbeType>());
 
+  {
+    auto& cyberCoreType{w.unitTypes[cyberCore]};
+    cyberCoreType.addAbility(
+        Abilities::ResearchWarpGateIndex,
+        rts::abilities::Produce{Abilities::researchWarpGate, Upgrades::warpGate});
+  }
   {
     auto& gatewayType{w.unitTypes[gateway]};
     gatewayType.addAbility(
@@ -82,6 +94,9 @@ void sc2::UnitTypes::init(rts::World& w) {
         Abilities::WarpInAssimilatorIndex,
         rts::abilities::Build{Abilities::warpInAssimilator, assimilator});
     probeType.addAbility(
+        Abilities::WarpInCyberCoreIndex,
+        rts::abilities::Build{Abilities::warpInCyberCore, cyberCore});
+    probeType.addAbility(
         Abilities::WarpInGatewayIndex, rts::abilities::Build{Abilities::warpInGateway, gateway});
     probeType.addAbility(
         Abilities::WarpInNexusIndex, rts::abilities::Build{Abilities::warpInNexus, nexus});
@@ -103,6 +118,7 @@ void sc2::UnitTypes::init(rts::World& w) {
 }
 
 rts::UnitTypeId sc2::UnitTypes::assimilator;
+rts::UnitTypeId sc2::UnitTypes::cyberCore;
 rts::UnitTypeId sc2::UnitTypes::gateway;
 rts::UnitTypeId sc2::UnitTypes::nexus;
 rts::UnitTypeId sc2::UnitTypes::probe;

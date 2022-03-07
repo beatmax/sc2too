@@ -98,6 +98,14 @@ namespace test::seq::item {
       return a.property + '(' + ::toString(a.target) + ") = " + std::to_string(a.value);
     }
 
+    const std::regex reExpectation{R"(\? (\w+)\((\w+)\): (.*))"};
+    Expectation parseExpectation(const std::smatch& match) {
+      return {match[1], match[2], match[3]};
+    }
+    std::string toString(const Expectation& e) {
+      return "? " + e.property + '(' + e.name + "): " + e.value;
+    }
+
     const std::regex reMap{R"((?:-+|=+)(?:  .*)?)"};
     Map parseMap(const std::smatch& match, ParseLoc& loc) {
       Map m;
@@ -120,6 +128,8 @@ namespace test::seq::item {
       if (m.supply) {
         info.push_back(
             "s:" + std::to_string(m.supply->first) + '/' + std::to_string(m.supply->second));
+        if (m.upgrades)
+          info.push_back("u:{" + util::join(*m.upgrades, ' ') + '}');
       }
       return info;
     }
@@ -221,6 +231,8 @@ namespace test::seq {
         return ++loc.it, item::parseReference(match);
       if (std::regex_match(*loc.it, match, item::reAssignment))
         return ++loc.it, item::parseAssignment(match);
+      if (std::regex_match(*loc.it, match, item::reExpectation))
+        return ++loc.it, item::parseExpectation(match);
       if (std::regex_match(*loc.it, match, item::reMap))
         return ++loc.it, item::parseMap(match, loc);
       if (std::regex_match(*loc.it, match, item::reRun))

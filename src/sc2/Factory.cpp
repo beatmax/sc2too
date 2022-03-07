@@ -4,6 +4,7 @@
 #include "sc2/Abilities.h"
 #include "sc2/Resources.h"
 #include "sc2/UnitTypes.h"
+#include "sc2/Upgrades.h"
 #include "sc2/constants.h"
 #include "sc2/ui.h"
 #include "ui/SideUi.h"
@@ -11,12 +12,15 @@
 void sc2::Factory::init(rts::World& w) {
   Resources::init(w);
   Abilities::init(w);
+  Upgrades::init(w);
   UnitTypes::init(w);
 }
 
 rts::UnitId sc2::Factory::create(rts::World& w, rts::UnitTypeId t, rts::SideId sd) {
   if (t == UnitTypes::assimilator)
     return assimilator(w, sd);
+  if (t == UnitTypes::cyberCore)
+    return cyberCore(w, sd);
   if (t == UnitTypes::gateway)
     return gateway(w, sd);
   if (t == UnitTypes::nexus)
@@ -35,6 +39,13 @@ rts::UnitId sc2::Factory::assimilator(rts::World& w, rts::SideId sd, rts::Resour
   return w.units.emplace(
       rts::Vector{3, 3}, UnitTypes::assimilator, sd, std::make_unique<ui::Assimilator>(sideColor),
       0, rts::ProductionQueueId{}, rf);
+}
+
+rts::UnitId sc2::Factory::cyberCore(rts::World& w, rts::SideId sd) {
+  auto sideColor{::ui::getColor(w[sd])};
+  return w.units.emplace(
+      rts::Vector{3, 3}, UnitTypes::cyberCore, sd, std::make_unique<ui::CyberCore>(sideColor), 0,
+      w.createProductionQueue(sd));
 }
 
 rts::UnitId sc2::Factory::gateway(rts::World& w, rts::SideId sd) {

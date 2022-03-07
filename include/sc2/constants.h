@@ -16,6 +16,9 @@ namespace sc2 {
   constexpr rts::GameTime AssimilatorBuildTime{30 * rts::GameTimeSecond};
   constexpr rts::Quantity AssimilatorMineralCost{75};
 
+  constexpr rts::GameTime CyberCoreBuildTime{50 * rts::GameTimeSecond};
+  constexpr rts::Quantity CyberCoreMineralCost{150};
+
   constexpr rts::GameTime GatewayBuildTime{65 * rts::GameTimeSecond};
   constexpr rts::Quantity GatewayMineralCost{150};
 
@@ -38,6 +41,10 @@ namespace sc2 {
   constexpr rts::Quantity PylonMineralCost{100};
   constexpr rts::Quantity PylonSupplyProvision{8};
   constexpr rts::Coordinate PylonPowerRadius{6};
+
+  constexpr rts::GameTime WarpGateUpgradeResearchTime{140 * rts::GameTimeSecond};
+  constexpr rts::Quantity WarpGateUpgradeMineralCost{50};
+  constexpr rts::Quantity WarpGateUpgradeGasCost{50};
 
   constexpr rts::GameTime ZealotBuildTime{38 * rts::GameTimeSecond};
   constexpr rts::Quantity ZealotMineralCost{100};

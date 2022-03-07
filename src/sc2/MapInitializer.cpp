@@ -19,6 +19,8 @@ rts::Cell::Content sc2::MapInitializer::operator()(
   switch (c) {
     case 'a':
       return Factory::assimilator(w, side, w.add(Factory::geyser(w), p));
+    case 'c':
+      return Factory::cyberCore(w, side);
     case 'g':
       return Factory::geyser(w);
     case 'm':

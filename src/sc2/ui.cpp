@@ -60,6 +60,11 @@ const ::ui::Icon& sc2::ui::AssimilatorType::icon() const {
   return icon;
 }
 
+const ::ui::Icon& sc2::ui::CyberCoreType::icon() const {
+  static const auto& icon{Assets::getIcon("cyber_core")};
+  return icon;
+}
+
 const ::ui::Icon& sc2::ui::GatewayType::icon() const {
   static const auto& icon{Assets::getIcon("gateway")};
   return icon;
@@ -107,6 +112,37 @@ const ::ui::Sprite& sc2::ui::Assimilator::sprite(const rts::World& w, rts::UnitS
   if (u->resourceField && w[u->resourceField].bag.empty())
     return spriteEmpty;
   return sprite;
+}
+
+const ::ui::Sprite& sc2::ui::CyberCore::sprite(const rts::World& w, rts::UnitStableRef u) const {
+  using State = rts::Unit::State;
+  using ProduceState = rts::abilities::ProduceState;
+
+  static const auto& sprite{Assets::getSprite("cyber_core")};
+  static const auto& spriteBuilding{Assets::getSprite("building3x3")};
+  static const auto& spriteResearching{Assets::getSprite("cyber_core_researching")};
+  static const auto spritePrototype{::ui::fx::flatten(sprite)};
+  static const auto spriteUnpowered{::ui::fx::unpower(sprite)};
+
+  switch (u->state) {
+    case State::New:
+    case State::Allocated:
+    case State::Buildable:
+      return spritePrototype;
+    case State::Building:
+      return spriteBuilding;
+    case State::Active:
+    case State::Destroyed:
+      break;
+  }
+  return !u->powered                                                             ? spriteUnpowered
+      : (rts::Unit::abilityState<ProduceState>(u, w) == ProduceState::Producing) ? spriteResearching
+                                                                                 : sprite;
+}
+
+const ::ui::Sprite* sc2::ui::CyberCore::overlay(const rts::World& w, rts::UnitStableRef u) const {
+  static const auto& spriteChronoBoost{Assets::getSprite("boost3x3")};
+  return w[u->productionQueue].boosted(w) ? &spriteChronoBoost : nullptr;
 }
 
 const ::ui::Sprite& sc2::ui::Gateway::sprite(const rts::World& w, rts::UnitStableRef u) const {
@@ -227,6 +263,11 @@ const ::ui::Icon& sc2::ui::MoveAbility::icon() const {
   return icon;
 }
 
+const ::ui::Icon& sc2::ui::ResearchWarpGateAbility::icon() const {
+  static const auto& icon{Assets::getIcon("warp_gate")};
+  return icon;
+}
+
 const ::ui::Icon& sc2::ui::SetRallyPointAbility::icon() const {
   static const auto& icon{Assets::getIcon("rally")};
   return icon;
@@ -252,6 +293,11 @@ const ::ui::Icon& sc2::ui::WarpInAssimilatorAbility::icon() const {
   return icon;
 }
 
+const ::ui::Icon& sc2::ui::WarpInCyberCoreAbility::icon() const {
+  static const auto& icon{Assets::getIcon("cyber_core")};
+  return icon;
+}
+
 const ::ui::Icon& sc2::ui::WarpInGatewayAbility::icon() const {
   static const auto& icon{Assets::getIcon("gateway")};
   return icon;
@@ -264,5 +310,10 @@ const ::ui::Icon& sc2::ui::WarpInNexusAbility::icon() const {
 
 const ::ui::Icon& sc2::ui::WarpInPylonAbility::icon() const {
   static const auto& icon{Assets::getIcon("pylon")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::WarpGateUpgrade::icon() const {
+  static const auto& icon{Assets::getIcon("warp_gate")};
   return icon;
 }

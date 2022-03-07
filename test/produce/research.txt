@@ -1,0 +1,58 @@
+option t,r,s,u
+1,2: lab
+-------  [t:0 m:1000 g:0 s:0/0 u:{}]
+ p     
+       
+ 11 22 
+ 11 22 
+       
+-------
+run
+-------  [t:0 m:1000 g:0 s:0/0 u:{}]
+ p     
+       
+ 11 22 
+ 11 22 
+       
+-------
+select 1
+? enabled_abilities(1): [r.l1]
+? enabled_abilities(2): [r.l1]
+trigger research_level1
+run for 80
+-------  [t:0 m:990 g:0 s:0/0 u:{}]
+ p     
+       
+ 11 22 
+ 11 22 
+       
+=======  [t:80 m:990 g:0 s:0/0 u:{}]
+ p     
+       
+ 11 22 
+ 11 22 
+       
+-------
+? enabled_abilities(1): []
+? enabled_abilities(2): []
+destroy 1
+? enabled_abilities(2): [r.l1]
+select 2
+trigger research_level1
+run
+-------  [t:80 m:980 g:0 s:0/0 u:{}]
+ p     
+       
+    22 
+    22 
+       
+-------
+message: RESEARCH COMPLETE!
+-------  [t:182 m:980 g:0 s:0/0 u:{l1}]
+ p     
+       
+    22 
+    22 
+       
+-------
+? enabled_abilities(2): []

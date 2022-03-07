@@ -14,6 +14,7 @@
 #include "Side.h"
 #include "Unit.h"
 #include "UnitType.h"
+#include "Upgrade.h"
 #include "WorldAction.h"
 #include "constants.h"
 #include "types.h"
@@ -45,6 +46,7 @@ namespace rts {
     util::Pool<Resource, MaxResources> resources;
     util::Pool<Ability, MaxAbilities> abilities;
     util::Pool<UnitType, MaxUnitTypes> unitTypes;
+    util::Pool<Upgrade, MaxUpgrades> upgrades;
     util::Pool<Side, MaxSides> sides;
     util::Pool<Unit, MaxUnits> units;
     util::Pool<ResourceField, MaxResourceFields> resourceFields;
@@ -82,6 +84,11 @@ namespace rts {
     template<typename... Args>
     UnitTypeId createUnitType(Args&&... args) {
       return unitTypes.emplace(std::forward<Args>(args)...);
+    }
+
+    template<typename... Args>
+    UpgradeId createUpgrade(Args&&... args) {
+      return upgrades.emplace(std::forward<Args>(args)...);
     }
 
     template<typename... Args>
@@ -129,6 +136,8 @@ namespace rts {
     const Ability& operator[](AbilityId id) const { return abilities[id]; }
     UnitType& operator[](UnitTypeId id) { return unitTypes[id]; }
     const UnitType& operator[](UnitTypeId id) const { return unitTypes[id]; }
+    Upgrade& operator[](UpgradeId id) { return upgrades[id]; }
+    const Upgrade& operator[](UpgradeId id) const { return upgrades[id]; }
     Side& operator[](SideId id) { return sides[id]; }
     const Side& operator[](SideId id) const { return sides[id]; }
     Unit& operator[](UnitId id) { return units[id]; }
@@ -140,6 +149,8 @@ namespace rts {
     ProductionQueue& operator[](ProductionQueueId id) { return productionQueues[id]; }
     const ProductionQueue& operator[](ProductionQueueId id) const { return productionQueues[id]; }
 
+    const Producible& operator[](ProducibleId product) const;
+
     Unit* operator[](UnitWId wid) { return units[wid]; }
     const Unit* operator[](UnitWId wid) const { return units[wid]; }
     ResourceField* operator[](ResourceFieldWId wid) { return resourceFields[wid]; }
@@ -150,6 +161,7 @@ namespace rts {
     }
 
     AbilityId id(const Ability& a) const { return abilities.id(a); }
+    UpgradeId id(const Upgrade& u) const { return upgrades.id(u); }
     SideId id(const Side& s) const { return sides.id(s); }
     UnitId id(const Unit& u) const { return units.id(u); }
     ResourceFieldId id(const ResourceField& rf) const { return resourceFields.id(rf); }

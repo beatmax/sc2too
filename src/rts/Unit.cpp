@@ -60,7 +60,7 @@ bool rts::Unit::tryStartBuilding(World& w) {
   if (w.tryPlace(*this)) {
     state = State::Building;
     w[side].prototypeMap().setContent(area, Cell::Empty{});
-    nextStepTime_ = w.time + w[type].buildTime;
+    nextStepTime_ = w.time + w[type].produceTime;
     return true;
   }
   return false;
@@ -142,9 +142,17 @@ bool rts::Unit::isArmy(const World& w) const {
 bool rts::Unit::hasEnabledAbility(
     const World& w, AbilityInstanceIndex abilityIndex, AbilityId abilityId) const {
   const auto& abilityInstance{w[type].abilities[abilityIndex]};
+  auto checkUpgrade = [&]() {
+    if (abilityInstance.kind == abilities::Kind::Produce) {
+      if (auto* u{std::get_if<UpgradeId>(&abilityInstance.desc<abilities::Produce>().product)})
+        return !(w[side].hasUpgrade(*u) || w[side].isUpgradeInResearch(*u));
+    }
+    return true;
+  };
   return abilityInstance.abilityId == abilityId && (powered || !abilityInstance.requiresPower) &&
       (state == State::Active ||
-       (state == State::Building && abilityInstance.availableWhileBuilding));
+       (state == State::Building && abilityInstance.availableWhileBuilding)) &&
+      checkUpgrade();
 }
 
 void rts::Unit::trigger(World& w, const UnitCommand& uc, CancelOthers cancelOthers) {

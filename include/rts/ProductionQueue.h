@@ -14,16 +14,16 @@ namespace rts {
     explicit ProductionQueue(SideId side) : side_{side} {};
     void onDestroy(World& w);
 
-    bool add(World& w, UnitTypeId type);
+    bool add(World& w, ProducibleId product);
     bool startProduction(World& w, bool retrying);
     bool finishProduction(World& w, const Unit& parent);
 
     SideId side() const { return side_; }
     size_t size() const { return queue_.size(); }
     bool empty() const { return queue_.empty(); }
-    UnitTypeId top() const { return queue_.front(); }
-    UnitTypeId type(size_t index) const { return queue_[index]; }
-    GameTime buildTime(const World& w) const;
+    ProducibleId top() const { return queue_.front(); }
+    ProducibleId product(size_t index) const { return queue_[index]; }
+    GameTime produceTime(const World& w) const;
 
     void setRallyPoint(Point p) { rallyPoint_ = p; }
     const std::optional<Point>& rallyPoint() const { return rallyPoint_; }
@@ -35,7 +35,7 @@ namespace rts {
   private:
     void create(World& w, UnitTypeId type, Point p);
 
-    util::CircularBuffer<UnitTypeId, MaxProductionQueueSize> queue_;
+    util::CircularBuffer<ProducibleId, MaxProductionQueueSize> queue_;
     SideId side_;
     ResourceBagArray resources_;
     std::optional<Point> rallyPoint_;

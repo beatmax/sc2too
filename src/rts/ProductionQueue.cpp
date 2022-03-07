@@ -5,14 +5,16 @@
 #include <algorithm>
 #include <cassert>
 
-bool rts::ProductionQueue::add(World& w, UnitTypeId type) {
+bool rts::ProductionQueue::add(World& w, ProducibleId product) {
   auto& s{w[side_]};
   if (size() < MaxProductionQueueSize) {
-    const auto& t{w[type]};
+    const auto& p{w[product]};
     if (auto [result, failedResource] =
-            s.resources().allocateTo(resources_, t.cost, AllocFilter::Unrecoverable);
+            s.resources().allocateTo(resources_, p.cost, AllocFilter::Unrecoverable);
         result == AllocResult::Success) {
-      queue_.push(type);
+      queue_.push(product);
+      if (auto* u{std::get_if<UpgradeId>(&product)})
+        s.setUpgradeInResearch(*u, true);
       return true;
     }
     else {
@@ -27,14 +29,20 @@ bool rts::ProductionQueue::add(World& w, UnitTypeId type) {
 }
 
 void rts::ProductionQueue::onDestroy(World& w) {
-  w[side_].resources().deallocateFrom(resources_);
+  auto& s{w[side_]};
+  s.resources().deallocateFrom(resources_);
+  for (size_t i{0}; i < size(); ++i) {
+    auto p{product(i)};
+    if (auto* u{std::get_if<UpgradeId>(&p)})
+      s.setUpgradeInResearch(*u, false);
+  }
 }
 
 bool rts::ProductionQueue::startProduction(World& w, bool retrying) {
   auto& s{w[side_]};
-  const auto& t{w[top()]};
+  const auto& p{w[top()]};
   if (auto [result, failedResource] =
-          s.resources().allocateTo(resources_, t.cost, AllocFilter::Recoverable);
+          s.resources().allocateTo(resources_, p.cost, AllocFilter::Recoverable);
       result == AllocResult::Success) {
     return true;
   }
@@ -47,23 +55,33 @@ bool rts::ProductionQueue::startProduction(World& w, bool retrying) {
 
 bool rts::ProductionQueue::finishProduction(World& w, const Unit& parent) {
   assert(!empty());
-  auto towards{rallyPoint_ ? *rallyPoint_ : w.map.center()};
-  if (auto p{w.emptyCellAround(parent.area, towards)}) {
-    create(w, top(), *p);
-    queue_.pop();
-    assert(!empty() || std::all_of(resources_.begin(), resources_.end(), [](const auto& b) {
-      return b.empty();
-    }));
-    return true;
+  auto product{top()};
+  if (auto* type{std::get_if<UnitTypeId>(&product)}) {
+    auto towards{rallyPoint_ ? *rallyPoint_ : w.map.center()};
+    if (auto p{w.emptyCellAround(parent.area, towards)}) {
+      create(w, *type, *p);
+      queue_.pop();
+      assert(!empty() || std::all_of(resources_.begin(), resources_.end(), [](const auto& b) {
+        return b.empty();
+      }));
+      return true;
+    }
+    else {
+      return false;
+    }
   }
   else {
-    return false;
+    auto& s{w[side_]};
+    s.messages().add(w, "RESEARCH COMPLETE!");
+    s.addUpgrade(std::get<UpgradeId>(product));
+    queue_.pop();
+    return true;
   }
 }
 
-rts::GameTime rts::ProductionQueue::buildTime(const World& w) const {
+rts::GameTime rts::ProductionQueue::produceTime(const World& w) const {
   assert(!empty());
-  return w[top()].buildTime;
+  return w[top()].produceTime;
 }
 
 void rts::ProductionQueue::boost(const World& w, Percent speedUp, GameTime duration) {

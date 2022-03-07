@@ -13,7 +13,7 @@ rts::ActiveAbilityStateUPtr rts::abilities::state::Produce::trigger(
 
   assert(pq.size() == 0 || as);
 
-  if (pq.add(w, desc.type)) {
+  if (pq.add(w, desc.product)) {
     if (!as)
       return std::make_unique<Produce>();
     else
@@ -55,7 +55,7 @@ rts::AbilityStepAction rts::abilities::state::Produce::startProduction() {
     if (pq.empty())
       return 0;
     if (pq.startProduction(w, state_ == State::Blocked)) {
-      workLeft_ = pq.buildTime(w);
+      workLeft_ = pq.produceTime(w);
       state_ = State::Producing;
     }
     else {

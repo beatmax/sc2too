@@ -16,13 +16,19 @@ namespace test {
   constexpr rts::AbilityInstanceIndex BuildBaseAbilityIndex{2};
   constexpr rts::AbilityInstanceIndex BuildDojoAbilityIndex{3};
   constexpr rts::AbilityInstanceIndex BuildExtractorAbilityIndex{4};
-  constexpr rts::AbilityInstanceIndex BuildPowerPlantAbilityIndex{5};
+  constexpr rts::AbilityInstanceIndex BuildLabAbilityIndex{5};
+  constexpr rts::AbilityInstanceIndex BuildPowerPlantAbilityIndex{6};
 
   constexpr rts::AbilityInstanceIndex ProduceFighterAbilityIndex{0};
+  constexpr rts::AbilityInstanceIndex ProduceSoldierAbilityIndex{1};
+
   constexpr rts::AbilityInstanceIndex ProduceThirdyAbilityIndex{0};
   constexpr rts::AbilityInstanceIndex ProduceWorkerAbilityIndex{1};
-  constexpr rts::AbilityInstanceIndex SetRallyPointAbilityIndex{2};
-  constexpr rts::AbilityInstanceIndex BoostAbilityIndex{3};
+  constexpr rts::AbilityInstanceIndex BoostAbilityIndex{2};
+
+  constexpr rts::AbilityInstanceIndex SetRallyPointAbilityIndex{3};
+
+  constexpr rts::AbilityInstanceIndex ResearchLevel1AbilityIndex{0};
 
   constexpr rts::Quantity BaseMineralCost{20};
   constexpr rts::Quantity BaseSupplyProvision{15};
@@ -39,9 +45,16 @@ namespace test {
   constexpr rts::Quantity FighterMineralCost{10};
   constexpr rts::Quantity FighterSupplyCost{1};
   constexpr rts::GameTime FighterBuildTime{1000};
+  constexpr rts::Quantity LabMineralCost{10};
+  constexpr rts::GameTime LabBuildTime{10};
+  constexpr rts::Quantity Level1UpgradeMineralCost{10};
+  constexpr rts::GameTime Level1UpgradeResearchTime{100};
   constexpr rts::Quantity PowerPlantMineralCost{40};
   constexpr rts::GameTime PowerPlantBuildTime{5};
   constexpr rts::Coordinate PowerPlantPowerRadius{5};
+  constexpr rts::Quantity SoldierMineralCost{20};
+  constexpr rts::Quantity SoldierSupplyCost{2};
+  constexpr rts::GameTime SoldierBuildTime{2000};
   constexpr rts::Quantity ThirdyMineralCost{2};
   constexpr rts::Quantity ThirdySupplyCost{4};
   constexpr rts::GameTime ThirdyBuildTime{20};
@@ -61,18 +74,24 @@ namespace test {
   extern rts::AbilityId gatherAbilityId;
   extern rts::AbilityId moveAbilityId;
   extern rts::AbilityId produceFighterAbilityId;
+  extern rts::AbilityId produceSoldierAbilityId;
   extern rts::AbilityId produceThirdyAbilityId;
   extern rts::AbilityId produceWorkerAbilityId;
+  extern rts::AbilityId researchLevel1AbilityId;
   extern rts::AbilityId setRallyPointAbilityId;
 
   extern rts::UnitTypeId baseTypeId;
   extern rts::UnitTypeId dojoTypeId;
   extern rts::UnitTypeId extractorTypeId;
+  extern rts::UnitTypeId labTypeId;
   extern rts::UnitTypeId powerPlantTypeId;
 
   extern rts::UnitTypeId fighterTypeId;
+  extern rts::UnitTypeId soldierTypeId;
   extern rts::UnitTypeId thirdyTypeId;
   extern rts::UnitTypeId workerTypeId;
+
+  extern rts::UpgradeId level1UpgradeId;
 
   extern rts::SideId side1Id;
   extern rts::SideId side2Id;
@@ -110,7 +129,9 @@ namespace test {
     static rts::UnitId dojo(rts::World& w, rts::SideId sd);
     static rts::UnitId extractor(rts::World& w, rts::SideId sd);
     static rts::UnitId fighter(rts::World& w, rts::SideId sd);
+    static rts::UnitId lab(rts::World& w, rts::SideId sd);
     static rts::UnitId powerPlant(rts::World& w, rts::SideId sd);
+    static rts::UnitId soldier(rts::World& w, rts::SideId sd);
     static rts::UnitId thirdy(rts::World& w, rts::SideId sd);
     static rts::UnitId worker(rts::World& w, rts::SideId sd);
     static rts::ResourceFieldId geyser(rts::World& w);

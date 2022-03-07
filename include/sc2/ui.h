@@ -4,6 +4,8 @@
 #include "rts/Resource.h"
 #include "rts/ResourceField.h"
 #include "rts/Unit.h"
+#include "rts/UnitType.h"
+#include "rts/Upgrade.h"
 #include "ui/ResourceUi.h"
 #include "ui/Sprite.h"
 
@@ -46,6 +48,10 @@ namespace sc2::ui {
     const ::ui::Icon& icon() const final;
   };
 
+  struct CyberCoreType : ::ui::IconUi<rts::UnitType> {
+    const ::ui::Icon& icon() const final;
+  };
+
   struct GatewayType : ::ui::IconUi<rts::UnitType> {
     const ::ui::Icon& icon() const final;
   };
@@ -69,6 +75,12 @@ namespace sc2::ui {
   struct Assimilator : Unit {
     using Unit::Unit;
     const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
+  };
+
+  struct CyberCore : Unit {
+    using Unit::Unit;
+    const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
+    const ::ui::Sprite* overlay(const rts::World&, rts::UnitStableRef) const final;
   };
 
   struct Gateway : Unit {
@@ -114,6 +126,10 @@ namespace sc2::ui {
     const ::ui::Icon& icon() const final;
   };
 
+  struct ResearchWarpGateAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
   struct SetRallyPointAbility : ::ui::IconUi<rts::Ability> {
     const ::ui::Icon& icon() const final;
   };
@@ -134,6 +150,10 @@ namespace sc2::ui {
     const ::ui::Icon& icon() const final;
   };
 
+  struct WarpInCyberCoreAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
   struct WarpInGatewayAbility : ::ui::IconUi<rts::Ability> {
     const ::ui::Icon& icon() const final;
   };
@@ -143,6 +163,10 @@ namespace sc2::ui {
   };
 
   struct WarpInPylonAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct WarpGateUpgrade : ::ui::IconUi<rts::Upgrade> {
     const ::ui::Icon& icon() const final;
   };
 }

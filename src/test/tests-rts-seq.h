@@ -42,12 +42,19 @@ namespace test::seq {
       int32_t value;
     };
 
+    struct Expectation {
+      std::string property;
+      std::string name;
+      std::string value;
+    };
+
     struct Map {
       LineVector map;
       std::optional<rts::GameTime> time;
       std::optional<rts::Quantity> gas;
       std::optional<rts::Quantity> mineral;
       std::optional<std::pair<rts::Quantity, rts::Quantity>> supply;
+      std::optional<std::vector<std::string>> upgrades;
       std::optional<std::vector<std::pair<std::string, rts::Quantity>>> energy;
 
       bool operator!=(const Map& other) const { return time != other.time || diff(other); }
@@ -120,6 +127,7 @@ namespace test::seq {
       item::Definition,
       item::Reference,
       item::Assignment,
+      item::Expectation,
       item::Map,
       item::Message,
       item::Prototype,
