@@ -10,13 +10,13 @@
 #include <map>
 
 namespace {
-  enum class Property { Unknown, Quantity, EnabledAbilities };
+  enum class Property { Unknown, Quantity, Abilities };
 
   Property toProperty(const std::string& s) {
     if (s == "quantity")
       return Property::Quantity;
-    if (s == "enabled_abilities")
-      return Property::EnabledAbilities;
+    if (s == "abilities")
+      return Property::Abilities;
     return Property::Unknown;
   }
 
@@ -87,6 +87,8 @@ namespace {
       return "extractor";
     if (t == test::fighterTypeId)
       return "fighter";
+    if (t == test::labTypeId)
+      return "lab";
     if (t == test::powerPlantTypeId)
       return "power_plant";
     if (t == test::soldierTypeId)
@@ -263,7 +265,7 @@ namespace test::seq {
           else
             world.destroy(cell.resourceFieldId());
           break;
-        case Property::EnabledAbilities:
+        case Property::Abilities:
           return error(a, "cannot assign");
       }
       output.push_back(a);
@@ -282,15 +284,19 @@ namespace test::seq {
           return error(e, "invalid property name");
         case Property::Quantity:
           return error(e, "cannot inspect");
-        case Property::EnabledAbilities: {
+        case Property::Abilities: {
           std::vector<std::string> abilities;
           const auto& u{world[unit]};
           const auto& t{world[u.type]};
           for (const auto& ai : t.abilities) {
             if (ai.kind != rts::abilities::Kind::None) {
               auto aId{ai.abilityId};
-              if (u.hasEnabledAbility(world, t.abilityIndex(aId), aId))
-                abilities.push_back(test::repr(world[aId].ui));
+              if (auto rs{u.abilityReadyState(world, t.abilityIndex(aId), aId)};
+                  rs != rts::AbilityReadyState::None) {
+                abilities.push_back(
+                    test::repr(world[aId].ui) +
+                    (rs == rts::AbilityReadyState::Disabled ? "*" : ""));
+              }
             }
           }
           value = '[' + util::join(abilities, ' ') + ']';
@@ -453,6 +459,9 @@ namespace test::seq {
       auto ai{toAbilityIndex(p.ability)};
       if (ai == rts::AbilityInstanceIndex::None)
         return error(p, "invalid ability");
+      const auto& subgroup{world[side].selection().subgroup(world)};
+      if (!subgroup.abilityReady(world, ai))
+        return error(p, "ability not ready");
       test::execCommand(world, side, rts::command::PrepareAbility{ai});
       output.push_back(p);
     }
@@ -477,8 +486,8 @@ namespace test::seq {
       if (!t.target && requiresTarget(t.ability))
         return error(t, "target required");
       const auto& subgroup{world[side].selection().subgroup(world)};
-      if (!subgroup.abilityEnabled(world, ai))
-        return error(t, "ability not enabled");
+      if (!subgroup.abilityReady(world, ai))
+        return error(t, "ability not ready");
       test::execCommand(
           world, side,
           rts::command::TriggerAbility{ai, t.target ? *t.target : rts::Point{-1, -1}, t.enqueue});

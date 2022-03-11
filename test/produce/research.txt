@@ -16,8 +16,8 @@ run
        
 -------
 select 1
-? enabled_abilities(1): [r.l1]
-? enabled_abilities(2): [r.l1]
+? abilities(1): [r.l1]
+? abilities(2): [r.l1]
 trigger research_level1
 run for 80
 -------  [t:0 m:990 g:0 s:0/0 u:{}]
@@ -33,10 +33,10 @@ run for 80
  11 22 
        
 -------
-? enabled_abilities(1): []
-? enabled_abilities(2): []
+? abilities(1): []
+? abilities(2): []
 destroy 1
-? enabled_abilities(2): [r.l1]
+? abilities(2): [r.l1]
 select 2
 trigger research_level1
 run
@@ -55,4 +55,4 @@ message: RESEARCH COMPLETE!
     22 
        
 -------
-? enabled_abilities(2): []
+? abilities(2): []

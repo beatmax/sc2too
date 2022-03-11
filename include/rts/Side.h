@@ -32,10 +32,12 @@ namespace rts {
     const ResourceAccount& resource(ResourceId r) const { return resources_[r]; }
     MessageList& messages() { return messages_; }
     const MessageList& messages() const { return messages_; }
+    void updateActiveUnitCount(UnitTypeId type, int16_t inc);
+    Count activeUnitCount(UnitTypeId type) const { return activeUnitCounts_[type.idx]; }
     void addUpgrade(UpgradeId u);
-    const bool hasUpgrade(UpgradeId u) const { return upgrades_[u.idx]; }
+    bool hasUpgrade(UpgradeId u) const { return upgrades_[u.idx]; }
     void setUpgradeInResearch(UpgradeId u, bool b) { upgradesInResearch_[u.idx] = b; }
-    const bool isUpgradeInResearch(UpgradeId u) const { return upgradesInResearch_[u.idx]; }
+    bool isUpgradeInResearch(UpgradeId u) const { return upgradesInResearch_[u.idx]; }
     PowerMap& powerMap() { return powerMap_; }
     const PowerMap& powerMap() const { return powerMap_; }
     Map& prototypeMap() { return prototypeMap_; }
@@ -55,6 +57,7 @@ namespace rts {
 
   private:
     using ControlGroupArray = std::array<Selection, MaxControlGroups>;
+    using UnitCountArray = std::array<Count, MaxUnitTypes + 1>;
     using UpgradeBitset = std::bitset<MaxUpgrades + 1>;
 
     void exec(const World& w, WorldActionList& actions, const command::Cancel& cmd);
@@ -71,6 +74,7 @@ namespace rts {
     Selection selection_;
     ControlGroupArray groups_;
     MessageList messages_;
+    UnitCountArray activeUnitCounts_{};
     UpgradeBitset upgrades_;
     UpgradeBitset upgradesInResearch_;
     PowerMap powerMap_;

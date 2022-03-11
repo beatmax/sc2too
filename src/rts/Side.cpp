@@ -6,6 +6,10 @@
 #include <cassert>
 #include <utility>
 
+void rts::Side::updateActiveUnitCount(UnitTypeId type, int16_t inc) {
+  activeUnitCounts_[type.idx] += inc;
+}
+
 void rts::Side::addUpgrade(UpgradeId u) {
   setUpgradeInResearch(u, false);
   upgrades_[u.idx] = true;
@@ -135,11 +139,14 @@ void rts::Side::exec(const World& w, WorldActionList& actions, const command::Pr
 
   preparedAbilityIndex_ = AbilityInstanceIndex::None;
 
+  UnitIdList ids = util::filter(selection_.ids(w), [&](UnitId id) {
+    return w[id].abilityReadyState(w, cmd.abilityIndex, a->abilityId) == AbilityReadyState::Ready;
+  });
+  if (ids.empty())
+    return;
+
   if (a->energyCost) {
     assert(a->groupMode == abilities::GroupMode::One);
-    UnitIdList ids = util::filter(selection_.ids(w), [&](UnitId id) {
-      return w[id].hasEnabledAbility(w, cmd.abilityIndex, a->abilityId);
-    });
     if (util::noneOf(ids, [&w, cost{a->energyCost}](UnitId id) { return w[id].energy >= cost; })) {
       actions += [side{w.id(*this)}](World& w) { w[side].messages().add(w, "NOT ENOUGH ENERGY!"); };
       return;
@@ -202,7 +209,7 @@ void rts::Side::exec(const World& w, WorldActionList& actions, const command::Tr
   ++triggerCount_;  // causes UI to stop selecting target
 
   UnitIdList ids = util::filter(selection_.ids(w), [&](UnitId id) {
-    return w[id].hasEnabledAbility(w, cmd.abilityIndex, a->abilityId);
+    return w[id].abilityReadyState(w, cmd.abilityIndex, a->abilityId) == AbilityReadyState::Ready;
   });
   if (ids.empty())
     return;

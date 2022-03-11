@@ -71,6 +71,7 @@ run
 ----------------
 Plant: @5,0
 Dojo: @5,2
+? abilities(Dojo): [p.f p.s* rally]
 select Dojo
 trigger produce_fighter
 run
@@ -109,6 +110,7 @@ run for 700
                 
 ----------------
 destroy Plant
+? abilities(Dojo): [p.f* p.s* rally]
 run for 2000
 ----------------  [t:1764]
               bb

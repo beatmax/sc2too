@@ -307,16 +307,18 @@ namespace ui {
         const rts::Selection::Subgroup& subgroup) {
       const auto& win{ios.controlWin};
 
-      auto enabled{subgroup.abilityEnabled(w)};
+      auto readyState{subgroup.abilityReadyState(w)};
 
       for (int row{0}; row < 3; ++row) {
         for (int col{0}; col < 5; ++col) {
           rts::AbilityInstanceIndex ai(
               player.abilityPage * rts::MaxUnitAbilitiesPerPage + row * 5 + col);
           assert(ai < rts::MaxUnitAbilities);
-          if (!enabled[ai])
+          const auto rs{readyState[ai]};
+          if (rs == rts::AbilityReadyState::None)
             continue;
           if (const auto a{subgroup.abilities[ai]->abilityId}) {
+            const bool ready{rs == rts::AbilityReadyState::Ready};
             ScreenRect rect{
                 {79 + col * (dim::CellSizeEx.x + 1), 2 + row * dim::CellSizeEx.y},
                 dim::CellSize + ScreenVector{1, 0}};
@@ -327,10 +329,11 @@ namespace ui {
                 (player.selectingAbilityTarget && ai == player.selectingAbilityTarget->abilityIndex)
                     ? A_BOLD
                     : 0,
-                graph::colorPair(Color::White), nullptr);
+                graph::colorPair(ready ? Color::White : Color::DarkGray), nullptr);
             mvwaddch(win.w, rect.topLeft.y, rect.topLeft.x, ui::Layout::abilityKey(ai));
             graph::drawFrame(
-                win, getIcon(w[a]).frame(), rect.topLeft + rts::Vector{1, 0}, Color::Green);
+                win, getIcon(w[a]).frame(), rect.topLeft + rts::Vector{1, 0},
+                ready ? Color::Green : Color::DarkGray);
           }
         }
       }

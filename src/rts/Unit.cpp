@@ -95,6 +95,7 @@ void rts::Unit::destroy(World& w) {
       w.remove(*this);
       if (state == State::Active) {
         res.deprovision(t.provision);
+        s.updateActiveUnitCount(type, -1);
         if (auto er{t.powerRadius})
           s.powerMap().update(w, side, circleCenteredAt(area, er), -1);
       }
@@ -137,22 +138,6 @@ bool rts::Unit::isWorker(const World& w) const {
 
 bool rts::Unit::isArmy(const World& w) const {
   return w[type].kind == UnitType::Kind::Army;
-}
-
-bool rts::Unit::hasEnabledAbility(
-    const World& w, AbilityInstanceIndex abilityIndex, AbilityId abilityId) const {
-  const auto& abilityInstance{w[type].abilities[abilityIndex]};
-  auto checkUpgrade = [&]() {
-    if (abilityInstance.kind == abilities::Kind::Produce) {
-      if (auto* u{std::get_if<UpgradeId>(&abilityInstance.desc<abilities::Produce>().product)})
-        return !(w[side].hasUpgrade(*u) || w[side].isUpgradeInResearch(*u));
-    }
-    return true;
-  };
-  return abilityInstance.abilityId == abilityId && (powered || !abilityInstance.requiresPower) &&
-      (state == State::Active ||
-       (state == State::Building && abilityInstance.availableWhileBuilding)) &&
-      checkUpgrade();
 }
 
 void rts::Unit::trigger(World& w, const UnitCommand& uc, CancelOthers cancelOthers) {
@@ -277,6 +262,42 @@ const rts::AbilityState& rts::Unit::abilityState(
   return u->abilityStates_[as];
 }
 
+rts::AbilityReadyState rts::Unit::abilityReadyState(
+    const World& w, AbilityInstanceIndex abilityIndex, AbilityId abilityId) const {
+  const auto& abilityInstance{w[type].abilities[abilityIndex]};
+  auto checkDependency = [&](UnitTypeId t) {
+    if (auto req{w[t].requiredUnit})
+      return w[side].activeUnitCount(req) > 0;
+    return true;
+  };
+  auto checkBuild = [&]() {
+    return abilityInstance.kind != abilities::Kind::Build ||
+        checkDependency(abilityInstance.desc<abilities::Build>().type);
+  };
+  auto checkProduce = [&]() {
+    if (abilityInstance.kind == abilities::Kind::Produce) {
+      if (auto* t{std::get_if<UnitTypeId>(&abilityInstance.desc<abilities::Produce>().product)})
+        return checkDependency(*t);
+    }
+    return true;
+  };
+  auto checkUpgrade = [&]() {
+    if (abilityInstance.kind == abilities::Kind::Produce) {
+      if (auto* u{std::get_if<UpgradeId>(&abilityInstance.desc<abilities::Produce>().product)})
+        return !(w[side].hasUpgrade(*u) || w[side].isUpgradeInResearch(*u));
+    }
+    return true;
+  };
+  if (abilityInstance.abilityId != abilityId ||
+      (state != State::Active &&
+       !(state == State::Building && abilityInstance.availableWhileBuilding)) ||
+      !checkUpgrade())
+    return AbilityReadyState::None;
+  if ((!powered && abilityInstance.requiresPower) || !checkBuild() || !checkProduce())
+    return AbilityReadyState::Disabled;
+  return AbilityReadyState::Ready;
+}
+
 void rts::Unit::doActivate(World& w) {
   auto& s{w[side]};
   const auto& t{w[type]};
@@ -288,4 +309,5 @@ void rts::Unit::doActivate(World& w) {
   if (t.requiresPower == UnitType::RequiresPower::Yes)
     powered = s.powerMap().isActive(area.center());
   state = State::Active;
+  s.updateActiveUnitCount(type, 1);
 }

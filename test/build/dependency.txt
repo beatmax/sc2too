@@ -1,0 +1,78 @@
+option t
+w: worker
+----------  [t:0]
+    p     
+w         
+          
+          
+----------
+select w
+? abilities(w): [move gather b.base b.dojo b.extr b.lab* b.pp]
+
+prepare build_dojo
+prototype: dojo
+trigger build_dojo 0,2
+prototype: none
+run for 30
+----------  [t:0]
+    p     
+w         
+          
+          
+==========  [t:21]
+    p     
+w         
+dd        
+dd        
+==========  [t:30]
+    p     
+w         
+dd        
+dd        
+----------
+? abilities(w): [move gather b.base b.dojo b.extr b.lab* b.pp]
+run
+----------  [t:30]
+    p     
+w         
+dd        
+dd        
+==========  [t:36]
+    p     
+w         
+dd        
+dd        
+----------
+? abilities(w): [move gather b.base b.dojo b.extr b.lab b.pp]
+
+prepare build_lab
+prototype: lab
+trigger build_lab 3,2
+prototype: none
+run
+----------  [t:36]
+    p     
+w         
+dd        
+dd        
+==========  [t:138]
+    p     
+ w        
+dd        
+dd        
+==========  [t:238]
+    p     
+  w       
+dd        
+dd        
+==========  [t:257]
+    p     
+  w       
+dd ll     
+dd ll     
+==========  [t:267]
+    p     
+  w       
+dd ll     
+dd ll     
+----------

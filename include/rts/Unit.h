@@ -53,8 +53,6 @@ namespace rts {
 
     bool active() const { return state == State::Active; }
     bool activeOrBuilding() const { return state == State::Active || state == State::Building; }
-    bool hasEnabledAbility(
-        const World& w, AbilityInstanceIndex abilityIndex, AbilityId abilityId) const;
 
     void trigger(World& w, const UnitCommand& uc, CancelOthers cancelOthers = CancelOthers::Yes);
     void trigger(
@@ -84,6 +82,9 @@ namespace rts {
       const AbilityState& as{abilityState(u, w, abilities::kind<T>())};
       return as.state<T>();
     }
+
+    AbilityReadyState abilityReadyState(
+        const World& w, AbilityInstanceIndex abilityIndex, AbilityId abilityId) const;
 
   private:
     void doActivate(World& w);

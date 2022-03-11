@@ -70,7 +70,6 @@ namespace test {
   extern rts::ResourceId supplyResourceId;
 
   extern rts::AbilityId boostAbilityId;
-  extern rts::AbilityId buildAbilityId;
   extern rts::AbilityId gatherAbilityId;
   extern rts::AbilityId moveAbilityId;
   extern rts::AbilityId produceFighterAbilityId;
@@ -79,6 +78,12 @@ namespace test {
   extern rts::AbilityId produceWorkerAbilityId;
   extern rts::AbilityId researchLevel1AbilityId;
   extern rts::AbilityId setRallyPointAbilityId;
+
+  extern rts::AbilityId buildBaseAbilityId;
+  extern rts::AbilityId buildDojoAbilityId;
+  extern rts::AbilityId buildExtractorAbilityId;
+  extern rts::AbilityId buildLabAbilityId;
+  extern rts::AbilityId buildPowerPlantAbilityId;
 
   extern rts::UnitTypeId baseTypeId;
   extern rts::UnitTypeId dojoTypeId;

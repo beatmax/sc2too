@@ -20,8 +20,8 @@ namespace rts {
 
       UnitIdList allIds;  // not only in subgroup
 
-      bool abilityEnabled(const World& w, AbilityInstanceIndex ai) const;
-      std::vector<bool> abilityEnabled(const World& w) const;
+      bool abilityReady(const World& w, AbilityInstanceIndex ai) const;
+      std::vector<AbilityReadyState> abilityReadyState(const World& w) const;
     };
 
     void set(const World& w, UnitIdList ids);

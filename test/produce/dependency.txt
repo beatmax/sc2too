@@ -1,0 +1,63 @@
+option t,r,s
+d: dojo
+w: worker
+----------  [t:0 m:1000 g:0 s:2/0]
+    p w   
+ dd       
+ dd       
+----------
+provision supply 200
+? abilities(d): [p.f p.s* rally]
+select w
+prepare build_lab
+prototype: lab
+trigger build_lab 6,1
+prototype: none
+run for 25
+----------  [t:0 m:990 g:0 s:2/200]
+    p w   
+ dd       
+ dd       
+==========  [t:21 m:990 g:0 s:2/200]
+    p w   
+ dd   ll  
+ dd   ll  
+==========  [t:25 m:990 g:0 s:2/200]
+    p w   
+ dd   ll  
+ dd   ll  
+----------
+
+? abilities(d): [p.f p.s* rally]
+run
+----------  [t:25 m:990 g:0 s:2/200]
+    p w   
+ dd   ll  
+ dd   ll  
+==========  [t:31 m:990 g:0 s:2/200]
+    p w   
+ dd   ll  
+ dd   ll  
+----------
+
+? abilities(d): [p.f p.s rally]
+select d
+trigger produce_soldier
+run
+----------  [t:31 m:970 g:0 s:2/200]
+    p w   
+ dd   ll  
+ dd   ll  
+==========  [t:32 m:970 g:0 s:4/200]
+    p w   
+ dd   ll  
+ dd   ll  
+==========  [t:2032 m:970 g:0 s:4/200]
+    p w   
+ dds  ll  
+ dd   ll  
+==========  [t:2033 m:970 g:0 s:4/200]
+    p w   
+ dds  ll  
+ dd   ll  
+----------

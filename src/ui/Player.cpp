@@ -131,7 +131,7 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
                abilityIndex != rts::AbilityInstanceIndex::None) {
         assert(abilityIndex < rts::MaxUnitAbilities);
         const auto& subgroup{w[side].selection().subgroup(w)};
-        if (subgroup.abilityEnabled(w, abilityIndex)) {
+        if (subgroup.abilityReady(w, abilityIndex)) {
           const auto& ai{*subgroup.abilities[abilityIndex]};
           if (ai.kind != rts::abilities::Kind::None) {
             if (ai.targetType == rts::abilities::TargetType::None) {

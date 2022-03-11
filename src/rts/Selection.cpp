@@ -17,30 +17,38 @@ namespace rts {
   }
 }
 
-bool rts::Selection::Subgroup::abilityEnabled(const World& w, AbilityInstanceIndex ai) const {
+bool rts::Selection::Subgroup::abilityReady(const World& w, AbilityInstanceIndex ai) const {
   const auto* a{abilities[ai]};
   if (a && a->abilityId) {
     auto units{w.units[allIds]};
     return util::anyOf(units, [&w, ai{AbilityInstanceIndex{ai}}, id{a->abilityId}](const Unit* u) {
-      return u->hasEnabledAbility(w, ai, id);
+      return u->abilityReadyState(w, ai, id) == AbilityReadyState::Ready;
     });
   }
   return false;
 }
 
-std::vector<bool> rts::Selection::Subgroup::abilityEnabled(const World& w) const {
-  std::vector<bool> enabled(MaxUnitAbilities, false);
+std::vector<rts::AbilityReadyState> rts::Selection::Subgroup::abilityReadyState(
+    const World& w) const {
+  std::vector<rts::AbilityReadyState> state(MaxUnitAbilities, rts::AbilityReadyState::None);
   auto units{w.units[allIds]};
-  for (size_t ai{0}; ai < MaxUnitAbilities; ++ai) {
-    const auto* a{abilities[ai]};
+  for (size_t i{0}; i < MaxUnitAbilities; ++i) {
+    const auto* a{abilities[i]};
     if (a && a->abilityId) {
-      enabled[ai] =
-          util::anyOf(units, [&w, ai{AbilityInstanceIndex{ai}}, id{a->abilityId}](const Unit* u) {
-            return u->hasEnabledAbility(w, ai, id);
-          });
+      const AbilityInstanceIndex ai{i};
+      rts::AbilityReadyState s{rts::AbilityReadyState::None};
+      for (const Unit* u : units) {
+        auto su{u->abilityReadyState(w, ai, a->abilityId)};
+        if (su > s) {
+          s = su;
+          if (s == rts::AbilityReadyState::Ready)
+            break;
+        }
+      }
+      state[i] = s;
     }
   }
-  return enabled;
+  return state;
 }
 
 void rts::Selection::set(const World& w, UnitIdList ids) {

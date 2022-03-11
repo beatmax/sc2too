@@ -26,7 +26,6 @@ rts::ResourceId test::mineralResourceId;
 rts::ResourceId test::supplyResourceId;
 
 rts::AbilityId test::boostAbilityId;
-rts::AbilityId test::buildAbilityId;
 rts::AbilityId test::gatherAbilityId;
 rts::AbilityId test::moveAbilityId;
 rts::AbilityId test::produceFighterAbilityId;
@@ -35,6 +34,12 @@ rts::AbilityId test::produceThirdyAbilityId;
 rts::AbilityId test::produceWorkerAbilityId;
 rts::AbilityId test::researchLevel1AbilityId;
 rts::AbilityId test::setRallyPointAbilityId;
+
+rts::AbilityId test::buildBaseAbilityId;
+rts::AbilityId test::buildDojoAbilityId;
+rts::AbilityId test::buildExtractorAbilityId;
+rts::AbilityId test::buildLabAbilityId;
+rts::AbilityId test::buildPowerPlantAbilityId;
 
 rts::UnitTypeId test::baseTypeId;
 rts::UnitTypeId test::dojoTypeId;
@@ -62,7 +67,6 @@ void test::Factory::init(rts::World& w) {
   supplyResourceId = w.createResource(std::make_unique<SupplyUi>());
 
   boostAbilityId = w.createAbility(std::make_unique<Ui>("boost"));
-  buildAbilityId = w.createAbility(std::make_unique<Ui>("build"));
   gatherAbilityId = w.createAbility(std::make_unique<Ui>("gather"));
   moveAbilityId = w.createAbility(std::make_unique<Ui>("move"));
   produceFighterAbilityId = w.createAbility(std::make_unique<Ui>("p.f"));
@@ -72,6 +76,12 @@ void test::Factory::init(rts::World& w) {
   researchLevel1AbilityId = w.createAbility(std::make_unique<Ui>("r.l1"));
   setRallyPointAbilityId = w.createAbility(std::make_unique<Ui>("rally"));
 
+  buildBaseAbilityId = w.createAbility(std::make_unique<Ui>("b.base"));
+  buildDojoAbilityId = w.createAbility(std::make_unique<Ui>("b.dojo"));
+  buildExtractorAbilityId = w.createAbility(std::make_unique<Ui>("b.extr"));
+  buildLabAbilityId = w.createAbility(std::make_unique<Ui>("b.lab"));
+  buildPowerPlantAbilityId = w.createAbility(std::make_unique<Ui>("b.pp"));
+
   baseTypeId = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{mineralResourceId, BaseMineralCost}},
@@ -80,21 +90,22 @@ void test::Factory::init(rts::World& w) {
   dojoTypeId = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{mineralResourceId, DojoMineralCost}}, rts::ResourceQuantityList{},
-      DojoBuildTime, std::make_unique<Ui>("D"), 0, 0, rts::UnitType::RequiresPower::Yes);
+      DojoBuildTime, std::make_unique<Ui>("D"), 0, 0, rts::UnitTypeId{},
+      rts::UnitType::RequiresPower::Yes);
   extractorTypeId = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{mineralResourceId, ExtractorMineralCost}},
       rts::ResourceQuantityList{}, ExtractorBuildTime, std::make_unique<Ui>("E"), 0, 0,
-      rts::UnitType::RequiresPower::No, 0, gasResourceId);
+      rts::UnitTypeId{}, rts::UnitType::RequiresPower::No, 0, gasResourceId);
   labTypeId = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{mineralResourceId, LabMineralCost}}, rts::ResourceQuantityList{},
-      LabBuildTime, std::make_unique<Ui>("L"), 0, 0, rts::UnitType::RequiresPower::Yes);
+      LabBuildTime, std::make_unique<Ui>("L"), 0, 0, dojoTypeId, rts::UnitType::RequiresPower::Yes);
   powerPlantTypeId = w.createUnitType(
       rts::UnitType::Kind::Structure,
       rts::ResourceQuantityList{{mineralResourceId, PowerPlantMineralCost}},
       rts::ResourceQuantityList{}, PowerPlantBuildTime, std::make_unique<Ui>("P"), 0, 0,
-      rts::UnitType::RequiresPower::No, PowerPlantPowerRadius);
+      rts::UnitTypeId{}, rts::UnitType::RequiresPower::No, PowerPlantPowerRadius);
 
   // creation order of unit types determines subgroup order in selection
   fighterTypeId = w.createUnitType(
@@ -106,7 +117,7 @@ void test::Factory::init(rts::World& w) {
       rts::UnitType::Kind::Army,
       rts::ResourceQuantityList{
           {mineralResourceId, SoldierMineralCost}, {supplyResourceId, SoldierSupplyCost}},
-      rts::ResourceQuantityList{}, SoldierBuildTime, std::make_unique<Ui>("S"));
+      rts::ResourceQuantityList{}, SoldierBuildTime, std::make_unique<Ui>("S"), 0, 0, labTypeId);
   workerTypeId = w.createUnitType(
       rts::UnitType::Kind::Worker,
       rts::ResourceQuantityList{
@@ -156,17 +167,18 @@ void test::Factory::init(rts::World& w) {
       MoveAbilityIndex,
       rts::abilities::Move{moveAbilityId, rts::CellDistance / rts::GameTimeSecond});
   w[workerTypeId].addAbility(
-      BuildBaseAbilityIndex, rts::abilities::Build{buildAbilityId, baseTypeId});
+      BuildBaseAbilityIndex, rts::abilities::Build{buildBaseAbilityId, baseTypeId});
   w[workerTypeId].addAbility(
-      BuildDojoAbilityIndex, rts::abilities::Build{buildAbilityId, dojoTypeId});
+      BuildDojoAbilityIndex, rts::abilities::Build{buildDojoAbilityId, dojoTypeId});
   w[workerTypeId].addAbility(
-      BuildExtractorAbilityIndex, rts::abilities::Build{buildAbilityId, extractorTypeId});
+      BuildExtractorAbilityIndex, rts::abilities::Build{buildExtractorAbilityId, extractorTypeId});
   w[workerTypeId].addAbility(
-      BuildLabAbilityIndex, rts::abilities::Build{buildAbilityId, labTypeId});
+      BuildLabAbilityIndex, rts::abilities::Build{buildLabAbilityId, labTypeId});
   w[workerTypeId].addAbility(
-      BuildPowerPlantAbilityIndex, rts::abilities::Build{buildAbilityId, powerPlantTypeId});
+      BuildPowerPlantAbilityIndex,
+      rts::abilities::Build{buildPowerPlantAbilityId, powerPlantTypeId});
   w[workerTypeId].addAbility(
-      GatherAbilityIndex, rts::abilities::Gather{moveAbilityId, rts::GameTimeSecond, 1});
+      GatherAbilityIndex, rts::abilities::Gather{gatherAbilityId, rts::GameTimeSecond, 1});
   w[workerTypeId].defaultAbility[uint32_t(RC::Ground)] = MoveAbilityIndex;
   w[workerTypeId].defaultAbility[uint32_t(RC::Resource)] = GatherAbilityIndex;
   w[workerTypeId].defaultAbility[uint32_t(RC::FriendResource)] = GatherAbilityIndex;

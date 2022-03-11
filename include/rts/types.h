@@ -70,6 +70,7 @@ namespace rts {
   using BlockerStableRef = StableRef<Blocker>;
   using BlockerWId = util::PoolObjectWeakId<Blocker>;
   using ControlGroupId = uint8_t;
+  using Count = uint16_t;
   using LayerId = uint32_t;
   using MapSegmentId = uint32_t;
   using MinimapCellId = uint32_t;
@@ -104,14 +105,14 @@ namespace rts {
 
   using ResourceQuantityList = std::vector<std::pair<ResourceId, Quantity>>;
 
+  using util::geo::Circle;
   using util::geo::Coordinate;
+  using util::geo::FVector;
   using util::geo::Point;
   using util::geo::PointList;
-  using util::geo::Circle;
   using util::geo::Rectangle;
   using util::geo::Vector;
   using util::geo::VectorList;
-  using util::geo::FVector;
   using GeoCache = util::geo::Cache;
 
   using AbilityTarget = std::variant<std::monostate, Point, UnitId, ResourceFieldId>;
@@ -126,6 +127,7 @@ namespace rts {
     UnitId prototype;
   };
 
+  enum class AbilityReadyState { None, Disabled, Ready };
   enum class Direction : uint32_t { Left, Right, Up, Down };
   enum class RelativeContent : uint32_t { Friend, Foe, Ground, Resource, FriendResource, Count };
 
