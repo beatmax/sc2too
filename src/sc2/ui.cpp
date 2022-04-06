@@ -5,7 +5,18 @@
 #include "sc2/Abilities.h"
 #include "sc2/Assets.h"
 #include "sc2/Resources.h"
+#include "ui/Frame.h"
 #include "ui/fx.h"
+
+namespace {
+  const ::ui::Frame& workerCountLabel(::ui::Frame& frame, int count, int saturation) {
+    const auto txt = std::to_wstring(count) + L'/' + std::to_wstring(saturation);
+    if (int(txt.size()) != frame.cols())
+      frame = ::ui::Frame{1, int(txt.size())};
+    ::ui::fx::text(frame, 0, 0, txt, count > saturation ? ::ui::Color::Red : ::ui::Color::White);
+    return frame;
+  }
+}
 
 ui::Color sc2::ui::Unit::defaultColor(rts::UnitStableRef) const {
   return sideColor;
@@ -114,6 +125,13 @@ const ::ui::Sprite& sc2::ui::Assimilator::sprite(const rts::World& w, rts::UnitS
   return sprite;
 }
 
+const ::ui::Frame* sc2::ui::Assimilator::label(const rts::World& w, rts::UnitStableRef u) const {
+  static ::ui::Frame frame;
+  if (u->active())
+    return &workerCountLabel(frame, u->workerCount.value(), w[u->resourceField].optimalWorkerCount);
+  return nullptr;
+}
+
 const ::ui::Sprite& sc2::ui::CyberCore::sprite(const rts::World& w, rts::UnitStableRef u) const {
   using State = rts::Unit::State;
   using ProduceState = rts::abilities::ProduceState;
@@ -203,6 +221,15 @@ const ::ui::Sprite& sc2::ui::Nexus::sprite(const rts::World& w, rts::UnitStableR
 const ::ui::Sprite* sc2::ui::Nexus::overlay(const rts::World& w, rts::UnitStableRef u) const {
   static const auto& spriteChronoBoost{Assets::getSprite("boost5x5")};
   return w[u->productionQueue].boosted(w) ? &spriteChronoBoost : nullptr;
+}
+
+const ::ui::Frame* sc2::ui::Nexus::label(const rts::World& w, rts::UnitStableRef u) const {
+  static ::ui::Frame frame;
+  if (u->active()) {
+    int saturation = w.resourceBaseSaturationMap[u->area.center()];
+    return &workerCountLabel(frame, u->workerCount.value(), saturation);
+  }
+  return nullptr;
 }
 
 const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::World& w, rts::UnitStableRef u) const {

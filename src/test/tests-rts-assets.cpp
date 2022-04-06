@@ -249,13 +249,13 @@ rts::UnitId test::Factory::worker(rts::World& w, rts::SideId sd) {
 rts::ResourceFieldId test::Factory::geyser(rts::World& w) {
   return w.resourceFields.emplace(
       rts::Vector{2, 2}, gasResourceId, 100, rts::ResourceField::DestroyWhenEmpty::No,
-      rts::ResourceField::RequiresBuilding::Yes, std::make_unique<Ui>("g"));
+      rts::ResourceField::RequiresBuilding::Yes, 3, std::make_unique<Ui>("g"));
 }
 
 rts::ResourceFieldId test::Factory::mineralPatch(rts::World& w) {
   return w.resourceFields.emplace(
       rts::Vector{2, 2}, mineralResourceId, 100, rts::ResourceField::DestroyWhenEmpty::Yes,
-      rts::ResourceField::RequiresBuilding::No, std::make_unique<Ui>("m"));
+      rts::ResourceField::RequiresBuilding::No, 2, std::make_unique<Ui>("m"));
 }
 
 rts::BlockerId test::Factory::rock(rts::World& w) {

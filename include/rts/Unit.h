@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AbilityState.h"
+#include "ReferenceCount.h"
 #include "Resource.h"
 #include "WorldObject.h"
 #include "constants.h"
@@ -25,6 +26,7 @@ namespace rts {
     ResourceFlexBag bag;
     ProductionQueueId productionQueue;
     ResourceFieldId resourceField;
+    ReferenceCount workerCount;
     std::array<bool, MaxUnitAbilityStates> abilityActive{};
     util::CircularBuffer<UnitCommand, MaxEnqueuedCommands> commandQueue;
     bool powered{true};

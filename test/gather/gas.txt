@@ -45,9 +45,24 @@ eew    bb
        bb 
           
 ----------
+e: @0,0
+? worker_count(e): 0/3
 trigger gather 0,0
-run
+run for 1
 ----------  [t:131 m:980 g:0]
+ee     bb 
+eew    bb 
+       bb 
+          
+==========  [t:132 m:980 g:0]
+ee     bb 
+eew    bb 
+       bb 
+          
+----------
+? worker_count(e): 1/3
+run
+----------  [t:132 m:980 g:0]
 ee     bb 
 eew    bb 
        bb 
@@ -148,3 +163,4 @@ ee     bb
        bb 
           
 ----------
+? worker_count(e): 0/3

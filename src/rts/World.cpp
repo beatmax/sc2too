@@ -91,6 +91,10 @@ rts::ResourceFieldId rts::World::add(ResourceFieldId id, Point p) {
   map.setContent(obj.area, id);
   minimap.update(map, obj, 1);
   resourceProximityMap.updateContour(*this, obj.area, ResourceProximityRadius, 1);
+  if (obj.requiresBuilding == ResourceField::RequiresBuilding::No) {
+    resourceBaseSaturationMap.update(
+        *this, Circle{obj.area.center(), ResourceBaseSaturationRadius}, obj.optimalWorkerCount);
+  }
   return id;
 }
 
@@ -172,6 +176,10 @@ void rts::World::destroy(ResourceField& rf) {
   assert(map[rf.area.topLeft].contains(Cell::ResourceField));
   minimap.update(map, rf, -1);
   resourceProximityMap.updateContour(*this, rf.area, ResourceProximityRadius, -1);
+  if (rf.requiresBuilding == ResourceField::RequiresBuilding::No) {
+    resourceBaseSaturationMap.update(
+        *this, Circle{rf.area.center(), ResourceBaseSaturationRadius}, -rf.optimalWorkerCount);
+  }
   map.setContent(rf.area, Cell::Empty{});
   resourceFields.erase(id(rf));
 }
@@ -455,9 +463,40 @@ std::optional<rts::AbilityTarget> rts::World::fromWeakTarget(const AbilityWeakTa
       t);
 }
 
+auto rts::World::targets(const UnitCPtrList& units) const
+    -> std::pair<PointList, std::set<WorldObjectCPtr>> {
+  PointList points;
+  std::set<WorldObjectCPtr> objects;
+  for (const auto* u : units) {
+    for (size_t i{0}; i < u->commandQueue.size(); ++i) {
+      const UnitCommand& cmd{u->commandQueue[i]};
+      if (!cmd.prototype) {
+        if (auto target{fromWeakTarget(cmd.target)}) {
+          std::visit(
+              util::Overloaded{
+                  [](std::monostate) {}, [&points](Point p) { points.push_back(p); },
+                  [this, &objects](auto id) { objects.insert(&(*this)[id]); }},
+              *target);
+        }
+      }
+    }
+    if (u->productionQueue) {
+      const ProductionQueue& pq{(*this)[u->productionQueue]};
+      if (auto p{pq.rallyPoint()}) {
+        if (auto* obj{object(*p)})
+          objects.insert(obj);
+        else
+          points.push_back(*p);
+      }
+    }
+  }
+  return {std::move(points), std::move(objects)};
+}
+
 void rts::World::onMapCreated() {
   minimap.initMapCells(map);
   resourceProximityMap.initCells(map.size());
+  resourceBaseSaturationMap.initCells(map.size());
   for (auto& s : sides)
     s.onMapCreated(*this);
 }

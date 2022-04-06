@@ -39,6 +39,7 @@ namespace rts {
     Map map;
     Minimap minimap;
     ProximityMap resourceProximityMap;
+    ProximityMap resourceBaseSaturationMap;
     GameTime time{};
     GameTimer energyIncreaseTimer{DefaultEnergyIncreaseInterval};
     FactoryUPtr factory;
@@ -241,6 +242,7 @@ namespace rts {
     Rectangle area(const AbilityTarget& t) const;
     Point center(const AbilityTarget& t) const;
     std::optional<AbilityTarget> fromWeakTarget(const AbilityWeakTarget& t) const;
+    std::pair<PointList, std::set<WorldObjectCPtr>> targets(const UnitCPtrList& units) const;
 
     void onMapCreated();
     void onMapLoaded();

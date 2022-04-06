@@ -75,6 +75,7 @@ namespace sc2::ui {
   struct Assimilator : Unit {
     using Unit::Unit;
     const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
+    const ::ui::Frame* label(const rts::World&, rts::UnitStableRef) const final;
   };
 
   struct CyberCore : Unit {
@@ -93,6 +94,7 @@ namespace sc2::ui {
     using Unit::Unit;
     const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
     const ::ui::Sprite* overlay(const rts::World&, rts::UnitStableRef) const final;
+    const ::ui::Frame* label(const rts::World&, rts::UnitStableRef) const final;
   };
 
   struct Probe : Unit {

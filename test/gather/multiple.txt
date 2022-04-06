@@ -1,4 +1,5 @@
 option t,r
+b: base
 1,2,3: worker
 ----------  [t:0 m:1000 g:0]
 mm    1bb 
@@ -6,11 +7,25 @@ mm    2bb
       3bb 
           
 ----------
+? worker_count(b): 0/2
 quantity(0,0) = 15
 select 1,2,3
 trigger gather 0,0
-run
+run for 1
 ----------  [t:0 m:1000 g:0]
+mm    1bb 
+mm    2bb 
+      3bb 
+          
+==========  [t:1 m:1000 g:0]
+mm    1bb 
+mm    2bb 
+      3bb 
+          
+----------
+? worker_count(b): 3/2
+run
+----------  [t:1 m:1000 g:0]
 mm    1bb 
 mm    2bb 
       3bb 
@@ -206,3 +221,4 @@ mm2    bb
        bb 
           
 ----------
+? worker_count(b): 0/0

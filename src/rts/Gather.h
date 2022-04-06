@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rts/AbilityState.h"
+#include "rts/CountedReference.h"
 #include "rts/SemaphoreLock.h"
 #include "rts/abilities.h"
 #include "rts/types.h"
@@ -26,12 +27,15 @@ namespace rts::abilities::state {
     int state() const final { return int(state_); }
 
   private:
+    using WorkerCountRef = CountedReference<Unit, &Unit::workerCount>;
+
     AbilityStepResult init(const World& w, const Unit& unit);
     AbilityStepResult moveToBase(const World& w, const Unit& unit);
     AbilityStepAction moveTo(Point p);
     AbilityStepAction tryOccupy(ResourceFieldWId rf);
     AbilityStepAction finishGathering();
     AbilityStepAction finishDelivering();
+    void updateWorkerCountRef(World& w);
 
     const Desc desc_;
     State state_{State::Init};
@@ -40,5 +44,6 @@ namespace rts::abilities::state {
     SemaphoreLock<ResourceField> targetFieldLock_;
     ResourceGroupId targetGroup_{};
     UnitWId base_;
+    WorkerCountRef workerCountRef_;
   };
 }

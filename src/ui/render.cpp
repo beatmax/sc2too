@@ -4,6 +4,7 @@
 #include "rts/Selection.h"
 #include "rts/Unit.h"
 #include "rts/World.h"
+#include "ui/Frame.h"
 #include "ui/Sprite.h"
 #include "ui/dim.h"
 #include "util/geo.h"
@@ -50,9 +51,12 @@ void ui::render(
     MapList maps,
     const Camera& camera,
     const rts::Selection& selection) {
-  auto selectedItems{selection.items(w)};
+  const auto selectedItems{selection.items(w)};
   const std::set<rts::WorldObjectCPtr> selectedObjects{selectedItems.begin(), selectedItems.end()};
-  const auto selectionColorPair{graph::colorPair(Color::Green)};
+  const auto& [targetPoints, targetObjects] = w.targets(selectedItems);
+
+  for (const rts::Point& p : targetPoints)
+    highlight(win, camera, p, graph::colorPair(Color::Yellow));
 
   std::vector<rts::WorldObjectCPtr> layers[rts::LayerCount];
   for (const rts::Map& m : maps) {
@@ -63,16 +67,24 @@ void ui::render(
   }
 
   for (const auto& layer : layers) {
+    LabelList labels;
     for (auto* obj : layer) {
-      render(win, w, camera, *obj);
-      if (selectedObjects.find(obj) != selectedObjects.end())
-        drawBoundingBox(win, camera, obj->area, selectionColorPair);
+      const bool selected{selectedObjects.find(obj) != selectedObjects.end()};
+      const bool isTarget{targetObjects.find(obj) != targetObjects.end()};
+      render(win, w, camera, *obj, selected, isTarget, labels);
     }
+    render(win, labels);
   }
 }
 
 void ui::render(
-    const Window& win, const rts::World& w, const Camera& camera, const rts::WorldObject& object) {
+    const Window& win,
+    const rts::World& w,
+    const Camera& camera,
+    const rts::WorldObject& object,
+    bool selected,
+    bool isTarget,
+    LabelList& labels) {
   const auto& spriteUi{getUpdatedSpriteUi(w, object)};
 
   assert(spriteUi.base().sprite().area(object.area.topLeft) == object.area);
@@ -80,14 +92,35 @@ void ui::render(
   const rts::Rectangle visibleArea{intersection(object.area, camera.area())};
   const ScreenRect drawRect{toScreenRect(camera, visibleArea)};
   const ScreenVector topLeftInSprite{toScreenVector(visibleArea.topLeft - object.area.topLeft)};
+  const Color defaultColor{spriteUi.defaultColor(object)};
 
-  graph::drawFrame(
-      win, spriteUi.base().frame(object.direction), drawRect, topLeftInSprite,
-      spriteUi.defaultColor(object));
+  const auto& baseFrame = spriteUi.base().frame(object.direction);
+  graph::drawFrame(win, baseFrame, drawRect, topLeftInSprite, defaultColor);
 
-  if (const auto& ov{spriteUi.overlay()}) {
-    graph::drawOverlay(
-        win, ov.frame(object.direction), drawRect, topLeftInSprite, spriteUi.defaultColor(object));
+  if (const auto& ov{spriteUi.overlay()})
+    graph::drawOverlay(win, ov.frame(object.direction), drawRect, topLeftInSprite, defaultColor);
+
+  if (selected)
+    drawBoundingBox(win, camera, object.area, graph::colorPair(Color::Green));
+
+  if (isTarget)
+    highlight(win, camera, object.area, graph::colorPair(Color::Yellow));
+
+  if (const auto* label{spriteUi.label()}) {
+    const int offset = (baseFrame.cols() - label->cols()) / 2;
+    const ScreenPoint objectTopLeft{toScreenPoint(camera, object.area.topLeft)};
+    const ScreenPoint labelTopLeft{objectTopLeft + ScreenVector{offset, -1}};
+    labels.emplace_back(label, labelTopLeft);
+  }
+}
+
+void ui::render(const Window& win, const LabelList& labels) {
+  for (const auto& [label, labelTopLeft] : labels) {
+    const ScreenRect labelArea{labelTopLeft, ScreenVector{label->cols(), label->rows()}};
+    if (auto labelDrawRect{maybeIntersection(labelArea, dim::MapViewArea)}) {
+      const ScreenVector labelTopLeftInFrame{labelDrawRect->topLeft - labelArea.topLeft};
+      graph::drawFrame(win, *label, *labelDrawRect, labelTopLeftInFrame, Color::Black);
+    }
   }
 }
 

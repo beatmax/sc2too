@@ -1,8 +1,8 @@
 #include "ui/Sprite.h"
 
-#include "Frame.h"
 #include "graph.h"
 #include "rts/World.h"
+#include "ui/Frame.h"
 #include "ui/dim.h"
 #include "util/algorithm.h"
 #include "util/fs.h"
@@ -178,4 +178,5 @@ void ui::SpriteState::update(const rts::World& w, const Sprite* s) {
 void ui::SpriteUiBase::update(const rts::World& w, const rts::WorldObject& obj) {
   base_.update(w, &spriteProtected(w, obj));
   overlay_.update(w, overlayProtected(w, obj));
+  label_ = labelProtected(w, obj);
 }

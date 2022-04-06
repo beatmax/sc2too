@@ -230,32 +230,6 @@ namespace ui {
         highlight(ios.renderWin, player.camera, ios.mouseMapPoint, colorPair);
     }
 
-    void drawTargetPoints(
-        const IOState& ios,
-        const rts::World& w,
-        const Camera& camera,
-        const rts::Selection& selection) {
-      const auto colorPair{graph::colorPair(Color::Yellow)};
-      for (auto* u : selection.items(w)) {
-        for (size_t i{0}; i < u->commandQueue.size(); ++i) {
-          const rts::UnitCommand& cmd{u->commandQueue[i]};
-          if (!cmd.prototype) {
-            if (auto target{w.fromWeakTarget(cmd.target)})
-              highlight(ios.renderWin, camera, w.area(*target), colorPair);
-          }
-        }
-        if (u->productionQueue) {
-          const rts::ProductionQueue& pq{w[u->productionQueue]};
-          if (auto p{pq.rallyPoint()}) {
-            if (auto* obj{w.object(*p)})
-              highlight(ios.renderWin, camera, obj->area, colorPair);
-            else
-              highlight(ios.renderWin, camera, *p, colorPair);
-          }
-        }
-      }
-    }
-
     void drawSelection(
         const IOState& ios,
         const rts::World& w,
@@ -415,7 +389,6 @@ void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const 
   }
   highlight(ios_.renderWin, camera, ios_.targetPoint, graph::colorPair(Color::Red));
   render(ios_.renderWin, w, {w.map, side.prototypeMap()}, camera, side.selection());
-  drawTargetPoints(ios_, w, camera, side.selection());
   if (player.selectionBox)
     drawBoundingBox(ios_.renderWin, camera, *player.selectionBox, graph::colorPair(Color::Green));
   if (side.prototype())

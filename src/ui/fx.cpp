@@ -1,7 +1,7 @@
 #include "ui/fx.h"
 
-#include "Frame.h"
 #include "graph.h"
+#include "ui/Frame.h"
 
 #include <cassert>
 #include <cmath>
@@ -99,4 +99,12 @@ ui::Sprite ui::fx::unpower(const Sprite& s) {
   frame.setDefaultBg(Color(unpowerColorTr(int(frame.defaultBg()))));
 
   return Sprite{std::move(frame)};
+}
+
+void ui::fx::text(Frame& f, int x, int y, const std::wstring& txt, Color color) {
+  const auto colorPair{graph::colorPair(color)};
+  for (wchar_t c : txt) {
+    wchar_t wch[]{c, L'\0'};
+    setcchar(&f(y, x++), wch, 0, colorPair, nullptr);
+  }
 }

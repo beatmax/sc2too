@@ -64,15 +64,18 @@ namespace ui {
 
     const SpriteState& base() const { return base_; }
     const SpriteState& overlay() const { return overlay_; }
+    const Frame* label() const { return label_; }
     virtual Color defaultColorPublic(const rts::WorldObject&) const = 0;
 
   protected:
     virtual const Sprite& spriteProtected(const rts::World&, const rts::WorldObject&) const = 0;
     virtual const Sprite* overlayProtected(const rts::World&, const rts::WorldObject&) const = 0;
+    virtual const Frame* labelProtected(const rts::World&, const rts::WorldObject&) const = 0;
 
   private:
     SpriteState base_;
     SpriteState overlay_;
+    const Frame* label_{};
   };
 
   class SpriteUiFacade {
@@ -83,6 +86,7 @@ namespace ui {
     }
     const SpriteState& base() const { return ui_.base(); }
     const SpriteState& overlay() const { return ui_.overlay(); }
+    const Frame* label() const { return ui_.label(); }
     Color defaultColor(const rts::WorldObject& obj) const { return ui_.defaultColorPublic(obj); }
 
   private:
@@ -98,6 +102,9 @@ namespace ui {
     const Sprite* overlayProtected(const rts::World& w, const rts::WorldObject& obj) const final {
       return overlay(w, rts::StableRef<T>{static_cast<const T&>(obj)});
     }
+    const Frame* labelProtected(const rts::World& w, const rts::WorldObject& obj) const final {
+      return label(w, rts::StableRef<T>{static_cast<const T&>(obj)});
+    }
     Color defaultColorPublic(const rts::WorldObject& obj) const final {
       return defaultColor(rts::StableRef<T>{static_cast<const T&>(obj)});
     }
@@ -105,6 +112,7 @@ namespace ui {
   private:
     virtual const Sprite& sprite(const rts::World& w, rts::StableRef<T>) const = 0;
     virtual const Sprite* overlay(const rts::World& w, rts::StableRef<T>) const { return nullptr; }
+    virtual const Frame* label(const rts::World& w, rts::StableRef<T>) const { return nullptr; }
     virtual Color defaultColor(rts::StableRef<T>) const { return detail::defaultDefaultColor(); }
   };
 

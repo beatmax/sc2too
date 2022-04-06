@@ -17,6 +17,7 @@ namespace rts {
     ResourceGroupId group;
     DestroyWhenEmpty destroyWhenEmpty;
     RequiresBuilding requiresBuilding;
+    Count optimalWorkerCount;
     Semaphore sem{1};
 
     ResourceField(
@@ -25,12 +26,14 @@ namespace rts {
         Quantity q,
         DestroyWhenEmpty dwe,
         RequiresBuilding rb,
+        Count owc,
         UiUPtr ui,
         ResourceGroupId g = 0)
       : WorldObject{{-1, -1}, s, std::move(ui)},
         bag{r, q, q},
         group{g},
         destroyWhenEmpty{dwe},
-        requiresBuilding{rb} {}
+        requiresBuilding{rb},
+        optimalWorkerCount{owc} {}
   };
 }

@@ -10,6 +10,7 @@ namespace ui::dim {
   constexpr ScreenVector CellSizeEx{CellSize + ScreenVector{1, 1}};
 
   constexpr ScreenVector MapViewSize{scale(Camera::Size, CellSizeEx) - ScreenVector{1, 1}};
+  constexpr ScreenRect MapViewArea{{0, 0}, MapViewSize};
 
   constexpr ScreenCoordinate DefaultWinLeft{1};
   constexpr ScreenCoordinate DefaultWinWidth{MapViewSize.x};

@@ -84,13 +84,13 @@ rts::UnitId sc2::Factory::zealot(rts::World& w, rts::SideId sd) {
 rts::ResourceFieldId sc2::Factory::geyser(rts::World& w) {
   return w.resourceFields.emplace(
       rts::Vector{3, 3}, Resources::gas, GeyserContent, rts::ResourceField::DestroyWhenEmpty::No,
-      rts::ResourceField::RequiresBuilding::Yes, std::make_unique<ui::Geyser>());
+      rts::ResourceField::RequiresBuilding::Yes, 3, std::make_unique<ui::Geyser>());
 }
 
 rts::ResourceFieldId sc2::Factory::mineralPatch(rts::World& w, rts::ResourceGroupId group) {
   return w.resourceFields.emplace(
       rts::Vector{2, 1}, Resources::mineral, MineralPatchContent,
-      rts::ResourceField::DestroyWhenEmpty::Yes, rts::ResourceField::RequiresBuilding::No,
+      rts::ResourceField::DestroyWhenEmpty::Yes, rts::ResourceField::RequiresBuilding::No, 2,
       std::make_unique<ui::MineralPatch>(), group);
 }
 

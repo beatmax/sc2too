@@ -1,6 +1,6 @@
 #include "graph.h"
 
-#include "Frame.h"
+#include "ui/Frame.h"
 
 #include <cassert>
 #include <stdexcept>

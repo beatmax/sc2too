@@ -7,9 +7,12 @@
 
 #include <functional>
 #include <initializer_list>
+#include <utility>
+#include <vector>
 
 namespace ui {
   using MapList = std::initializer_list<std::reference_wrapper<const rts::Map>>;
+  using LabelList = std::vector<std::pair<const Frame*, ScreenPoint>>;
 
   ScreenVector toScreenVector(rts::Vector v);
   ScreenPoint toScreenPoint(const Camera& camera, rts::Point p);
@@ -23,7 +26,14 @@ namespace ui {
       const Camera& camera,
       const rts::Selection& selection);
   void render(
-      const Window& win, const rts::World& w, const Camera& camera, const rts::WorldObject& object);
+      const Window& win,
+      const rts::World& w,
+      const Camera& camera,
+      const rts::WorldObject& object,
+      bool selected,
+      bool isTarget,
+      LabelList& labels);
+  void render(const Window& win, const LabelList& labels);
   void render(
       const Window& win,
       const rts::World& w,

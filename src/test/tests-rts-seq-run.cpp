@@ -10,13 +10,15 @@
 #include <map>
 
 namespace {
-  enum class Property { Unknown, Quantity, Abilities };
+  enum class Property { Unknown, Quantity, Abilities, WorkerCount };
 
   Property toProperty(const std::string& s) {
     if (s == "quantity")
       return Property::Quantity;
     if (s == "abilities")
       return Property::Abilities;
+    if (s == "worker_count")
+      return Property::WorkerCount;
     return Property::Unknown;
   }
 
@@ -266,6 +268,7 @@ namespace test::seq {
             world.destroy(cell.resourceFieldId());
           break;
         case Property::Abilities:
+        case Property::WorkerCount:
           return error(a, "cannot assign");
       }
       output.push_back(a);
@@ -300,6 +303,14 @@ namespace test::seq {
             }
           }
           value = '[' + util::join(abilities, ' ') + ']';
+          break;
+        }
+        case Property::WorkerCount: {
+          const auto& u{world[unit]};
+          auto count = u.workerCount.value();
+          auto saturation = u.resourceField ? world[u.resourceField].optimalWorkerCount
+                                            : world.resourceBaseSaturationMap[u.area.center()];
+          value = std::to_string(count) + '/' + std::to_string(saturation);
           break;
         }
       }

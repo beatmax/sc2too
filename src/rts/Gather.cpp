@@ -89,8 +89,8 @@ rts::AbilityStepResult rts::abilities::state::Gather::step(const World& w, UnitS
 }
 
 void rts::abilities::state::Gather::cleanup(World& w) {
-  if (targetFieldLock_)
-    targetFieldLock_.release(w);
+  targetFieldLock_.release(w);
+  workerCountRef_.release(w);
 }
 
 rts::AbilityStepResult rts::abilities::state::Gather::init(const World& w, const Unit& unit) {
@@ -98,6 +98,9 @@ rts::AbilityStepResult rts::abilities::state::Gather::init(const World& w, const
   if (!rf)
     return GameTime{0};
   targetGroup_ = rf->group;
+
+  if (auto* b{w.closestActiveUnit(rf->area.center(), unit.side, w[unit.side].baseType())})
+    base_ = w.weakId(*b);
 
   state_ = State::MovingToTarget;
   return moveTo(targetPoint_);
@@ -114,6 +117,7 @@ rts::AbilityStepResult rts::abilities::state::Gather::moveToBase(const World& w,
 
 rts::AbilityStepAction rts::abilities::state::Gather::moveTo(Point p) {
   return [this, p](World& w, Unit& u) {
+    updateWorkerCountRef(w);
     auto moveIndex{w[u.type].abilityIndex(Kind::Move)};
     assert(moveIndex != AbilityStateIndex::None);
     u.trigger(moveIndex, w, p, {}, Unit::CancelOthers::No);
@@ -155,4 +159,12 @@ rts::AbilityStepAction rts::abilities::state::Gather::finishDelivering() {
     state_ = State::DeliveringDone;
     return 1;
   };
+}
+
+void rts::abilities::state::Gather::updateWorkerCountRef(World& w) {
+  workerCountRef_.release(w);
+  if (auto* rfBuildingWId{std::get_if<UnitWId>(&target_)})
+    workerCountRef_ = WorkerCountRef{w, *rfBuildingWId};
+  else
+    workerCountRef_ = WorkerCountRef{w, base_};
 }
