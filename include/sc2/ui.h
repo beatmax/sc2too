@@ -6,12 +6,14 @@
 #include "rts/Unit.h"
 #include "rts/UnitType.h"
 #include "rts/Upgrade.h"
+#include "ui/Frame.h"
 #include "ui/ResourceUi.h"
 #include "ui/Sprite.h"
 
 namespace sc2::ui {
   struct Unit : ::ui::SpriteUi<rts::Unit> {
     ::ui::Color sideColor;
+    mutable ::ui::Frame labelBuffer;
 
     explicit Unit(::ui::Color sc) : sideColor{sc} {}
     ::ui::Color defaultColor(rts::UnitStableRef) const final;

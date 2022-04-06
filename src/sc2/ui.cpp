@@ -5,7 +5,6 @@
 #include "sc2/Abilities.h"
 #include "sc2/Assets.h"
 #include "sc2/Resources.h"
-#include "ui/Frame.h"
 #include "ui/fx.h"
 
 namespace {
@@ -126,9 +125,10 @@ const ::ui::Sprite& sc2::ui::Assimilator::sprite(const rts::World& w, rts::UnitS
 }
 
 const ::ui::Frame* sc2::ui::Assimilator::label(const rts::World& w, rts::UnitStableRef u) const {
-  static ::ui::Frame frame;
-  if (u->active())
-    return &workerCountLabel(frame, u->workerCount.value(), w[u->resourceField].optimalWorkerCount);
+  if (u->active()) {
+    return &workerCountLabel(
+        labelBuffer, u->workerCount.value(), w[u->resourceField].optimalWorkerCount);
+  }
   return nullptr;
 }
 
@@ -224,10 +224,9 @@ const ::ui::Sprite* sc2::ui::Nexus::overlay(const rts::World& w, rts::UnitStable
 }
 
 const ::ui::Frame* sc2::ui::Nexus::label(const rts::World& w, rts::UnitStableRef u) const {
-  static ::ui::Frame frame;
   if (u->active()) {
     int saturation = w.resourceBaseSaturationMap[u->area.center()];
-    return &workerCountLabel(frame, u->workerCount.value(), saturation);
+    return &workerCountLabel(labelBuffer, u->workerCount.value(), saturation);
   }
   return nullptr;
 }
