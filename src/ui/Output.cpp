@@ -425,10 +425,14 @@ void ui::Output::doUpdate(const rts::Engine& engine, const rts::World& w, const 
   }
   else {
     mvwprintw(ios_.headerWin.w, 0, 0, "F10:menu");
+#ifdef MAP_DEBUG
     mvwprintw(
         ios_.headerWin.w, 0, 32, "(%d, %d) - (%d, %d) : (%d, %d)", camera.topLeft().x,
         camera.topLeft().y, camera.bottomRight().x, camera.bottomRight().y, ios_.mouseMapPoint.x,
         ios_.mouseMapPoint.y);
+#else
+    mvwprintw(ios_.headerWin.w, 0, 40, "=== SC2TOO ===");
+#endif
   }
 
   for (const Window* win : allWins)
