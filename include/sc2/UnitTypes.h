@@ -12,6 +12,7 @@ namespace sc2 {
     static rts::UnitTypeId nexus;
     static rts::UnitTypeId probe;
     static rts::UnitTypeId pylon;
+    static rts::UnitTypeId stalker;
     static rts::UnitTypeId zealot;
   };
 }

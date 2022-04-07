@@ -29,6 +29,8 @@ rts::UnitId sc2::Factory::create(rts::World& w, rts::UnitTypeId t, rts::SideId s
     return probe(w, sd);
   if (t == UnitTypes::pylon)
     return pylon(w, sd);
+  if (t == UnitTypes::stalker)
+    return stalker(w, sd);
   if (t == UnitTypes::zealot)
     return zealot(w, sd);
   return {};
@@ -73,6 +75,12 @@ rts::UnitId sc2::Factory::pylon(rts::World& w, rts::SideId sd) {
   auto sideColor{::ui::getColor(w[sd])};
   return w.units.emplace(
       rts::Vector{2, 2}, UnitTypes::pylon, sd, std::make_unique<ui::Pylon>(sideColor));
+}
+
+rts::UnitId sc2::Factory::stalker(rts::World& w, rts::SideId sd) {
+  auto sideColor{::ui::getColor(w[sd])};
+  return w.units.emplace(
+      rts::Vector{1, 1}, UnitTypes::stalker, sd, std::make_unique<ui::Stalker>(sideColor));
 }
 
 rts::UnitId sc2::Factory::zealot(rts::World& w, rts::SideId sd) {

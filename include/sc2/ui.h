@@ -70,6 +70,10 @@ namespace sc2::ui {
     const ::ui::Icon& icon() const final;
   };
 
+  struct StalkerType : ::ui::IconUi<rts::UnitType> {
+    const ::ui::Icon& icon() const final;
+  };
+
   struct ZealotType : ::ui::IconUi<rts::UnitType> {
     const ::ui::Icon& icon() const final;
   };
@@ -109,6 +113,11 @@ namespace sc2::ui {
     const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
   };
 
+  struct Stalker : Unit {
+    using Unit::Unit;
+    const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
+  };
+
   struct Zealot : Unit {
     using Unit::Unit;
     const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
@@ -139,6 +148,10 @@ namespace sc2::ui {
   };
 
   struct WarpInProbeAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct WarpInStalkerAbility : ::ui::IconUi<rts::Ability> {
     const ::ui::Icon& icon() const final;
   };
 

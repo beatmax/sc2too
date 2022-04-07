@@ -95,6 +95,11 @@ const ::ui::Icon& sc2::ui::PylonType::icon() const {
   return icon;
 }
 
+const ::ui::Icon& sc2::ui::StalkerType::icon() const {
+  static const auto& icon{Assets::getIcon("stalker")};
+  return icon;
+}
+
 const ::ui::Icon& sc2::ui::ZealotType::icon() const {
   static const auto& icon{Assets::getIcon("zealot")};
   return icon;
@@ -263,6 +268,11 @@ const ::ui::Sprite& sc2::ui::Pylon::sprite(const rts::World& w, rts::UnitStableR
   return sprite;
 }
 
+const ::ui::Sprite& sc2::ui::Stalker::sprite(const rts::World& w, rts::UnitStableRef u) const {
+  static const auto& sprite{Assets::getSprite("stalker")};
+  return sprite;
+}
+
 const ::ui::Sprite& sc2::ui::Zealot::sprite(const rts::World& w, rts::UnitStableRef u) const {
   static const auto& sprite{Assets::getSprite("zealot")};
   return sprite;
@@ -301,6 +311,11 @@ const ::ui::Icon& sc2::ui::SetRallyPointAbility::icon() const {
 
 const ::ui::Icon& sc2::ui::WarpInProbeAbility::icon() const {
   static const auto& icon{Assets::getIcon("probe")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::WarpInStalkerAbility::icon() const {
+  static const auto& icon{Assets::getIcon("stalker")};
   return icon;
 }
 

@@ -11,6 +11,7 @@ void sc2::Abilities::init(rts::World& w) {
   researchWarpGate = w.createAbility(std::make_unique<ui::ResearchWarpGateAbility>());
   setRallyPoint = w.createAbility(std::make_unique<ui::SetRallyPointAbility>());
   warpInProbe = w.createAbility(std::make_unique<ui::WarpInProbeAbility>());
+  warpInStalker = w.createAbility(std::make_unique<ui::WarpInStalkerAbility>());
   warpInZealot = w.createAbility(std::make_unique<ui::WarpInZealotAbility>());
 
   warpInStructure = w.createAbility(std::make_unique<ui::WarpInStructureAbility>());
@@ -27,6 +28,7 @@ rts::AbilityId sc2::Abilities::move;
 rts::AbilityId sc2::Abilities::researchWarpGate;
 rts::AbilityId sc2::Abilities::setRallyPoint;
 rts::AbilityId sc2::Abilities::warpInProbe;
+rts::AbilityId sc2::Abilities::warpInStalker;
 rts::AbilityId sc2::Abilities::warpInZealot;
 
 rts::AbilityId sc2::Abilities::warpInStructure;

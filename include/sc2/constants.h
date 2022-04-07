@@ -42,6 +42,12 @@ namespace sc2 {
   constexpr rts::Quantity PylonSupplyProvision{8};
   constexpr rts::Coordinate PylonPowerRadius{6};
 
+  constexpr rts::GameTime StalkerBuildTime{42 * rts::GameTimeSecond};
+  constexpr rts::Quantity StalkerMineralCost{125};
+  constexpr rts::Quantity StalkerGasCost{50};
+  constexpr rts::Quantity StalkerSupplyCost{2};
+  constexpr rts::Speed StalkerSpeed{3};
+
   constexpr rts::GameTime WarpGateUpgradeResearchTime{140 * rts::GameTimeSecond};
   constexpr rts::Quantity WarpGateUpgradeMineralCost{50};
   constexpr rts::Quantity WarpGateUpgradeGasCost{50};

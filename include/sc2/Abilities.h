@@ -13,6 +13,7 @@ namespace sc2 {
     static rts::AbilityId researchWarpGate;
     static rts::AbilityId setRallyPoint;
     static rts::AbilityId warpInProbe;
+    static rts::AbilityId warpInStalker;
     static rts::AbilityId warpInZealot;
 
     static rts::AbilityId warpInStructure;
@@ -32,6 +33,7 @@ namespace sc2 {
     static constexpr rts::AbilityInstanceIndex SetRallyPointIndex{9};
     static constexpr rts::AbilityInstanceIndex ResearchWarpGateIndex{10};
     static constexpr rts::AbilityInstanceIndex WarpInProbeIndex{0};
+    static constexpr rts::AbilityInstanceIndex WarpInStalkerIndex{2};
     static constexpr rts::AbilityInstanceIndex WarpInZealotIndex{0};
 
     static constexpr rts::AbilityInstanceIndex WarpInStructureIndex{10};

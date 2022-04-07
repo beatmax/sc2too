@@ -14,6 +14,7 @@ namespace sc2 {
     static rts::UnitId nexus(rts::World& w, rts::SideId sd);
     static rts::UnitId probe(rts::World& w, rts::SideId sd);
     static rts::UnitId pylon(rts::World& w, rts::SideId sd);
+    static rts::UnitId stalker(rts::World& w, rts::SideId sd);
     static rts::UnitId zealot(rts::World& w, rts::SideId sd);
 
     static rts::ResourceFieldId geyser(rts::World& w);

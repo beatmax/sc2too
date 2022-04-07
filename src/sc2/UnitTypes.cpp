@@ -41,6 +41,14 @@ void sc2::UnitTypes::init(rts::World& w) {
       std::make_unique<ui::PylonType>(), 0, 0, rts::UnitTypeId{}, rts::UnitType::RequiresPower::No,
       PylonPowerRadius);
 
+  stalker = w.createUnitType(
+      rts::UnitType::Kind::Army,
+      rts::ResourceQuantityList{
+          {Resources::mineral, StalkerMineralCost},
+          {Resources::gas, StalkerGasCost},
+          {Resources::supply, StalkerSupplyCost}},
+      rts::ResourceQuantityList{}, StalkerBuildTime, std::make_unique<ui::StalkerType>(), 0, 0,
+      cyberCore);
   zealot = w.createUnitType(
       rts::UnitType::Kind::Army,
       rts::ResourceQuantityList{
@@ -62,6 +70,8 @@ void sc2::UnitTypes::init(rts::World& w) {
     auto& gatewayType{w.unitTypes[gateway]};
     gatewayType.addAbility(
         Abilities::SetRallyPointIndex, rts::abilities::SetRallyPoint{Abilities::setRallyPoint});
+    gatewayType.addAbility(
+        Abilities::WarpInStalkerIndex, rts::abilities::Produce{Abilities::warpInStalker, stalker});
     gatewayType.addAbility(
         Abilities::WarpInZealotIndex, rts::abilities::Produce{Abilities::warpInZealot, zealot});
 
@@ -110,6 +120,14 @@ void sc2::UnitTypes::init(rts::World& w) {
       probeType.defaultAbility[uint32_t(rc)] = Abilities::GatherIndex;
   }
   {
+    auto& stalkerType{w.unitTypes[stalker]};
+    stalkerType.addAbility(
+        Abilities::MoveIndex, rts::abilities::Move{Abilities::move, StalkerSpeed});
+
+    for (auto rc : {RC::Friend, RC::Foe, RC::Ground, RC::Resource, RC::FriendResource})
+      stalkerType.defaultAbility[uint32_t(rc)] = Abilities::MoveIndex;
+  }
+  {
     auto& zealotType{w.unitTypes[zealot]};
     zealotType.addAbility(Abilities::MoveIndex, rts::abilities::Move{Abilities::move, ZealotSpeed});
 
@@ -124,4 +142,5 @@ rts::UnitTypeId sc2::UnitTypes::gateway;
 rts::UnitTypeId sc2::UnitTypes::nexus;
 rts::UnitTypeId sc2::UnitTypes::probe;
 rts::UnitTypeId sc2::UnitTypes::pylon;
+rts::UnitTypeId sc2::UnitTypes::stalker;
 rts::UnitTypeId sc2::UnitTypes::zealot;
