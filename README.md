@@ -21,3 +21,11 @@
 **Build dependencies** (Ubuntu):
 
     build-essential scons libncurses-dev libx11-dev
+
+**Building**:
+
+    git clone git@github.com:beatmax/sc2too.git
+    cd sc2too/
+    git submodule init
+    git submodule update
+    make
