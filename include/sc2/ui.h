@@ -58,7 +58,19 @@ namespace sc2::ui {
     const ::ui::Icon& icon() const final;
   };
 
+  struct ImmortalType : ::ui::IconUi<rts::UnitType> {
+    const ::ui::Icon& icon() const final;
+  };
+
   struct NexusType : ::ui::IconUi<rts::UnitType> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct ObserverType : ::ui::IconUi<rts::UnitType> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct PrismType : ::ui::IconUi<rts::UnitType> {
     const ::ui::Icon& icon() const final;
   };
 
@@ -70,7 +82,19 @@ namespace sc2::ui {
     const ::ui::Icon& icon() const final;
   };
 
+  struct RoboType : ::ui::IconUi<rts::UnitType> {
+    const ::ui::Icon& icon() const final;
+  };
+
   struct StalkerType : ::ui::IconUi<rts::UnitType> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct TemplarType : ::ui::IconUi<rts::UnitType> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct TwilightType : ::ui::IconUi<rts::UnitType> {
     const ::ui::Icon& icon() const final;
   };
 
@@ -96,11 +120,26 @@ namespace sc2::ui {
     const ::ui::Sprite* overlay(const rts::World&, rts::UnitStableRef) const final;
   };
 
+  struct Immortal : Unit {
+    using Unit::Unit;
+    const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
+  };
+
   struct Nexus : Unit {
     using Unit::Unit;
     const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
     const ::ui::Sprite* overlay(const rts::World&, rts::UnitStableRef) const final;
     const ::ui::Frame* label(const rts::World&, rts::UnitStableRef) const final;
+  };
+
+  struct Observer : Unit {
+    using Unit::Unit;
+    const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
+  };
+
+  struct Prism : Unit {
+    using Unit::Unit;
+    const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
   };
 
   struct Probe : Unit {
@@ -113,9 +152,26 @@ namespace sc2::ui {
     const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
   };
 
+  struct Robo : Unit {
+    using Unit::Unit;
+    const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
+    const ::ui::Sprite* overlay(const rts::World&, rts::UnitStableRef) const final;
+  };
+
   struct Stalker : Unit {
     using Unit::Unit;
     const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
+  };
+
+  struct Templar : Unit {
+    using Unit::Unit;
+    const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
+  };
+
+  struct Twilight : Unit {
+    using Unit::Unit;
+    const ::ui::Sprite& sprite(const rts::World&, rts::UnitStableRef) const final;
+    const ::ui::Sprite* overlay(const rts::World&, rts::UnitStableRef) const final;
   };
 
   struct Zealot : Unit {
@@ -139,11 +195,27 @@ namespace sc2::ui {
     const ::ui::Icon& icon() const final;
   };
 
+  struct ResearchChargeAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
   struct ResearchWarpGateAbility : ::ui::IconUi<rts::Ability> {
     const ::ui::Icon& icon() const final;
   };
 
   struct SetRallyPointAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct WarpInImmortalAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct WarpInObserverAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct WarpInPrismAbility : ::ui::IconUi<rts::Ability> {
     const ::ui::Icon& icon() const final;
   };
 
@@ -160,6 +232,10 @@ namespace sc2::ui {
   };
 
   struct WarpInStructureAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct WarpInStructure2Ability : ::ui::IconUi<rts::Ability> {
     const ::ui::Icon& icon() const final;
   };
 
@@ -180,6 +256,22 @@ namespace sc2::ui {
   };
 
   struct WarpInPylonAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct WarpInRoboAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct WarpInTemplarAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct WarpInTwilightAbility : ::ui::IconUi<rts::Ability> {
+    const ::ui::Icon& icon() const final;
+  };
+
+  struct ChargeUpgrade : ::ui::IconUi<rts::Upgrade> {
     const ::ui::Icon& icon() const final;
   };
 

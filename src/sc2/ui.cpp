@@ -80,8 +80,23 @@ const ::ui::Icon& sc2::ui::GatewayType::icon() const {
   return icon;
 }
 
+const ::ui::Icon& sc2::ui::ImmortalType::icon() const {
+  static const auto& icon{Assets::getIcon("immortal")};
+  return icon;
+}
+
 const ::ui::Icon& sc2::ui::NexusType::icon() const {
   static const auto& icon{Assets::getIcon("nexus")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::ObserverType::icon() const {
+  static const auto& icon{Assets::getIcon("observer")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::PrismType::icon() const {
+  static const auto& icon{Assets::getIcon("prism")};
   return icon;
 }
 
@@ -95,8 +110,23 @@ const ::ui::Icon& sc2::ui::PylonType::icon() const {
   return icon;
 }
 
+const ::ui::Icon& sc2::ui::RoboType::icon() const {
+  static const auto& icon{Assets::getIcon("robo")};
+  return icon;
+}
+
 const ::ui::Icon& sc2::ui::StalkerType::icon() const {
   static const auto& icon{Assets::getIcon("stalker")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::TemplarType::icon() const {
+  static const auto& icon{Assets::getIcon("templar")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::TwilightType::icon() const {
+  static const auto& icon{Assets::getIcon("twilight")};
   return icon;
 }
 
@@ -199,6 +229,11 @@ const ::ui::Sprite* sc2::ui::Gateway::overlay(const rts::World& w, rts::UnitStab
   return w[u->productionQueue].boosted(w) ? &spriteChronoBoost : nullptr;
 }
 
+const ::ui::Sprite& sc2::ui::Immortal::sprite(const rts::World& w, rts::UnitStableRef u) const {
+  static const auto& sprite{Assets::getSprite("immortal")};
+  return sprite;
+}
+
 const ::ui::Sprite& sc2::ui::Nexus::sprite(const rts::World& w, rts::UnitStableRef u) const {
   using State = rts::Unit::State;
   using ProduceState = rts::abilities::ProduceState;
@@ -236,6 +271,16 @@ const ::ui::Frame* sc2::ui::Nexus::label(const rts::World& w, rts::UnitStableRef
   return nullptr;
 }
 
+const ::ui::Sprite& sc2::ui::Observer::sprite(const rts::World& w, rts::UnitStableRef u) const {
+  static const auto& sprite{Assets::getSprite("observer")};
+  return sprite;
+}
+
+const ::ui::Sprite& sc2::ui::Prism::sprite(const rts::World& w, rts::UnitStableRef u) const {
+  static const auto& sprite{Assets::getSprite("prism")};
+  return sprite;
+}
+
 const ::ui::Sprite& sc2::ui::Probe::sprite(const rts::World& w, rts::UnitStableRef u) const {
   using GatherState = rts::abilities::GatherState;
   static const auto& sprite{Assets::getSprite("probe")};
@@ -268,9 +313,93 @@ const ::ui::Sprite& sc2::ui::Pylon::sprite(const rts::World& w, rts::UnitStableR
   return sprite;
 }
 
+const ::ui::Sprite& sc2::ui::Robo::sprite(const rts::World& w, rts::UnitStableRef u) const {
+  using State = rts::Unit::State;
+  using ProduceState = rts::abilities::ProduceState;
+
+  static const auto& sprite{Assets::getSprite("robo")};
+  static const auto& spriteBuilding{Assets::getSprite("building3x3")};
+  static const auto& spriteProducing{Assets::getSprite("robo_producing")};
+  static const auto spritePrototype{::ui::fx::flatten(sprite)};
+  static const auto spriteUnpowered{::ui::fx::unpower(sprite)};
+
+  switch (u->state) {
+    case State::New:
+    case State::Allocated:
+    case State::Buildable:
+      return spritePrototype;
+    case State::Building:
+      return spriteBuilding;
+    case State::Active:
+    case State::Destroyed:
+      break;
+  }
+  return !u->powered                                                             ? spriteUnpowered
+      : (rts::Unit::abilityState<ProduceState>(u, w) == ProduceState::Producing) ? spriteProducing
+                                                                                 : sprite;
+}
+
+const ::ui::Sprite* sc2::ui::Robo::overlay(const rts::World& w, rts::UnitStableRef u) const {
+  static const auto& spriteChronoBoost{Assets::getSprite("boost3x3")};
+  return w[u->productionQueue].boosted(w) ? &spriteChronoBoost : nullptr;
+}
+
 const ::ui::Sprite& sc2::ui::Stalker::sprite(const rts::World& w, rts::UnitStableRef u) const {
   static const auto& sprite{Assets::getSprite("stalker")};
   return sprite;
+}
+
+const ::ui::Sprite& sc2::ui::Templar::sprite(const rts::World& w, rts::UnitStableRef u) const {
+  using State = rts::Unit::State;
+
+  static const auto& sprite{Assets::getSprite("templar")};
+  static const auto& spriteBuilding{Assets::getSprite("building3x3")};
+  static const auto spritePrototype{::ui::fx::flatten(sprite)};
+  static const auto spriteUnpowered{::ui::fx::unpower(sprite)};
+
+  switch (u->state) {
+    case State::New:
+    case State::Allocated:
+    case State::Buildable:
+      return spritePrototype;
+    case State::Building:
+      return spriteBuilding;
+    case State::Active:
+    case State::Destroyed:
+      break;
+  }
+  return !u->powered ? spriteUnpowered : sprite;
+}
+
+const ::ui::Sprite& sc2::ui::Twilight::sprite(const rts::World& w, rts::UnitStableRef u) const {
+  using State = rts::Unit::State;
+  using ProduceState = rts::abilities::ProduceState;
+
+  static const auto& sprite{Assets::getSprite("twilight")};
+  static const auto& spriteBuilding{Assets::getSprite("building3x3")};
+  static const auto& spriteResearching{Assets::getSprite("twilight_researching")};
+  static const auto spritePrototype{::ui::fx::flatten(sprite)};
+  static const auto spriteUnpowered{::ui::fx::unpower(sprite)};
+
+  switch (u->state) {
+    case State::New:
+    case State::Allocated:
+    case State::Buildable:
+      return spritePrototype;
+    case State::Building:
+      return spriteBuilding;
+    case State::Active:
+    case State::Destroyed:
+      break;
+  }
+  return !u->powered                                                             ? spriteUnpowered
+      : (rts::Unit::abilityState<ProduceState>(u, w) == ProduceState::Producing) ? spriteResearching
+                                                                                 : sprite;
+}
+
+const ::ui::Sprite* sc2::ui::Twilight::overlay(const rts::World& w, rts::UnitStableRef u) const {
+  static const auto& spriteChronoBoost{Assets::getSprite("boost3x3")};
+  return w[u->productionQueue].boosted(w) ? &spriteChronoBoost : nullptr;
 }
 
 const ::ui::Sprite& sc2::ui::Zealot::sprite(const rts::World& w, rts::UnitStableRef u) const {
@@ -299,6 +428,11 @@ const ::ui::Icon& sc2::ui::MoveAbility::icon() const {
   return icon;
 }
 
+const ::ui::Icon& sc2::ui::ResearchChargeAbility::icon() const {
+  static const auto& icon{Assets::getIcon("charge")};
+  return icon;
+}
+
 const ::ui::Icon& sc2::ui::ResearchWarpGateAbility::icon() const {
   static const auto& icon{Assets::getIcon("warp_gate")};
   return icon;
@@ -306,6 +440,21 @@ const ::ui::Icon& sc2::ui::ResearchWarpGateAbility::icon() const {
 
 const ::ui::Icon& sc2::ui::SetRallyPointAbility::icon() const {
   static const auto& icon{Assets::getIcon("rally")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::WarpInImmortalAbility::icon() const {
+  static const auto& icon{Assets::getIcon("immortal")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::WarpInObserverAbility::icon() const {
+  static const auto& icon{Assets::getIcon("observer")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::WarpInPrismAbility::icon() const {
+  static const auto& icon{Assets::getIcon("prism")};
   return icon;
 }
 
@@ -326,6 +475,11 @@ const ::ui::Icon& sc2::ui::WarpInZealotAbility::icon() const {
 
 const ::ui::Icon& sc2::ui::WarpInStructureAbility::icon() const {
   static const auto& icon{Assets::getIcon("nexus")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::WarpInStructure2Ability::icon() const {
+  static const auto& icon{Assets::getIcon("twilight")};
   return icon;
 }
 
@@ -351,6 +505,26 @@ const ::ui::Icon& sc2::ui::WarpInNexusAbility::icon() const {
 
 const ::ui::Icon& sc2::ui::WarpInPylonAbility::icon() const {
   static const auto& icon{Assets::getIcon("pylon")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::WarpInRoboAbility::icon() const {
+  static const auto& icon{Assets::getIcon("robo")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::WarpInTemplarAbility::icon() const {
+  static const auto& icon{Assets::getIcon("templar")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::WarpInTwilightAbility::icon() const {
+  static const auto& icon{Assets::getIcon("twilight")};
+  return icon;
+}
+
+const ::ui::Icon& sc2::ui::ChargeUpgrade::icon() const {
+  static const auto& icon{Assets::getIcon("charge")};
   return icon;
 }
 

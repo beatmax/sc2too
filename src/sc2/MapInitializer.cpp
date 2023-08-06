@@ -17,6 +17,10 @@ rts::Cell::Content sc2::MapInitializer::operator()(
       (p.y >= rts::Coordinate(lines.size() / 2) && side2It != w.sides.end()) ? *side2It
                                                                              : *side1It)};
   switch (c) {
+    case 'R':
+      return Factory::robo(w, side);
+    case 'T':
+      return Factory::twilight(w, side);
     case 'a':
       return Factory::assimilator(w, side, w.add(Factory::geyser(w), p));
     case 'c':
@@ -38,6 +42,8 @@ rts::Cell::Content sc2::MapInitializer::operator()(
         return Factory::rock(w, {2, 2});
       else
         return Factory::rock(w, {1, 1});
+    case 't':
+      return Factory::templar(w, side);
     case 'w':
       return Factory::gateway(w, side);
     default:

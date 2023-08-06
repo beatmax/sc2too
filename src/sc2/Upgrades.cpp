@@ -7,6 +7,10 @@
 #include "sc2/ui.h"
 
 void sc2::Upgrades::init(rts::World& w) {
+  charge = w.createUpgrade(
+      rts::ResourceQuantityList{
+          {Resources::mineral, ChargeUpgradeMineralCost}, {Resources::gas, ChargeUpgradeGasCost}},
+      ChargeUpgradeResearchTime, std::make_unique<ui::ChargeUpgrade>());
   warpGate = w.createUpgrade(
       rts::ResourceQuantityList{
           {Resources::mineral, WarpGateUpgradeMineralCost},
@@ -14,4 +18,5 @@ void sc2::Upgrades::init(rts::World& w) {
       WarpGateUpgradeResearchTime, std::make_unique<ui::WarpGateUpgrade>());
 }
 
+rts::UpgradeId sc2::Upgrades::charge;
 rts::UpgradeId sc2::Upgrades::warpGate;
