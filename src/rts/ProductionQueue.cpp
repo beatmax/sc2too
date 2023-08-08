@@ -12,6 +12,7 @@ bool rts::ProductionQueue::add(World& w, ProducibleId product) {
     if (auto [result, failedResource] =
             s.resources().allocateTo(resources_, p.cost, AllocFilter::Unrecoverable);
         result == AllocResult::Success) {
+      w.factory->onProduce(w, product, side_);
       queue_.push(product);
       if (auto* u{std::get_if<UpgradeId>(&product)})
         s.setUpgradeInResearch(*u, true);

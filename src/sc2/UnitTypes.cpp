@@ -227,6 +227,25 @@ void sc2::UnitTypes::init(rts::World& w) {
     for (auto rc : {RC::Friend, RC::Foe, RC::Ground, RC::Resource, RC::FriendResource})
       zealotType.defaultAbility[uint32_t(rc)] = Abilities::MoveIndex;
   }
+
+  auto setName = [](rts::UnitTypeId id, std::string name) {
+    idToName[id] = name;
+    nameToId[name] = id;
+  };
+  setName(assimilator, "assimilator");
+  setName(cyberCore, "cyber_core");
+  setName(gateway, "gateway");
+  setName(immortal, "immortal");
+  setName(nexus, "nexus");
+  setName(observer, "observer");
+  setName(prism, "prism");
+  setName(probe, "probe");
+  setName(pylon, "pylon");
+  setName(robo, "robo");
+  setName(stalker, "stalker");
+  setName(templar, "templar");
+  setName(twilight, "twilight");
+  setName(zealot, "zealot");
 }
 
 rts::UnitTypeId sc2::UnitTypes::assimilator;
@@ -243,3 +262,6 @@ rts::UnitTypeId sc2::UnitTypes::stalker;
 rts::UnitTypeId sc2::UnitTypes::templar;
 rts::UnitTypeId sc2::UnitTypes::twilight;
 rts::UnitTypeId sc2::UnitTypes::zealot;
+
+std::map<rts::UnitTypeId, std::string> sc2::UnitTypes::idToName;
+std::map<std::string, rts::UnitTypeId> sc2::UnitTypes::nameToId;

@@ -53,6 +53,7 @@ rts::AbilityStepResult rts::abilities::state::Build::init(const World& w, const 
     auto moveIndex{w[u.type].abilityIndex(Kind::Move)};
     assert(moveIndex != AbilityStateIndex::None);
     u.trigger(moveIndex, w, target, {}, Unit::CancelOthers::No);
+    w.factory->onProduce(w, w[target].type, u.side);
     return MonitorTime;
   };
 }

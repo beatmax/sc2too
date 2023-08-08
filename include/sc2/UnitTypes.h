@@ -2,6 +2,9 @@
 
 #include "rts/types.h"
 
+#include <map>
+#include <string>
+
 namespace sc2 {
   struct UnitTypes {
     static void init(rts::World& w);
@@ -20,5 +23,8 @@ namespace sc2 {
     static rts::UnitTypeId templar;
     static rts::UnitTypeId twilight;
     static rts::UnitTypeId zealot;
+
+    static std::map<rts::UnitTypeId, std::string> idToName;
+    static std::map<std::string, rts::UnitTypeId> nameToId;
   };
 }

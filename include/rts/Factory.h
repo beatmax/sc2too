@@ -8,5 +8,6 @@ namespace rts {
     virtual ~Factory() = default;
     virtual void init(World& w) = 0;
     virtual UnitId create(World& w, UnitTypeId t, SideId sd) = 0;
+    virtual void onProduce(World& w, ProducibleId p, SideId sd){};
   };
 }

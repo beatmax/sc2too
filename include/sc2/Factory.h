@@ -7,6 +7,7 @@ namespace sc2 {
   public:
     void init(rts::World& w) final;
     rts::UnitId create(rts::World& w, rts::UnitTypeId t, rts::SideId sd) final;
+    void onProduce(rts::World& w, rts::ProducibleId p, rts::SideId sd) final;
 
     static rts::UnitId assimilator(rts::World& w, rts::SideId sd, rts::ResourceFieldId rf = {});
     static rts::UnitId cyberCore(rts::World& w, rts::SideId sd);

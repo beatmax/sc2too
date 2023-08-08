@@ -2,6 +2,7 @@
 
 #include "rts/World.h"
 #include "sc2/Abilities.h"
+#include "sc2/BuildOrder.h"
 #include "sc2/Resources.h"
 #include "sc2/UnitTypes.h"
 #include "sc2/Upgrades.h"
@@ -9,11 +10,20 @@
 #include "sc2/ui.h"
 #include "ui/SideUi.h"
 
+namespace {
+  sc2::BuildOrder buildOrder;
+}
+
 void sc2::Factory::init(rts::World& w) {
   Resources::init(w);
   Abilities::init(w);
   Upgrades::init(w);
   UnitTypes::init(w);
+  buildOrder.init(w);
+}
+
+void sc2::Factory::onProduce(rts::World& w, rts::ProducibleId p, rts::SideId sd) {
+  buildOrder.check(w, p, sd);
 }
 
 rts::UnitId sc2::Factory::create(rts::World& w, rts::UnitTypeId t, rts::SideId sd) {
