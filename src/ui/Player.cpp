@@ -107,10 +107,10 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
           }
         }
         return ControlGroupCmd{
-            (event.state & ShiftPressed)                        ? ControlGroupCmd::Add
-                : (event.state & (ControlPressed | AltPressed)) ? ControlGroupCmd::Set
-                                                                : ControlGroupCmd::Select,
-            bool(event.state & AltPressed), rts::ControlGroupId(digit)};
+            (event.state & (ShiftPressed | AltPressed)) ? ControlGroupCmd::Add
+                : (event.state & ControlPressed)        ? ControlGroupCmd::Set
+                                                        : ControlGroupCmd::Select,
+            true, rts::ControlGroupId(digit)};
       }
       else if (int fkey{getFunctionKeyNumber(event.symbol)};
                fkey > 0 && fkey <= int(MaxCameraPositions)) {
