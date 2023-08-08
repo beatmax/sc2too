@@ -112,6 +112,9 @@ std::optional<rts::Command> ui::Player::processInput(const rts::World& w, const 
                                                         : ControlGroupCmd::Select,
             true, rts::ControlGroupId(digit)};
       }
+      else if (event.symbol == InputKeySym::Grave) {
+        return ControlGroupCmd{ControlGroupCmd::Set, true, 0};
+      }
       else if (int fkey{getFunctionKeyNumber(event.symbol)};
                fkey > 0 && fkey <= int(MaxCameraPositions)) {
         --fkey;

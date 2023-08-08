@@ -52,6 +52,7 @@ namespace ui {
     Digit_7,
     Digit_8,
     Digit_9,
+    Grave,
     A,
     B,
     C,

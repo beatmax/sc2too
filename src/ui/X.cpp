@@ -71,6 +71,7 @@ namespace {
       {XK_7, ui::InputKeySym::Digit_7},
       {XK_8, ui::InputKeySym::Digit_8},
       {XK_9, ui::InputKeySym::Digit_9},
+      {XK_grave, ui::InputKeySym::Grave},
       {XK_a, ui::InputKeySym::A},
       {XK_b, ui::InputKeySym::B},
       {XK_c, ui::InputKeySym::C},
@@ -116,7 +117,7 @@ namespace {
     xModmap = XGetModifierMapping(display);
   }
 
-  void setModifierMapping(XModifierKeymap *modmap) {
+  void setModifierMapping(XModifierKeymap* modmap) {
     using namespace std::chrono_literals;
     while (XSetModifierMapping(display, modmap) == MappingBusy)
       std::this_thread::sleep_for(100ms);
